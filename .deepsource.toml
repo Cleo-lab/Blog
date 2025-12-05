@@ -5,9 +5,6 @@ name = "javascript"
 enabled = true
 
   [analyzers.meta]
-  # если у вас TypeScript
-  environment = ["browser", "nodejs", "typescript"]
-  # какой конфиг ESLint использовать (опционально)
-  config_file = ".eslintrc.json"
-  # какую команду запускать перед линтингом (если нужно)
-  setup_command = "npm install"
+  environment = ["browser", "nodejs"]
+  config_file = ".eslintrc.json"   # опционально, если у вас есть eslint-конфиг
+  setup_command = "npm install"    # опционально
