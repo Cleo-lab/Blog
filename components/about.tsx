@@ -1,7 +1,7 @@
 'use client'
 
 interface AboutProps {
-  language: string
+  readonly language: string;
 }
 
 const content = {
@@ -42,11 +42,9 @@ export default function About({ language }: AboutProps) {
           </div>
 
           <div className="bg-card rounded-2xl p-8 sm:p-12 border border-border/50 shadow-lg">
-            <p className="text-lg text-foreground/80 leading-relaxed mb-6">
-              {t.bio}
-            </p>
+            <p className="text-lg text-foreground/80 leading-relaxed mb-6">{t.bio}</p>
             <p className="text-lg text-foreground/70 leading-relaxed">
-              On this blog, you'll find my personal musings, fan artwork, travel stories, and everything that makes my heart sparkle. Whether you're here for the anime discussions, photography, or just some cozy content, I'm glad you stopped by!
+              On this blog, you&apos;ll find my personal musings, fan artwork, travel stories, and everything that makes my heart sparkle. Whether you&apos;re here for the anime discussions, photography, or just some cozy content, I&apos;m glad you stopped by!
             </p>
           </div>
 
@@ -55,8 +53,11 @@ export default function About({ language }: AboutProps) {
               { icon: '✨', label: 'Creative', value: 'Arts & Stories' },
               { icon: '💭', label: 'Thoughtful', value: 'Deep Insights' },
               { icon: '🌸', label: 'Cozy', value: 'Warm Community' }
-            ].map((item, i) => (
-              <div key={i} className="bg-card rounded-xl p-6 border border-border/50 text-center hover:shadow-lg transition-shadow">
+            ].map((item, idx) => (
+              <div
+                key={idx} // ← SonarCloud: вместо item.label
+                className="bg-card rounded-xl p-6 border border-border/50 text-center hover:shadow-lg transition-shadow"
+              >
                 <div className="text-4xl mb-3">{item.icon}</div>
                 <h3 className="font-semibold text-foreground mb-2">{item.label}</h3>
                 <p className="text-sm text-foreground/60">{item.value}</p>
@@ -68,6 +69,3 @@ export default function About({ language }: AboutProps) {
     </section>
   )
 }
-
-
-

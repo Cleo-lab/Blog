@@ -8,9 +8,9 @@ import { useSupabase } from '@/hooks/use-supabase'
 import { useToast } from '@/hooks/use-toast'
 
 interface SignUpProps {
-  onSignUp?: (email: string, username: string) => void
-  onSwitchToSignIn?: () => void
-  setCurrentSection?: (section: string) => void
+  readonly onSignUp?: (email: string, username: string) => void
+  readonly onSwitchToSignIn?: () => void
+  readonly setCurrentSection?: (section: string) => void
 }
 
 export default function SignUp({ onSignUp, onSwitchToSignIn, setCurrentSection }: SignUpProps) {
@@ -21,6 +21,8 @@ export default function SignUp({ onSignUp, onSwitchToSignIn, setCurrentSection }
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
+
+  const supabase = useSupabase()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,7 +47,6 @@ export default function SignUp({ onSignUp, onSwitchToSignIn, setCurrentSection }
 
     try {
       // Create auth user
-      const supabase = useSupabase()
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password
@@ -118,8 +119,9 @@ export default function SignUp({ onSignUp, onSwitchToSignIn, setCurrentSection }
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">Username</label>
+              <label htmlFor="signup-username" className="block text-sm font-medium mb-2 text-foreground">Username</label>
               <Input
+                id="signup-username"
                 type="text"
                 placeholder="your_username"
                 value={username}
@@ -131,8 +133,9 @@ export default function SignUp({ onSignUp, onSwitchToSignIn, setCurrentSection }
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">Email</label>
+              <label htmlFor="signup-email" className="block text-sm font-medium mb-2 text-foreground">Email</label>
               <Input
+                id="signup-email"
                 type="email"
                 placeholder="your@email.com"
                 value={email}
@@ -144,8 +147,9 @@ export default function SignUp({ onSignUp, onSwitchToSignIn, setCurrentSection }
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">Password</label>
+              <label htmlFor="signup-password" className="block text-sm font-medium mb-2 text-foreground">Password</label>
               <Input
+                id="signup-password"
                 type="password"
                 placeholder="••••••••"
                 value={password}
@@ -157,8 +161,9 @@ export default function SignUp({ onSignUp, onSwitchToSignIn, setCurrentSection }
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">Confirm Password</label>
+              <label htmlFor="signup-confirm" className="block text-sm font-medium mb-2 text-foreground">Confirm Password</label>
               <Input
+                id="signup-confirm"
                 type="password"
                 placeholder="••••••••"
                 value={confirmPassword}
@@ -194,6 +199,3 @@ export default function SignUp({ onSignUp, onSwitchToSignIn, setCurrentSection }
     </section>
   )
 }
-
-
-

@@ -1,7 +1,7 @@
 'use client'
 
 interface FooterProps {
-  language: string
+  readonly language: string
 }
 
 const content = {
@@ -23,16 +23,19 @@ export default function Footer({ language }: FooterProps) {
           <p className="text-sm text-foreground/60">
             {t.copyright} Made with love 💖
           </p>
-          <div className="flex gap-6">
-            <a href="#" className="text-xs text-foreground/50 hover:text-foreground transition-colors">Privacy</a>
-            <a href="#" className="text-xs text-foreground/50 hover:text-foreground transition-colors">Terms</a>
-            <a href="#" className="text-xs text-foreground/50 hover:text-foreground transition-colors">Contact</a>
-          </div>
+          <nav className="flex gap-6" aria-label="Footer navigation">
+            <a href="/privacy" className="text-xs text-foreground/50 hover:text-foreground transition-colors">
+              Privacy
+            </a>
+            <a href="/terms" className="text-xs text-foreground/50 hover:text-foreground transition-colors">
+              Terms
+            </a>
+            <a href="/contact" className="text-xs text-foreground/50 hover:text-foreground transition-colors">
+              Contact
+            </a>
+          </nav>
         </div>
       </div>
     </footer>
   )
 }
-
-
-

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import Header from '@/components/header'
 import Hero from '@/components/hero'
@@ -13,7 +13,6 @@ import FootAdBanner from '@/components/FootAdBanner'
 import { useAuth } from '@/hooks/use-auth'
 import { useSupabase } from '@/hooks/use-supabase'
 import MiddleAdBanner from '@/components/MiddleAdBanner'
-import TopAdStrip from '@/components/TopAdStrip'
 
 const SignIn = dynamic(() => import('@/components/auth/sign-in'), {
   loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>
@@ -41,24 +40,25 @@ export default function Home() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [currentSection, setCurrentSection] = useState('home')
 
+  const supabase = useSupabase()
+
   const handleSignIn = useCallback(async (userEmail: string) => {
     console.log('User signed in:', userEmail)
     setRefreshKey((prev) => prev + 1)
   }, [])
 
   const handleSignOut = useCallback(async () => {
-  console.log('Signing out...')
+    console.log('Signing out...')
 
-  try {
-    const supabase = useSupabase()
-    await supabase.auth.signOut()
-  } catch (error) {
-    console.error('Sign out error:', error)
-  } finally {
-    localStorage.clear()
-    window.location.href = '/'
-  }
-}, [])
+    try {
+      await supabase.auth.signOut()
+    } catch (error) {
+      console.error('Sign out error:', error)
+    } finally {
+      localStorage.clear()
+      globalThis.location.href = '/'
+    }
+  }, [supabase])
   useEffect(() => {
     const validSections = ['home', 'signin', 'signup', 'profile', 'mycomments', 'admin']
     if (!validSections.includes(currentSection)) {
@@ -89,7 +89,6 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-background text-foreground" suppressHydrationWarning>
       <Header
-      
         key={refreshKey}
         currentSection={currentSection}
         setCurrentSection={setCurrentSection}
@@ -159,4 +158,3 @@ export default function Home() {
     </main>
   )
 }
-

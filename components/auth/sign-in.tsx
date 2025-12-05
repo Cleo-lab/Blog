@@ -5,11 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useSupabase } from '@/hooks/use-supabase'
 
-
 interface SignInProps {
-  onSignIn?: (email: string) => void
-  onSwitchToSignUp?: () => void
-  setCurrentSection?: (section: string) => void
+  readonly onSignIn?: (email: string) => void
+  readonly onSwitchToSignUp?: () => void
+  readonly setCurrentSection?: (section: string) => void
 }
 
 export default function SignIn({ onSignIn, onSwitchToSignUp, setCurrentSection }: SignInProps) {
@@ -18,13 +17,14 @@ export default function SignIn({ onSignIn, onSwitchToSignUp, setCurrentSection }
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const supabase = useSupabase()
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
     try {
-      const supabase = useSupabase()
       const { data, error: sbErr } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
@@ -49,7 +49,7 @@ export default function SignIn({ onSignIn, onSwitchToSignUp, setCurrentSection }
       }
 
       onSignIn?.(data.user.email ?? '')
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, 500))
       setCurrentSection?.('home')
     } catch (err: any) {
       console.error('Sign in error:', err)
@@ -86,8 +86,11 @@ export default function SignIn({ onSignIn, onSwitchToSignUp, setCurrentSection }
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">Email</label>
+              <label htmlFor="signin-email" className="block text-sm font-medium mb-2 text-foreground">
+                Email
+              </label>
               <Input
+                id="signin-email"
                 type="email"
                 placeholder="your@email.com"
                 value={email}
@@ -99,8 +102,11 @@ export default function SignIn({ onSignIn, onSwitchToSignUp, setCurrentSection }
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">Password</label>
+              <label htmlFor="signin-password" className="block text-sm font-medium mb-2 text-foreground">
+                Password
+              </label>
               <Input
+                id="signin-password"
                 type="password"
                 placeholder="••••••••"
                 value={password}
@@ -122,7 +128,7 @@ export default function SignIn({ onSignIn, onSwitchToSignUp, setCurrentSection }
 
           <div className="mt-6 pt-6 border-t border-border/50">
             <p className="text-sm text-foreground/60 text-center">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <button
                 onClick={onSwitchToSignUp}
                 className="text-primary hover:text-primary/80 font-medium"
@@ -137,6 +143,3 @@ export default function SignIn({ onSignIn, onSwitchToSignUp, setCurrentSection }
     </section>
   )
 }
-
-
-

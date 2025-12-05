@@ -6,7 +6,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { Save } from 'lucide-react'
 
 export default function AboutManager() {
-  const [content, setContent] = useState('Hi! I\'m Yurie Jiyūbō, a cheerful and dreamy character living in the digital world. I\'ve always had a passion for connecting with people, sharing stories, and exploring the beautiful intersection between anime culture and modern life.')
+  const [content, setContent] = useState(
+    `Hi! I'm Yurie Jiyūbō, a cheerful and dreamy character living in the digital world. I've always had a passion for connecting with people, sharing stories, and exploring the beautiful intersection between anime culture and modern life.`
+  )
   const [saved, setSaved] = useState(false)
 
   const handleSave = () => {
@@ -20,8 +22,11 @@ export default function AboutManager() {
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-2">About Content</label>
+          <label htmlFor="about-content" className="block text-sm font-medium mb-2">
+            About Content
+          </label>
           <Textarea
+            id="about-content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className="bg-background border-border/50 min-h-80"
@@ -43,14 +48,9 @@ export default function AboutManager() {
         </div>
 
         {saved && (
-          <div className="p-3 rounded-lg bg-green-100 text-green-800 text-sm">
-            About section updated successfully!
-          </div>
+          <div className="p-3 rounded-lg bg-green-100 text-green-800 text-sm">About section updated successfully!</div>
         )}
       </div>
     </div>
   )
 }
-
-
-
