@@ -157,12 +157,10 @@ export default function GalleryModal({ image, isOpen, onClose, isAuthenticated }
         </button>
 
         <div className="space-y-6 p-6">
-          {/* Image */}
           <div className="rounded-lg overflow-hidden bg-muted flex items-center justify-center">
             <img src={image.image} alt={image.title} className="w-full h-auto max-h-[70vh] object-contain" />
           </div>
 
-          {/* Title & Description */}
           <div>
             <h2 className="text-2xl font-bold mb-3 text-foreground">{image.title}</h2>
             {image.description && (
@@ -170,11 +168,9 @@ export default function GalleryModal({ image, isOpen, onClose, isAuthenticated }
             )}
           </div>
 
-          {/* Comments Section */}
           <div className="border-t border-border/50 pt-6 space-y-4">
             <h3 className="font-semibold text-foreground">Comments</h3>
 
-            {/* Comment Form */}
             {isAuthenticated ? (
               <form onSubmit={handleSubmitComment} className="space-y-3">
                 <div className="flex gap-2">
@@ -199,7 +195,6 @@ export default function GalleryModal({ image, isOpen, onClose, isAuthenticated }
               <div className="text-sm text-foreground/60 bg-muted/30 p-3 rounded">Please sign in to comment</div>
             )}
 
-            {/* Comments List */}
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {loading ? (
                 <p className="text-foreground/60 text-sm">Loading comments...</p>
@@ -208,7 +203,6 @@ export default function GalleryModal({ image, isOpen, onClose, isAuthenticated }
               ) : (
                 comments.map((comment) => (
                   <div key={comment.id} className="space-y-2">
-                    {/* Main Comment */}
                     <div className="bg-muted/30 p-3 rounded text-sm">
                       <div className="flex justify-between items-start mb-1">
                         <span className="font-medium text-foreground">{comment.profiles?.username || 'Anonymous'}</span>
@@ -233,7 +227,6 @@ export default function GalleryModal({ image, isOpen, onClose, isAuthenticated }
                       )}
                     </div>
 
-                    {/* Reply Form */}
                     {isAuthenticated && replyingTo === comment.id && (
                       <div className="ml-6 flex gap-2">
                         <Input
@@ -254,7 +247,6 @@ export default function GalleryModal({ image, isOpen, onClose, isAuthenticated }
                       </div>
                     )}
 
-                    {/* Replies */}
                     {comment.replies && comment.replies.length > 0 && (
                       <div className="ml-6 space-y-2">
                         {comment.replies.map((reply) => (
