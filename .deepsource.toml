@@ -3,6 +3,6 @@ version = 1
 [[analyzers]]
 name = "javascript"
 enabled = true
-# Дополнительно можно настроить линтеры, например eslint
+
 [analyzers.meta]
 cmd = "npm run lint"
