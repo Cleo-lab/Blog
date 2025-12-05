@@ -6,4 +6,3 @@ enabled = true
 
   [analyzers.meta]
   environment = ["browser", "nodejs"]
-  config_file = ".eslintrc.json"   # опционально, если у вас есть eslint-конфиг
