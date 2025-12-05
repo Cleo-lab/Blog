@@ -1,6 +1,6 @@
 version = 1
 
-# Встроенный анализатор JavaScript/TypeScript
+# Встроенный анализатор JS/TS
 [[analyzers]]
 name = "javascript"
 enabled = true
@@ -8,7 +8,7 @@ enabled = true
 # Кастомный анализатор для ESLint
 [[analyzers]]
 type = "custom"
-name = "eslint"
+name = "eslint-lint"
 enabled = true
 [analyzers.meta]
 cmd = "npm run lint"
