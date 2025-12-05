@@ -5,10 +5,10 @@ version = 1
 name = "javascript"
 enabled = true
 
-# Кастомный анализатор для запуска ESLint
+# Кастомный анализатор для ESLint
 [[analyzers]]
-name = "custom-lint"
-enabled = true
 type = "custom"
+name = "eslint"
+enabled = true
 [analyzers.meta]
 cmd = "npm run lint"
