@@ -1,14 +1,13 @@
 version = 1
 
-# Встроенный анализатор JS/TS
 [[analyzers]]
 name = "javascript"
 enabled = true
 
-# Кастомный анализатор для ESLint
-[[analyzers]]
-type = "custom"
-name = "eslint-lint"
-enabled = true
-[analyzers.meta]
-cmd = "npm run lint"
+  [analyzers.meta]
+  # если у вас TypeScript
+  environment = ["browser", "nodejs", "typescript"]
+  # какой конфиг ESLint использовать (опционально)
+  config_file = ".eslintrc.json"
+  # какую команду запускать перед линтингом (если нужно)
+  setup_command = "npm install"
