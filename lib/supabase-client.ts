@@ -6,8 +6,10 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const getBrowserSupabaseClient = () => {
-  if (typeof window === 'undefined')
-    throw new Error('getBrowserSupabaseClient must be called on the client')
+  if (typeof window === 'undefined') {
+    // Возвращаем заглушку, чтобы не падало при импорте
+    return null as any
+  }
 
   const global = window as any
   if (!global.__supabase_client__)
@@ -20,4 +22,3 @@ export const getBrowserSupabaseClient = () => {
     })
   return global.__supabase_client__
 }
-

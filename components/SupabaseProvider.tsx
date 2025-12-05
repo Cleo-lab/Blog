@@ -9,15 +9,15 @@ export default function SupabaseProvider({
   children,
   initialSession,
 }: {
-  children: React.ReactNode
-  initialSession?: any
+  readonly children: React.ReactNode
+  readonly initialSession?: any
 }) {
   const [supabase, setSupabase] = useState<any>(null)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     // Only call getBrowserSupabaseClient in useEffect on client
-    if (typeof window !== 'undefined') {
+    if (typeof globalThis.window !== 'undefined') {
       setSupabase(getBrowserSupabaseClient())
       setMounted(true)
     }

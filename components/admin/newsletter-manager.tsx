@@ -28,101 +28,101 @@ export default function NewsletterManager() {
   const [error, setError] = useState('')
 
   const handleSendNewsletter = async () => {
-    if (subject && message) {
-      setIsSending(true)
-      setError('')
+    if (!subject || !message) return
 
-      try {
-        const response = await fetch('/api/newsletter/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            subject,
-            message,
-            recipientEmails: subscribers.map(s => s.email)
-          })
-        })
+    setIsSending(true)
+    setError('')
 
-        if (response.ok) {
-          setSent(true)
-          setSubject('')
-          setMessage('')
-          setTimeout(() => setSent(false), 3000)
-        } else {
-          setError('Failed to send newsletter')
-        }
-      } catch (err) {
-        setError('Error sending newsletter')
-      } finally {
-        setIsSending(false)
-      }
+    try {
+      const res = await fetch('/api/newsletter/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject,
+          message,
+          recipientEmails: subscribers.map((s) => s.email),
+        }),
+      })
+
+      if (!res.ok) throw new Error('Failed to send newsletter')
+
+      setSent(true)
+      setSubject('')
+      setMessage('')
+      setTimeout(() => setSent(false), 3000)
+    } catch (err: any) {
+      setError(err?.message || 'Error sending newsletter')
+    } finally {
+      setIsSending(false)
     }
   }
 
   const handleUnsubscribe = (id: string) => {
-    setSubscribers(subscribers.filter(s => s.id !== id))
+    setSubscribers((prev) => prev.filter((s) => s.id !== id))
   }
 
   return (
     <div className="space-y-8">
-      <div>
-        <h3 className="text-xl font-bold mb-6">Newsletter Manager</h3>
+      <h3 className="text-xl font-bold mb-6">Newsletter Manager</h3>
 
-        {/* Send Newsletter */}
-        <Card className="border-border/50 bg-muted/30 p-6 space-y-4 mb-8">
-          <h4 className="font-semibold flex items-center gap-2">
-            <Mail className="w-4 h-4" />
-            Send Newsletter via Resend
-          </h4>
+      {/* Send Newsletter */}
+      <Card className="border-border/50 bg-muted/30 p-6 space-y-4 mb-8">
+        <h4 className="font-semibold flex items-center gap-2">
+          <Mail className="w-4 h-4" />
+          Send Newsletter via Resend
+        </h4>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Subject</label>
-            <Input
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="Newsletter subject"
-              className="bg-background border-border/50"
-            />
+        <div>
+          <label htmlFor="newsletter-subject" className="block text-sm font-medium mb-2">
+            Subject
+          </label>
+          <Input
+            id="newsletter-subject"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder="Newsletter subject"
+            className="bg-background border-border/50"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="newsletter-message" className="block text-sm font-medium mb-2">
+            Message
+          </label>
+          <Textarea
+            id="newsletter-message"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Write your newsletter message..."
+            className="bg-background border-border/50"
+            rows={6}
+          />
+          <p className="text-xs text-foreground/50 mt-2">
+            This will be sent to {subscribers.length} subscriber{subscribers.length !== 1 ? 's' : ''} via Resend
+          </p>
+        </div>
+
+        <div className="flex gap-3">
+          <Button
+            onClick={handleSendNewsletter}
+            disabled={isSending || !subject || !message}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            <Send className="w-4 h-4 mr-2" />
+            {isSending ? 'Sending...' : 'Send Newsletter'}
+          </Button>
+        </div>
+
+        {sent && (
+          <div className="p-3 rounded-lg bg-green-100 text-green-800 text-sm">
+            Newsletter sent successfully to {subscribers.length} subscriber{subscribers.length !== 1 ? 's' : ''}!
           </div>
+        )}
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Message</label>
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Write your newsletter message..."
-              className="bg-background border-border/50"
-              rows={6}
-            />
-            <p className="text-xs text-foreground/50 mt-2">
-              This will be sent to {subscribers.length} subscriber{subscribers.length !== 1 ? 's' : ''} via Resend
-            </p>
-          </div>
-
-          <div className="flex gap-3">
-            <Button
-              onClick={handleSendNewsletter}
-              disabled={isSending || !subject || !message}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              <Send className="w-4 h-4 mr-2" />
-              {isSending ? 'Sending...' : 'Send Newsletter'}
-            </Button>
-          </div>
-
-          {sent && (
-            <div className="p-3 rounded-lg bg-green-100 text-green-800 text-sm">
-              Newsletter sent successfully to {subscribers.length} subscriber{subscribers.length !== 1 ? 's' : ''}!
-            </div>
-          )}
-
-          {error && (
-            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-              {error}
-            </div>
-          )}
-        </Card>
-      </div>
+        {error && (
+          <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>
+        )}
+      </Card>
 
       {/* Subscribers List */}
       <div>
@@ -151,14 +151,9 @@ export default function NewsletterManager() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-foreground/50">
-            No subscribers yet
-          </div>
+          <div className="text-center py-8 text-foreground/50">No subscribers yet</div>
         )}
       </div>
     </div>
   )
 }
-
-
-

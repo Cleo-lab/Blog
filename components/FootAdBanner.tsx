@@ -1,10 +1,10 @@
 'use client';
 
 interface AdBannerProps {
-  imageUrl?: string;
-  linkUrl?: string;
-  alt?: string;
-  callout?: string;
+  readonly imageUrl?: string;
+  readonly linkUrl?: string;
+  readonly alt?: string;
+  readonly callout?: string;
 }
 
 export default function FootAdBanner({
@@ -45,5 +45,3 @@ export default function FootAdBanner({
     </aside>
   );
 }
-
-

@@ -11,7 +11,7 @@ import AboutManager from './about-manager'
 import { ArrowLeft } from 'lucide-react'
 
 interface AdminPanelProps {
-  setCurrentSection?: (section: string) => void
+  readonly setCurrentSection?: (section: string) => void
 }
 
 export default function AdminPanel({ setCurrentSection }: AdminPanelProps) {
@@ -42,32 +42,32 @@ export default function AdminPanel({ setCurrentSection }: AdminPanelProps) {
         <div className="bg-card rounded-2xl border border-border/50 shadow-lg overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="w-full justify-start border-b border-border/50 bg-muted/30 rounded-none p-0 h-auto">
-              <TabsTrigger 
-                value="blog" 
+              <TabsTrigger
+                value="blog"
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary"
               >
                 Blog Posts
               </TabsTrigger>
-              <TabsTrigger 
-                value="about" 
+              <TabsTrigger
+                value="about"
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary"
               >
                 About
               </TabsTrigger>
-              <TabsTrigger 
-                value="gallery" 
+              <TabsTrigger
+                value="gallery"
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary"
               >
                 Gallery
               </TabsTrigger>
-              <TabsTrigger 
-                value="comments" 
+              <TabsTrigger
+                value="comments"
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary"
               >
                 Comments
               </TabsTrigger>
-              <TabsTrigger 
-                value="newsletter" 
+              <TabsTrigger
+                value="newsletter"
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary"
               >
                 Newsletter
@@ -97,6 +97,3 @@ export default function AdminPanel({ setCurrentSection }: AdminPanelProps) {
     </section>
   )
 }
-
-
-

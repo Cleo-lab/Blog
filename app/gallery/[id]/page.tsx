@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { useSupabase } from '@/hooks/use-supabase'
 
@@ -38,6 +38,7 @@ export default function GalleryImagePage() {
   const params = useParams()
   const imageId = params.id as string
   const { toast } = useToast()
+  const supabase = useSupabase()
 
   const [image, setImage] = useState<GalleryImage | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
@@ -47,21 +48,20 @@ export default function GalleryImagePage() {
   const [commentContent, setCommentContent] = useState('')
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
 
-  useEffect(() => {
-    const init = async () => {
-      const supabase = useSupabase()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        setCurrentUserId(user.id)
-      }
-      await fetchImage()
+  const init = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      setCurrentUserId(user.id)
     }
+    await fetchImage()
+  }, [supabase])
+
+  useEffect(() => {
     init()
-  }, [imageId])
+  }, [imageId, supabase, init])
 
   const fetchImage = async () => {
     try {
-      const supabase = useSupabase()
       const { data: imageData, error: imageError } = await supabase
         .from('gallery')
         .select('*')
@@ -86,7 +86,6 @@ export default function GalleryImagePage() {
 
   const fetchComments = async (imgId: string) => {
     try {
-      const supabase = useSupabase()
       const { data, error } = await supabase
         .from('comments')
         .select(`
@@ -156,7 +155,6 @@ export default function GalleryImagePage() {
 
     setSubmittingComment(true)
     try {
-      const supabase = useSupabase()
       const { error } = await supabase
         .from('comments')
         .insert([{
@@ -192,7 +190,6 @@ export default function GalleryImagePage() {
     if (!confirm('Are you sure you want to delete this comment?')) return
 
     try {
-      const supabase = useSupabase()
       const { error } = await supabase
         .from('comments')
         .delete()
@@ -232,13 +229,13 @@ export default function GalleryImagePage() {
         <div className="max-w-4xl mx-auto px-4 py-12">
           <div className="flex justify-end mb-4">
             <button
-              onClick={() => window.history.back()}
-              className="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground"
-              aria-label="Close"
-            >
-              <X className="w-4 h-4 mr-2" />
-              Close
-            </button>
+            onClick={() => globalThis.history.back()}
+            className="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground"
+            aria-label="Close"
+          >
+            <X className="w-4 h-4 mr-2" />
+            Close
+          </button>
           </div>
           <div className="text-center">
             <h1 className="text-2xl font-bold text-foreground">Image not found</h1>
@@ -254,7 +251,7 @@ export default function GalleryImagePage() {
         {/* Close Button */}
         <div className="flex justify-end mb-8">
           <button
-            onClick={() => window.history.back()}
+            onClick={() => globalThis.history.back()}
             className="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground"
             aria-label="Close gallery image"
           >
@@ -338,7 +335,7 @@ export default function GalleryImagePage() {
           ) : (
             <div className="mb-8 p-6 bg-muted/30 rounded-lg border border-border/50 text-center">
               <p className="text-foreground/60 mb-4">Sign in to leave a comment</p>
-              <Button className="bg-primary hover:bg-primary/90" onClick={() => window.location.href = '/'}>Sign In</Button>
+              <Button className="bg-primary hover:bg-primary/90" onClick={() => globalThis.location.href = '/'}>Sign In</Button>
             </div>
           )}
 

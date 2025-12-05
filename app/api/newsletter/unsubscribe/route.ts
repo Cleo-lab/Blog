@@ -1,31 +1,28 @@
-import { NextRequest } from 'next/server';
-import { getSupabaseServer } from '@/lib/supabaseServer';
+import { NextRequest, NextResponse } from 'next/server'
+import { createServerSupabase } from '@/lib/supabaseServer'
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const token = searchParams.get('token');
+  try {
+    const { searchParams } = new URL(req.url)
+    const emailRaw = searchParams.get('email')
+    if (!emailRaw) return NextResponse.json({ error: 'Email required' }, { status: 400 })
 
-  if (!token) {
-    return new Response('Missing token', { status: 400 });
+    const email = emailRaw.trim().toLowerCase()
+    const supabase = await createServerSupabase() // ← await
+
+    const { error } = await supabase
+      .from('newsletter_subscribers')
+      .delete()
+      .eq('email', email)
+
+    if (error) {
+      console.error('Unsubscribe DB error:', error)
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+    }
+
+    return NextResponse.json({ message: 'Unsubscribed successfully' }, { status: 200 })
+  } catch (err) {
+    console.error('Unsubscribe error:', err)
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
-
-  const supabase = getSupabaseServer()
-  const { error } = await supabase
-    .from('subscribers')
-    .delete()
-    .eq('unsubscribe_token', token);
-
-  if (error) {
-    return new Response('Invalid or expired link', { status: 400 });
-  }
-
-  // Простая страница «Вы отписаны»
-  return new Response(
-    `<html><body style="font-family:sans-serif;text-align:center;margin-top:40px">
-       <h2>✅ You’ve been unsubscribed</h2>
-       <p>Sorry to see you go. You can subscribe again anytime.</p>
-     </body></html>`,
-    { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-  );
 }
-

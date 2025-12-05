@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description: "Welcome to Yurie Jiyūbō's personal blog - a dreamy digital world",
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { readonly children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={poppins.className}>
