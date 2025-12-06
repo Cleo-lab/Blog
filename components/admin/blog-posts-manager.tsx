@@ -362,7 +362,7 @@ export default function BlogPostsManager() {
         </Card>
       )}
 
-      <div className="grid gap-4">
+      <div className="grid gap-4 contain-content">
         {posts.map((post) => (
           <Card key={post.id} className="p-4">
             <div className="flex justify-between items-start">

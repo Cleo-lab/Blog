@@ -219,7 +219,7 @@ export default function GalleryManager() {
       {images.length === 0 ? (
         <div className="text-center py-12 text-foreground/60">No images in gallery yet</div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 contain-content">
           {images.map((image) => (
             <Card key={image.id} className="border-border/50 overflow-hidden">
               <div className="h-48 bg-muted flex items-center justify-center">

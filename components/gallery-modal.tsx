@@ -195,7 +195,7 @@ export default function GalleryModal({ image, isOpen, onClose, isAuthenticated }
               <div className="text-sm text-foreground/60 bg-muted/30 p-3 rounded">Please sign in to comment</div>
             )}
 
-            <div className="space-y-3 max-h-96 overflow-y-auto">
+            <div className="space-y-3 max-h-96 overflow-y-auto contain-content">
               {loading ? (
                 <p className="text-foreground/60 text-sm">Loading comments...</p>
               ) : comments.length === 0 ? (
