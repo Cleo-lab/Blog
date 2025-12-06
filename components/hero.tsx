@@ -18,15 +18,13 @@ export default function Hero({ setCurrentSection }: HeroProps) {
         {/* Avatar */}
         <div className="hero-avatar-gradient w-60 h-60 rounded-full bg-gradient-to-br from-primary via-accent to-secondary p-1 mb-6 mx-auto">
           <Image
-            src="/videos/Yurie_main.webp"
-            alt="Yurie"
-            width={240}
-            height={240}
-            quality={75}
-            priority
-            className="hero-avatar w-full h-full rounded-full object-cover shadow-lg select-none"
-            draggable="false"
-          />
+  src="/videos/Yurie_main.webp"
+  alt="Yurie"
+  width={240}
+  height={240}
+  priority
+  className="hero-avatar w-full h-full rounded-full object-cover shadow-lg select-none"
+/>
         </div>
 
         <h1 className="text-4xl sm:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
