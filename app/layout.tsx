@@ -12,6 +12,9 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: 'Yurie Jiyūbō - Character Blog',
   description: "Welcome to Yurie Jiyūbō's personal blog - a dreamy digital world",
+  verification: {
+    google: 'WXnuGqV3agaGqnSqBJBEuym8I5KkJuvH4AMNKWXodYM',
+  },
 }
 
 export default function RootLayout({ children }: { readonly children: React.ReactNode }) {
