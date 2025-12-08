@@ -3,7 +3,7 @@ import { MetadataRoute } from 'next'
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: 'https://yurieblog.vercel.app',          // замени на свой домен
+      url: 'https://yurieblog.vercel.app',   // ← без пробела, без /
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
