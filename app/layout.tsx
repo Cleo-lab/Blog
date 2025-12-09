@@ -3,6 +3,7 @@ import { Poppins } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 import { ProvidersWrapper } from '@/components/providers-wrapper'
+import CookieConsent from "react-cookie-consent";
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -29,6 +30,19 @@ export default function RootLayout({ children }: { readonly children: React.Reac
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
           strategy="afterInteractive"
         />
+		<CookieConsent
+  location="bottom"
+  buttonText="I understand"
+  cookieName="mySiteCookieConsent"
+  style={{ background: "#2B373B" }}
+  buttonStyle={{ color: "#4e503b", fontSize: "13px" }}
+  expires={150}
+>
+  This website uses cookies to enhance the user experience.{" "}
+  <a href="/privacy-policy" style={{ color: "#FFF", textDecoration: "underline" }}>
+    Learn more
+  </a>
+</CookieConsent>
       </body>
     </html>
   )
