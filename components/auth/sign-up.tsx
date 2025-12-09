@@ -46,10 +46,16 @@ export default function SignUp({ onSignUp, onSwitchToSignIn, setCurrentSection }
     setLoading(true)
 
     try {
-      // Create auth user
+      // Create auth user with metadata
+      // Триггер автоматически создаст профиль используя эти данные
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
-        password
+        password,
+        options: {
+          data: {
+            username: username.trim() // Это попадёт в raw_user_meta_data
+          }
+        }
       })
 
       if (authError) throw authError
@@ -58,17 +64,8 @@ export default function SignUp({ onSignUp, onSwitchToSignIn, setCurrentSection }
         throw new Error('Failed to create user')
       }
 
-      // Create profile
-      const { error: profileError } = await supabase.from('profiles').insert([
-        {
-          id: authData.user.id,
-          username: username.trim(),
-          avatar_url: null,
-          is_admin: false
-        }
-      ])
-
-      if (profileError) throw profileError
+      // ❌ УДАЛЕНО: Ручное создание профиля больше не нужно
+      // Триггер on_auth_user_created автоматически создаст профиль
 
       // Sign in user after registration
       const { error: signInError } = await supabase.auth.signInWithPassword({
