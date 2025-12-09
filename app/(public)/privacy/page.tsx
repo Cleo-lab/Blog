@@ -10,38 +10,43 @@ export default function PrivacyPage() {
 
       <div className="prose prose-sm dark:prose-invert">
         <p>
-          Privacy Policy for YourSite  
-Effective date: 01 June 2025
+          Privacy Policy for YurieBlog Effective date: 09 December 2025
 
-1. Introduction  
-We operate the website https://yurieblog.vercel.app (»the Service«). This page informs you of our policies regarding the collection, use and disclosure of personal data when you use the Service and the choices you have associated with that data.
+1. Introduction We operate the website https://yurieblog.vercel.app ("the Service"). This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use the Service and the choices you have associated with that data.
 
-2. Information We Collect  
-a) Log files: IP address, browser type, pages visited, time stamp.  
-b) Cookies: small text files stored on your device.  
-c) Analytics: Google Analytics with IP-anonymisation enabled.
+2. Information We Collect We collect several different types of information for various purposes to provide and improve our Service to you:
 
-3. Legal Basis (GDPR)  
-Processing is necessary for our legitimate interest in improving the Service.
+Personal Data: While using our Service (e.g., subscribing to the newsletter or contacting us), we may ask you to provide us with certain personally identifiable information, such as your Email address and Name.
 
-4. Retention  
-Analytics data is automatically deleted after 26 months.
+Log files: IP address, browser type, pages visited, time stamp.
 
-5. Third Parties  
-We do not sell, trade or otherwise transfer your data. Google Analytics data is governed by Google’s privacy policy.
+Cookies: Small text files stored on your device to track activity and hold certain information.
 
-6. Your Rights  
-You may disable cookies in your browser settings or withdraw consent at any time by clearing cookies.  
-Users in the EU have the right to access, rectify, erase or port their data. Contact us to exercise these rights.
+3. Advertising (Google AdSense)
 
-7. Children  
-The Service is not directed to children under 13. We do not knowingly collect personal data from them.
+Third-party vendors, including Google, use cookies to serve ads based on a user's prior visits to this website or other websites.
 
-8. Changes  
-We may update this policy by posting a new version on this page.
+Google's use of advertising cookies enables it and its partners to serve ads to your users based on their visit to your sites and/or other sites on the Internet.
 
-9. Contact  
-For questions write to: cleopatrathequeenofcats@gmail.com
+Users may opt out of personalized advertising by visiting Google Ads Settings.
+
+4. Analytics and Third Parties We may use third-party Service Providers to monitor and analyze the use of our Service, store data, or send emails.
+
+Google Analytics: Used for tracking website traffic (IP-anonymization enabled).
+
+Supabase: Used for database and authentication services.
+
+Resend (if applicable): Used for sending newsletters. We do not sell your personal data to third parties.
+
+5. Legal Basis (GDPR) Processing is necessary for our legitimate interest in improving the Service, providing functionality (like newsletters), and maintaining security.
+
+6. Retention Personal data (like emails) is kept as long as you are subscribed or active. Analytics data is automatically deleted after 26 months.
+
+7. Your Rights You may disable cookies in your browser settings. Users in the EU have the right to access, rectify, erase, or port their data. You can unsubscribe from our newsletter at any time by clicking the link in the email or contacting us.
+
+8. Children The Service is not directed to children under 13. We do not knowingly collect personal data from them.
+
+9. Contact For questions regarding this privacy policy, please contact us at: cleopatrathequeenofcats@gmail.com
         </p>
         <p>
           By continuing to browse the site, you agree to our use of cookies.
