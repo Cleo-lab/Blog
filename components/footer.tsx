@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'   // ← добавь импорт
+
 interface FooterProps {
   readonly language: string
 }
@@ -9,13 +11,15 @@ const content = {
     copyright: '© 2025, Character Blog.',
     privacy: 'Privacy',
     terms: 'Terms',
-    contact: 'Contact'
+    contact: 'Contact',
+    about: 'About'
   },
   es: {
     copyright: '© 2025, Blog de Personaje.',
     privacy: 'Privacidad',
     terms: 'Términos',
-    contact: 'Contacto'
+    contact: 'Contacto',
+    about: 'Acerca de'
   }
 }
 
@@ -31,27 +35,34 @@ export default function Footer({ language }: FooterProps) {
           </p>
 
           <nav className="flex gap-6" aria-label="Footer navigation">
-            <a
+            <Link
               href="/privacy"
               className="text-xs text-foreground/50 hover:text-foreground transition-colors"
               aria-label={t.privacy + ' Policy'}
             >
               {t.privacy}
-            </a>
-            <a
+            </Link>
+            <Link
               href="/terms"
               className="text-xs text-foreground/50 hover:text-foreground transition-colors"
               aria-label={t.terms + ' of Service'}
             >
               {t.terms}
-            </a>
-            <a
+            </Link>
+            <Link
               href="/contact"
               className="text-xs text-foreground/50 hover:text-foreground transition-colors"
               aria-label={t.contact}
             >
               {t.contact}
-            </a>
+            </Link>
+            <Link
+              href="/about"
+              className="text-xs text-foreground/50 hover:text-foreground transition-colors"
+              aria-label={t.about}
+            >
+              {t.about}
+            </Link>
           </nav>
         </div>
       </div>

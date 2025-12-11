@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSupabase } from '@/hooks/use-supabase'
-
+import LoadMoreBtn from '@/components/load-more-btn'
 
 interface GalleryImage {
   id: string
@@ -70,35 +70,40 @@ export default function Gallery({ language }: GalleryProps) {
           <div className="w-20 h-1 bg-gradient-to-r from-primary to-secondary rounded-full" />
         </div>
 
-        {images.length === 0 ? (
+                {images.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-foreground/60">No images in gallery yet</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {images.map((item) => (
-              <Link
-                key={item.id}
-                href={`/gallery/${item.id}`}
-              >
-                <div className="group relative h-64 rounded-xl overflow-hidden cursor-pointer bg-card border border-border/50 transition-transform hover:scale-105">
-                  <img
-                    src={item.image || '/placeholder.svg'}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                    <div className="p-4 w-full">
-                      <p className="text-white font-semibold">{item.title}</p>
-                      {item.description && (
-                        <p className="text-white/80 text-sm mt-1 line-clamp-2">{item.description}</p>
-                      )}
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {images.map((item) => (
+                <Link key={item.id} href={`/gallery/${item.id}`}>
+                  <div className="group relative h-64 rounded-xl overflow-hidden cursor-pointer bg-card border border-border/50 transition-transform hover:scale-105">
+                    <img
+                      src={item.image || '/placeholder.svg'}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
+                      <div className="p-4 w-full">
+                        <p className="text-white font-semibold">{item.title}</p>
+                        {item.description && (
+                          <p className="text-white/80 text-sm mt-1 line-clamp-2">{item.description}</p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+
+            {images.length > 6 && (
+              <div className="w-full flex justify-center mt-10">
+                <LoadMoreBtn href="/archivegallery" text="More images" color="purple" />
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>

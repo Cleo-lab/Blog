@@ -10,8 +10,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Globe, LogOut, User, MessageSquare, Menu, X } from 'lucide-react'
+import { Globe, LogOut, User, MessageSquare, Menu, X, Search } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
+import SearchBar from '@/components/search-bar'
 
 interface HeaderProps {
   currentSection: string
@@ -52,6 +53,7 @@ const translations = {
 
 export default function Header({ currentSection, setCurrentSection, language, setLanguage, isLoggedIn, isAdmin, onSignOut }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [showMobileSearch, setShowMobileSearch] = useState(false)
   const { avatarUrl } = useAuth()
   const t = translations[language as keyof typeof translations] || translations.en
 
@@ -96,11 +98,7 @@ export default function Header({ currentSection, setCurrentSection, language, se
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentSection === 'home'
-                    ? 'text-foreground/70 hover:bg-muted hover:text-foreground'
-                    : 'text-foreground/70 hover:bg-muted hover:text-foreground'
-                }`}
+                className="px-3 py-2 rounded-lg text-sm font-medium transition-colors text-foreground/70 hover:bg-muted hover:text-foreground"
               >
                 {item.label}
               </button>
@@ -109,6 +107,7 @@ export default function Header({ currentSection, setCurrentSection, language, se
 
           {/* Right Actions */}
           <div className="flex items-center gap-3">
+            <SearchBar />
             {/* Language Switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -191,40 +190,43 @@ export default function Header({ currentSection, setCurrentSection, language, se
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
-        </div>
 
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <nav className="md:hidden pb-4 space-y-2 border-t border-border pt-4">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  handleNavClick(item.id)
-                  setIsMenuOpen(false)
-                }}
-                className="block w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors text-foreground/70 hover:bg-muted hover:text-foreground"
-              >
-                {item.label}
-              </button>
-            ))}
-            {isAdmin && (
-              <button
-                onClick={() => {
-                  setCurrentSection('admin')
-                  setIsMenuOpen(false)
-                }}
-                className="block w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-foreground/70 hover:bg-muted hover:text-foreground transition-colors"
-              >
-                {t.blogManagement}
-              </button>
-            )}
-          </nav>
-        )}
+          {/* Mobile Search */}
+          <button onClick={() => setShowMobileSearch(!showMobileSearch)} className="md:hidden p-2 rounded-lg hover:bg-muted">
+            <Search className="w-5 h-5" />
+          </button>
+          {showMobileSearch && <SearchBar />}
+
+          {/* Mobile Navigation */}
+          {isMenuOpen && (
+            <nav className="md:hidden pb-4 space-y-2 border-t border-border pt-4">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    handleNavClick(item.id)
+                    setIsMenuOpen(false)
+                  }}
+                  className="block w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors text-foreground/70 hover:bg-muted hover:text-foreground"
+                >
+                  {item.label}
+                </button>
+              ))}
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setCurrentSection('admin')
+                    setIsMenuOpen(false)
+                  }}
+                  className="block w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-foreground/70 hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  {t.blogManagement}
+                </button>
+              )}
+            </nav>
+          )}
+        </div>
       </div>
     </header>
   )
 }
-
-
-
