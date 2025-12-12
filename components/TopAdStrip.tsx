@@ -40,7 +40,7 @@ export default function TopAdStrip() {
         </svg>
       </div>
 
-      <div className="relative z-10 flex h-full items-center justify-center">
+      {/*<div className="relative z-10 flex h-full items-center justify-center">
         <ins
           ref={adRef}
           className="adsbygoogle"
@@ -49,7 +49,7 @@ export default function TopAdStrip() {
           data-ad-slot="0000000000"
           data-adtest="on"
         />
-      </div>
+      </div>*/}
     </aside>
   )
 }

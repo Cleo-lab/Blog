@@ -25,14 +25,13 @@ export default function BlogPostsManager() {
   const [uploading, setUploading] = useState(false)
 
   const slugify = (text: string) =>
-    text
-      .toLowerCase()
-      .replaceAll(/\s+/g, '-')
-      .replaceAll(/[^\w-]+/g, '')
-      .replaceAll(/--+/g, '-')
-      .replaceAll(/^-+/, '')
-      .replaceAll(/-+$/, '')
-
+  text
+    .toLowerCase()
+    .replace(/\s+/g, '-')           // ← флаг g
+    .replace(/[^\w-]+/g, '')        // ← флаг g
+    .replace(/--+/g, '-')           // ← флаг g
+    .replace(/^-+/g, '')            // ← флаг g
+    .replace(/-+$/g, '')            // ← флаг g
   const [formData, setFormData] = useState<Omit<BlogPost, 'id' | 'author_id' | 'created_at' | 'updated_at'>>({
     title: '',
     slug: '',
