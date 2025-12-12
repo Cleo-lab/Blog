@@ -1,4 +1,5 @@
 import ArchiveBlogClient from '@/components/archive-blog-client'
+import BackToSite from '@/components/back-to-site'
 
 export default function ArchiveBlogPage() {
   return (
@@ -7,6 +8,7 @@ export default function ArchiveBlogPage() {
         Blog Archive
       </h1>
       <ArchiveBlogClient />
+      <BackToSite />
     </main>
   )
 }

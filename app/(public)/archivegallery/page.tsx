@@ -1,4 +1,5 @@
 import ArchiveGalleryClient from '@/components/archive-gallery-client'
+import BackToSite from '@/components/back-to-site'
 
 export default function ArchiveGalleryPage() {
   return (
@@ -7,6 +8,7 @@ export default function ArchiveGalleryPage() {
         Gallery Archive
       </h1>
       <ArchiveGalleryClient />
+      <BackToSite color="purple" />
     </main>
   )
 }

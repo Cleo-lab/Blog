@@ -18,6 +18,7 @@ interface GalleryProps {
 
 export default function Gallery({ language }: GalleryProps) {
   const [images, setImages] = useState<GalleryImage[]>([])
+  const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -27,12 +28,16 @@ export default function Gallery({ language }: GalleryProps) {
   const fetchGalleryImages = async () => {
     try {
       const supabase = useSupabase()
-      const { data, error } = await supabase
+
+      const { data, error, count } = await supabase
         .from('gallery')
-        .select('id, title, description, image, created_at')
+        .select('id, title, description, image, created_at', { count: 'exact' })
         .order('created_at', { ascending: false })
+        .limit(6)
 
       if (error) throw error
+
+      setTotalCount(count ?? 0)
 
       const mappedImages = (data || []).map((item: any) => ({
         id: item.id,
@@ -70,7 +75,7 @@ export default function Gallery({ language }: GalleryProps) {
           <div className="w-20 h-1 bg-gradient-to-r from-primary to-secondary rounded-full" />
         </div>
 
-                {images.length === 0 ? (
+        {images.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-foreground/60">No images in gallery yet</p>
           </div>
@@ -98,7 +103,7 @@ export default function Gallery({ language }: GalleryProps) {
               ))}
             </div>
 
-            {images.length > 6 && (
+            {totalCount > 6 && (
               <div className="w-full flex justify-center mt-10">
                 <LoadMoreBtn href="/archivegallery" text="More images" color="purple" />
               </div>
@@ -109,6 +114,3 @@ export default function Gallery({ language }: GalleryProps) {
     </section>
   )
 }
-
-
-
