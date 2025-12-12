@@ -24,10 +24,7 @@ export default function TopAdStrip() {
 
         <div className="flex-1">
           <p className="text-lg font-semibold drop-shadow-sm">
-            Fantasy readers wanted
-          </p>
-          <p className="text-sm opacity-90">
-            728×90 px • CPC $0.45
+        📢 For advertisement →{' '}
           </p>
         </div>
 
