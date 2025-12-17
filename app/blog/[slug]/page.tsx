@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useParams } from 'next/navigation'
 import { useSupabase } from '@/hooks/use-supabase'
-
+// !!! ВАЖНОЕ ИЗМЕНЕНИЕ: ДОБАВЛЕН useRouter !!!
+import { useParams, useSearchParams, useRouter } from 'next/navigation' 
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
@@ -34,9 +34,10 @@ interface Comment {
   id: string
   content: string
   author_id: string
-  blog_post_id: string
-  parent_comment_id: string | null
+  source_id: string
+  parent_id: string | null
   created_at: string
+  is_read?: boolean
   author?: AuthorProfile
   replies?: Comment[]
 }
@@ -47,6 +48,11 @@ export default function BlogPostPage() {
   const slug = params.slug as string
   const { toast } = useToast()
   const supabase = useSupabase()
+  
+  // ИНИЦИАЛИЗАЦИЯ ДЛЯ ПЕРЕНАПРАВЛЕНИЯ
+  const router = useRouter() 
+  const searchParams = useSearchParams()
+  const sourceUrl = searchParams.get('sourceUrl') // Получаем закодированный URL для возврата
 
   /* state */
   const [post, setPost] = useState<BlogPost | null>(null)
@@ -58,25 +64,35 @@ export default function BlogPostPage() {
   const [commentContent, setCommentContent] = useState('')
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
 
-  /* callbacks – теперь все async-функции обернуты в useCallback */
+  /* обработчик кнопки Close */
+  const handleClose = () => {
+  if (sourceUrl) {
+    // Просто переходим на декодированный URL
+    router.push(decodeURIComponent(sourceUrl))
+  } else {
+    globalThis.history.back()
+  }
+}
+
+  /* ---------- API ---------- */
   const fetchComments = useCallback(
-    async (postId: string) => {
+    async (postSlug: string) => {
       try {
         const { data, error } = await supabase
           .from('comments')
-          .select(
-            `
+          .select(`
             id,
             content,
             author_id,
-            blog_post_id,
-            parent_comment_id,
+            source_id,
+            parent_id,
             created_at,
-            author:profiles(id, username, avatar_url)
-          `
-          )
-          .eq('blog_post_id', postId)
-          .is('parent_comment_id', null)
+            is_read,
+            author:profiles!author_id(id, username, avatar_url)
+          `)
+          .eq('source_type', 'blog')
+          .eq('source_id', postSlug)
+          .is('parent_id', null)
           .order('created_at', { ascending: false })
 
         if (error) throw error
@@ -85,27 +101,24 @@ export default function BlogPostPage() {
           (data || []).map(async (comment: any) => {
             const { data: replies, error: rErr } = await supabase
               .from('comments')
-              .select(
-                `
+              .select(`
                 id,
                 content,
                 author_id,
-                blog_post_id,
-                parent_comment_id,
+                source_id,
+                parent_id,
                 created_at,
-                author:profiles(id, username, avatar_url)
-              `
-              )
-              .eq('parent_comment_id', comment.id)
+                author:profiles!author_id(id, username, avatar_url)
+              `)
+              .eq('parent_id', comment.id)
               .order('created_at', { ascending: true })
 
             return { ...comment, replies: rErr ? [] : replies }
           })
         )
-
         setComments(withReplies)
-      } catch (err: any) {
-        console.error('fetchComments:', err)
+      } catch (e: any) {
+        console.error('fetchComments:', e)
       }
     },
     [supabase]
@@ -120,8 +133,6 @@ export default function BlogPostPage() {
         .single()
 
       if (postError) throw postError
-
-      // неопубликованный пост может видеть только автор
       if (!postData.published) {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user || user.id !== postData.author_id) throw new Error('Post not found')
@@ -134,10 +145,9 @@ export default function BlogPostPage() {
         .select('id, username, avatar_url')
         .eq('id', postData.author_id)
         .single()
-
       if (!authorError && authorData) setAuthor(authorData)
 
-      await fetchComments(postData.id)
+      await fetchComments(slug)
     } catch (err: any) {
       console.error('fetchPost:', err)
       toast({ title: 'Error', description: err?.message || 'Post not found', variant: 'destructive' })
@@ -152,12 +162,28 @@ export default function BlogPostPage() {
     await fetchPost()
   }, [supabase, fetchPost])
 
-  /* effects */
   useEffect(() => {
     init()
   }, [slug, init])
 
-  /* handlers */
+  /* помечаем ВСЕ комменты этого поста прочитанными */
+  const markPostCommentsRead = useCallback(async () => {
+    if (!post) return
+    const { error } = await supabase
+      .from('comments')
+      .update({ is_read: true })
+      .eq('source_type', 'blog')
+      .eq('source_id', slug)
+      .eq('is_read', false)
+    if (error) console.warn('mark read:', error)
+  }, [supabase, slug, post])
+
+  /* вызываем после загрузки поста */
+  useEffect(() => {
+    if (post) markPostCommentsRead()
+  }, [post, markPostCommentsRead])
+
+  /* ---------- HANDLERS ---------- */
   const handleSubmitComment = async () => {
     if (!currentUserId) {
       toast({ title: 'Error', description: 'Please sign in to comment', variant: 'destructive' })
@@ -175,8 +201,10 @@ export default function BlogPostPage() {
         {
           content: commentContent.trim(),
           author_id: currentUserId,
-          blog_post_id: post.id,
-          parent_comment_id: replyingTo
+          source_type: 'blog',
+          source_id: slug,
+          parent_id: replyingTo,
+          is_read: false
         }
       ])
       if (error) throw error
@@ -184,7 +212,7 @@ export default function BlogPostPage() {
       toast({ title: 'Success', description: 'Comment posted successfully' })
       setCommentContent('')
       setReplyingTo(null)
-      await fetchComments(post.id)
+      await fetchComments(slug)
     } catch (err: any) {
       toast({ title: 'Error', description: err?.message || 'Failed to post comment', variant: 'destructive' })
     } finally {
@@ -198,7 +226,7 @@ export default function BlogPostPage() {
       const { error } = await supabase.from('comments').delete().eq('id', commentId)
       if (error) throw error
       toast({ title: 'Success', description: 'Comment deleted successfully' })
-      if (post) await fetchComments(post.id)
+      if (post) await fetchComments(slug)
     } catch (err: any) {
       toast({ title: 'Error', description: err?.message || 'Failed to delete comment', variant: 'destructive' })
     }
@@ -209,7 +237,7 @@ export default function BlogPostPage() {
     return Math.ceil(content.split(/\s+/).length / wordsPerMinute)
   }
 
-  /* render */
+  /* ---------- RENDER ---------- */
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -224,9 +252,9 @@ export default function BlogPostPage() {
         <div className="max-w-4xl mx-auto px-4 py-12">
           <div className="flex justify-end mb-4">
             <button
-              onClick={() => globalThis.history.back()}
+              onClick={handleClose}
               className="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground"
-              aria-label="Close"
+              aria-label="Close article"
             >
               <X className="w-4 h-4 mr-2" />
               Close
@@ -246,7 +274,7 @@ export default function BlogPostPage() {
         {/* Close Button */}
         <div className="flex justify-end mb-8">
           <button
-            onClick={() => globalThis.history.back()}
+            onClick={handleClose}
             className="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground"
             aria-label="Close article"
           >
