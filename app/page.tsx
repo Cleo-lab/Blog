@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import dynamic from 'next/dynamic'
 import Header from '@/components/header'
 import Hero from '@/components/hero'
@@ -41,29 +41,27 @@ const SupportPage = dynamic(() => import('@/components/support-page'), {
   loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>
 })
 
-export default function Home() {
+// Внутренний компонент с useSearchParams
+function HomeContent() {
   const [language, setLanguage] = useState<'en' | 'ja'>('ja')
   const { isLoggedIn, isAdmin, email, loading } = useAuth()
   const [refreshKey, setRefreshKey] = useState(0)
   const [currentSection, setCurrentSection] = useState('home')
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams() // Теперь внутри Suspense
   const router = useRouter()
   const supabase = useSupabase()
 
-  // 🔥 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Синхронизация currentSection с URL
+  // Синхронизация currentSection с URL
   useEffect(() => {
     const section = searchParams.get('section')
     const tab = searchParams.get('tab')
     
-    // Если есть параметр tab (например ?tab=comments), то переключаемся на admin
     if (tab && isAdmin) {
       setCurrentSection('admin')
     }
-    // Если есть section (например ?section=admin), тоже переключаемся
     else if (section === 'admin' && isAdmin) {
       setCurrentSection('admin')
     }
-    // Если есть другие параметры section
     else if (section) {
       const validSections = ['home', 'signin', 'signup', 'profile', 'mycomments', 'support']
       if (validSections.includes(section)) {
@@ -90,7 +88,6 @@ export default function Home() {
     }
   }, [supabase])
 
-  // Проверка доступа к защищённым разделам
   useEffect(() => {
     if (!loading) {
       if (!isLoggedIn && (currentSection === 'profile' || currentSection === 'mycomments')) {
@@ -194,5 +191,18 @@ export default function Home() {
         />
       )}
     </main>
+  )
+}
+
+// Экспортируемый компонент с Suspense
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <div className="animate-pulse">Loading...</div>
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   )
 }
