@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Globe, LogOut, User, MessageSquare, Menu, X, Search } from 'lucide-react'
+import { Globe, LogOut, User, MessageSquare, Menu, X, Search, Heart } from 'lucide-react' // Добавили Heart для иконки
 import { useAuth } from '@/hooks/use-auth'
 import SearchBar from '@/components/search-bar'
 
@@ -31,6 +31,8 @@ const translations = {
     blog: 'Blog',
     gallery: 'Gallery',
     subscribe: 'Subscribe',
+    // НОВЫЙ ПЕРЕВОД
+    support: 'Donate / Support', 
     signIn: 'Sign In',
     profile: 'Profile',
     comments: 'Comments',
@@ -43,6 +45,8 @@ const translations = {
     blog: 'Blog',
     gallery: 'Galería',
     subscribe: 'Suscribirse',
+    // НОВЫЙ ПЕРЕВОД
+    support: 'Donar / Apoyar', 
     signIn: 'Iniciar Sesión',
     profile: 'Perfil',
     comments: 'Comentarios',
@@ -65,20 +69,78 @@ export default function Header({ currentSection, setCurrentSection, language, se
     { id: 'subscribe', label: t.subscribe }
   ]
 
+  // Добавляем новую ссылку "Support" в конец списка
+  const allNavItems = [
+    ...navItems,
+    // НОВЫЙ ПУНКТ НАВИГАЦИИ, ведущий на 'support'
+    { id: 'support', label: t.support, isSpecial: true } 
+  ]
+
   const handleNavClick = (sectionId: string) => {
-    if (sectionId === 'home') {
+    // Если это 'support', просто переходим в новую секцию
+    if (sectionId === 'support') {
+      setCurrentSection('support')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    // Логика для прокрутки на главной странице
+    if (currentSection !== 'home' || sectionId === 'home') {
       setCurrentSection('home')
       window.scrollTo({ top: 0, behavior: 'smooth' })
-    } else {
-      setCurrentSection('home')
-      const element = document.getElementById(sectionId)
-      if (element) {
-        setTimeout(() => {
+    }
+
+    if (sectionId !== 'home') {
+      // Даем Next.js время перерендерить 'home', если мы были на другой странице
+      setTimeout(() => {
+        const element = document.getElementById(sectionId)
+        if (element) {
           element.scrollIntoView({ behavior: 'smooth' })
-        }, 0)
-      }
+        }
+      }, currentSection !== 'home' ? 50 : 0) // Небольшая задержка, если переходим с другой страницы
     }
   }
+
+  // Функция для рендеринга кнопки навигации
+  const renderNavItem = (item: { id: string, label: string, isSpecial?: boolean }, isMobile: boolean = false) => {
+    // Если это "Support", делаем её заметной, как кнопку
+    if (item.id === 'support') {
+      return (
+        <Button
+          key={item.id}
+          onClick={() => handleNavClick(item.id)}
+          // На десктопе используем кнопку с акцентным стилем
+          className={`
+            ${isMobile ? 'w-full justify-start block text-left' : ''}
+            bg-pink-600 hover:bg-pink-700 text-white font-bold transition-all duration-200 shadow-md hover:shadow-lg
+          `}
+          variant="default"
+          size={isMobile ? 'default' : 'sm'}
+        >
+          <Heart className="w-4 h-4 mr-2" />
+          {item.label}
+        </Button>
+      )
+    }
+
+    // Обычные ссылки навигации
+    return (
+      <button
+        key={item.id}
+        onClick={() => handleNavClick(item.id)}
+        className={`
+          ${isMobile ? 'block w-full text-left px-4 py-2' : 'px-3 py-2'}
+          rounded-lg text-sm font-medium transition-colors 
+          ${(currentSection === 'home' && currentSection === item.id) ? 
+             'text-primary bg-muted' : 
+             'text-foreground/70 hover:bg-muted hover:text-foreground'}
+        `}
+      >
+        {item.label}
+      </button>
+    )
+  }
+
 
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -94,15 +156,10 @@ export default function Header({ currentSection, setCurrentSection, language, se
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleNavClick(item.id)}
-                className="px-3 py-2 rounded-lg text-sm font-medium transition-colors text-foreground/70 hover:bg-muted hover:text-foreground"
-              >
-                {item.label}
-              </button>
-            ))}
+            {/* Обычные ссылки */}
+            {navItems.map((item) => renderNavItem(item))} 
+            {/* Кнопка Support */}
+            {renderNavItem(allNavItems.find(item => item.id === 'support')!, false)}
           </nav>
 
           {/* Right Actions */}
@@ -191,40 +248,36 @@ export default function Header({ currentSection, setCurrentSection, language, se
             </button>
           </div>
 
-          {/* Mobile Search */}
-          <button onClick={() => setShowMobileSearch(!showMobileSearch)} className="md:hidden p-2 rounded-lg hover:bg-muted">
-            <Search className="w-5 h-5" />
+          {/* Mobile Search - Оставляем как есть, если нужно его добавить в мобильное меню, то это отдельная задача */}
+          {/* <button onClick={() => setShowMobileSearch(!showMobileSearch)} className="md:hidden p-2 rounded-lg hover:bg-muted">
+             <Search className="w-5 h-5" />
           </button>
-          {showMobileSearch && <SearchBar />}
+          {showMobileSearch && <SearchBar />} */}
 
-          {/* Mobile Navigation */}
-          {isMenuOpen && (
-            <nav className="md:hidden pb-4 space-y-2 border-t border-border pt-4">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    handleNavClick(item.id)
-                    setIsMenuOpen(false)
-                  }}
-                  className="block w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors text-foreground/70 hover:bg-muted hover:text-foreground"
-                >
-                  {item.label}
-                </button>
-              ))}
-              {isAdmin && (
-                <button
-                  onClick={() => {
-                    setCurrentSection('admin')
-                    setIsMenuOpen(false)
-                  }}
-                  className="block w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-foreground/70 hover:bg-muted hover:text-foreground transition-colors"
-                >
-                  {t.blogManagement}
-                </button>
-              )}
-            </nav>
-          )}
+
+        {/* Mobile Navigation - Выносим в отдельный блок для лучшей читаемости и правильного отображения */}
+        {isMenuOpen && (
+            <div className="absolute top-16 left-0 right-0 bg-background/90 backdrop-blur-sm shadow-lg md:hidden">
+                <nav className="pb-4 space-y-2 border-t border-border pt-4 px-4">
+                    {allNavItems.map((item) => (
+                        <div key={item.id} onClick={() => setIsMenuOpen(false)}> 
+                            {renderNavItem(item, true)}
+                        </div>
+                    ))}
+                    {isAdmin && (
+                        <button
+                            onClick={() => {
+                                setCurrentSection('admin')
+                                setIsMenuOpen(false)
+                            }}
+                            className="block w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-foreground/70 hover:bg-muted hover:text-foreground transition-colors"
+                        >
+                            {t.blogManagement}
+                        </button>
+                    )}
+                </nav>
+            </div>
+        )}
         </div>
       </div>
     </header>

@@ -13,6 +13,9 @@ import FootAdBanner from '@/components/FootAdBanner'
 import { useAuth } from '@/hooks/use-auth'
 import { useSupabase } from '@/hooks/use-supabase'
 import MiddleAdBanner from '@/components/MiddleAdBanner'
+import { useSearchParams, useRouter } from 'next/navigation'
+import CryptoDonationBox from '@/components/crypto-donation-box' 
+import DonorList from '@/components/donor-list' 
 
 const SignIn = dynamic(() => import('@/components/auth/sign-in'), {
   loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>
@@ -34,13 +37,40 @@ const AdminPanel = dynamic(() => import('@/components/admin/admin-panel'), {
   loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>
 })
 
+const SupportPage = dynamic(() => import('@/components/support-page'), {
+  loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>
+})
+
 export default function Home() {
   const [language, setLanguage] = useState<'en' | 'ja'>('ja')
   const { isLoggedIn, isAdmin, email, loading } = useAuth()
   const [refreshKey, setRefreshKey] = useState(0)
   const [currentSection, setCurrentSection] = useState('home')
-
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const supabase = useSupabase()
+
+  // 🔥 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Синхронизация currentSection с URL
+  useEffect(() => {
+    const section = searchParams.get('section')
+    const tab = searchParams.get('tab')
+    
+    // Если есть параметр tab (например ?tab=comments), то переключаемся на admin
+    if (tab && isAdmin) {
+      setCurrentSection('admin')
+    }
+    // Если есть section (например ?section=admin), тоже переключаемся
+    else if (section === 'admin' && isAdmin) {
+      setCurrentSection('admin')
+    }
+    // Если есть другие параметры section
+    else if (section) {
+      const validSections = ['home', 'signin', 'signup', 'profile', 'mycomments', 'support']
+      if (validSections.includes(section)) {
+        setCurrentSection(section)
+      }
+    }
+  }, [searchParams, isAdmin])
 
   const handleSignIn = useCallback(async (userEmail: string) => {
     console.log('User signed in:', userEmail)
@@ -59,14 +89,8 @@ export default function Home() {
       globalThis.location.href = '/'
     }
   }, [supabase])
-  useEffect(() => {
-    const validSections = ['home', 'signin', 'signup', 'profile', 'mycomments', 'admin']
-    if (!validSections.includes(currentSection)) {
-      setCurrentSection('home')
-    }
-  }, [currentSection])
 
-  // ИСПРАВЛЕНИЕ: Проверка доступа к защищенным разделам
+  // Проверка доступа к защищённым разделам
   useEffect(() => {
     if (!loading) {
       if (!isLoggedIn && (currentSection === 'profile' || currentSection === 'mycomments')) {
@@ -100,9 +124,19 @@ export default function Home() {
       />
       {currentSection === 'home' && (
         <>
-          <section id="home">
-            <Hero setCurrentSection={setCurrentSection} />
+          <section id="home" className="pt-20 pb-16 px-4">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <Hero setCurrentSection={setCurrentSection} />
+              </div>
+              <div className="lg:col-span-1">
+                <div className="bg-muted/10 p-6 rounded-2xl border border-border/50 h-fit shadow-xl">
+                  <DonorList key={refreshKey} />
+                </div>
+              </div>
+            </div>
           </section>
+          
           <section id="about">
             <About language={language} />
           </section>
@@ -119,6 +153,10 @@ export default function Home() {
           <FootAdBanner />
           <Footer language={language} />
         </>
+      )}
+
+      {currentSection === 'support' && (
+        <SupportPage />
       )}
 
       {currentSection === 'signin' && (
