@@ -14,8 +14,10 @@ import { useAuth } from '@/hooks/use-auth'
 import { useSupabase } from '@/hooks/use-supabase'
 import MiddleAdBanner from '@/components/MiddleAdBanner'
 import { useSearchParams, useRouter } from 'next/navigation'
-import CryptoDonationBox from '@/components/crypto-donation-box' 
 import DonorList from '@/components/donor-list' 
+import BlueskyFeed from '@/components/bluesky-feed'
+import AnalyticsTracker from '@/components/analytics-tracker';
+import BlogTeaser from '@/components/blog/blog-teaser';
 
 const SignIn = dynamic(() => import('@/components/auth/sign-in'), {
   loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>
@@ -41,28 +43,24 @@ const SupportPage = dynamic(() => import('@/components/support-page'), {
   loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>
 })
 
-// Внутренний компонент с useSearchParams
 function HomeContent() {
   const [language, setLanguage] = useState<'en' | 'ja'>('ja')
   const { isLoggedIn, isAdmin, email, loading } = useAuth()
   const [refreshKey, setRefreshKey] = useState(0)
   const [currentSection, setCurrentSection] = useState('home')
-  const searchParams = useSearchParams() // Теперь внутри Suspense
+  const searchParams = useSearchParams()
   const router = useRouter()
   const supabase = useSupabase()
 
-  // Синхронизация currentSection с URL
   useEffect(() => {
     const section = searchParams.get('section')
     const tab = searchParams.get('tab')
     
     if (tab && isAdmin) {
       setCurrentSection('admin')
-    }
-    else if (section === 'admin' && isAdmin) {
+    } else if (section === 'admin' && isAdmin) {
       setCurrentSection('admin')
-    }
-    else if (section) {
+    } else if (section) {
       const validSections = ['home', 'signin', 'signup', 'profile', 'mycomments', 'support']
       if (validSections.includes(section)) {
         setCurrentSection(section)
@@ -71,13 +69,10 @@ function HomeContent() {
   }, [searchParams, isAdmin])
 
   const handleSignIn = useCallback(async (userEmail: string) => {
-    console.log('User signed in:', userEmail)
     setRefreshKey((prev) => prev + 1)
   }, [])
 
   const handleSignOut = useCallback(async () => {
-    console.log('Signing out...')
-
     try {
       await supabase.auth.signOut()
     } catch (error) {
@@ -119,89 +114,94 @@ function HomeContent() {
         isAdmin={isAdmin}
         onSignOut={handleSignOut}
       />
+<AnalyticsTracker isAdmin={isAdmin} />
       {currentSection === 'home' && (
-        <>
-          <section id="home" className="pt-20 pb-16 px-4">
-            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2">
-                <Hero setCurrentSection={setCurrentSection} />
-              </div>
-              <div className="lg:col-span-1">
-                <div className="bg-muted/10 p-6 rounded-2xl border border-border/50 h-fit shadow-xl">
-                  <DonorList key={refreshKey} />
-                </div>
-              </div>
-            </div>
-          </section>
-          
-          <section id="about">
-            <About language={language} />
-          </section>
-          <section id="blog">
-            <BlogSection language={language} />
-          </section>
-          <MiddleAdBanner />
-          <section id="gallery">
-            <Gallery language={language} />
-          </section>
-          <section id="subscribe">
-            <Subscribe language={language} />
-          </section>
-          <FootAdBanner />
-          <Footer language={language} />
-        </>
-      )}
+  <>
+    <section id="home" className="pt-20 pb-4 px-2">
+      <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        
+        {/* ЛЕВАЯ КОЛОНКА: Доноры */}
+        <div className="lg:col-span-3 order-2 lg:order-1">
+          <div className="bg-muted/10 p-4 rounded-2xl border border-border/50 shadow-lg h-fit">
+            <h3 className="text-sm font-bold mb-3 text-center text-primary">Supporters ❤️</h3>
+            <DonorList key={refreshKey} />
+          </div>
+        </div>
 
-      {currentSection === 'support' && (
-        <SupportPage />
-      )}
+        {/* ЦЕНТРАЛЬНАЯ КОЛОНКА: Hero */}
+        <div className="lg:col-span-5 order-1 lg:order-2 lg:-mt-5">
+          <Hero setCurrentSection={setCurrentSection} />
+        </div>
 
-      {currentSection === 'signin' && (
-        <SignIn
-          onSignIn={handleSignIn}
-          onSwitchToSignUp={() => setCurrentSection('signup')}
-          setCurrentSection={setCurrentSection}
-        />
-      )}
+        {/* ПРАВАЯ КОЛОНКА: Bluesky + Тизер */}
+<div className="lg:col-span-3 order-3 flex flex-col">
+  <div className="relative group min-h-[500px]">
+    <div className={`rounded-3xl border border-border/50 p-6 shadow-xl lg:-mt-12 transition-all duration-1000 h-full relative overflow-hidden ${
+      !isLoggedIn 
+        ? 'blur-[4px] select-none pointer-events-none' 
+        : 'animate-in fade-in slide-in-from-right-4'
+    } ${
+      /* Общий фон для обоих состояний, но с разной прозрачностью */
+      'bg-gradient-to-br from-purple-500/5 via-white/80 dark:via-zinc-900/80 to-pink-500/5 backdrop-blur-md'
+    }`}>
+      
+      {/* Мягкие цветные пятна на фоне (Glowing Blobs) */}
+      <div className="absolute -top-20 -right-20 w-40 h-40 bg-purple-400/10 blur-[50px] rounded-full" />
+      <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-pink-400/10 blur-[50px] rounded-full" />
 
-      {currentSection === 'signup' && (
-        <SignUp
-          onSignUp={handleSignIn}
-          onSwitchToSignIn={() => setCurrentSection('signin')}
-          setCurrentSection={setCurrentSection}
-        />
-      )}
+      {/* Контент ленты */}
+      <div className="relative z-10">
+        <h3 className="text-md font-bold mb-4 bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent flex items-center gap-2">
+          Updates 🦋
+        </h3>
+        
+        {/* Оборачиваем ленту в контейнер, чтобы она была чуть контрастнее на светлом фоне */}
+        <div className={isLoggedIn ? "opacity-100" : "opacity-40"}>
+          <BlueskyFeed />
+        </div>
+      </div>
 
-      {currentSection === 'profile' && isLoggedIn && (
-        <UserProfile
-          setCurrentSection={setCurrentSection}
-          onProfileUpdate={() => setRefreshKey((prev) => prev + 1)}
-        />
+      {/* Дополнительный розовый блик только для красоты залогиненных */}
+      {isLoggedIn && (
+        <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-transparent via-pink-400/20 to-transparent" />
       )}
+    </div>
 
-      {currentSection === 'mycomments' && isLoggedIn && (
-        <MyComments
-          setCurrentSection={setCurrentSection}
-        />
-      )}
+    {/* ТИЗЕР (только для гостей) */}
+    {!isLoggedIn && (
+      <div className="absolute inset-0 z-30 flex items-center justify-center lg:-mt-12 p-4">
+        <BlogTeaser onSignIn={() => setCurrentSection('signin')} />
+      </div>
+    )}
+  </div>
+</div>
+        
+      </div> {/* <-- Закрываем max-w-[1400px] */}
+    </section> {/* <-- Закрываем id="home" */}
 
-      {currentSection === 'admin' && isAdmin && (
-        <AdminPanel
-          setCurrentSection={setCurrentSection}
-        />
-      )}
+    <section id="about"><About language={language} /></section>
+    <section id="blog"><BlogSection language={language} /></section>
+    <MiddleAdBanner />
+    <section id="gallery"><Gallery language={language} /></section>
+    <section id="subscribe"><Subscribe language={language} /></section>
+    <FootAdBanner />
+    <Footer language={language} />
+  </>
+)}
+
+      {currentSection === 'support' && <SupportPage />}
+      {currentSection === 'signin' && <SignIn onSignIn={handleSignIn} onSwitchToSignUp={() => setCurrentSection('signup')} setCurrentSection={setCurrentSection} />}
+      {currentSection === 'signup' && <SignUp onSignUp={handleSignIn} onSwitchToSignIn={() => setCurrentSection('signin')} setCurrentSection={setCurrentSection} />}
+      {currentSection === 'profile' && isLoggedIn && <UserProfile setCurrentSection={setCurrentSection} onProfileUpdate={() => setRefreshKey((prev) => prev + 1)} />}
+      {currentSection === 'mycomments' && isLoggedIn && <MyComments setCurrentSection={setCurrentSection} />}
+      {currentSection === 'admin' && isAdmin && <AdminPanel setCurrentSection={setCurrentSection} />}
     </main>
   )
 }
 
-// Экспортируемый компонент с Suspense
 export default function Home() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <div className="animate-pulse">Loading...</div>
-      </div>
-    }>
+    <Suspense fallback={<div className="min-h-screen bg-background text-foreground flex items-center justify-center"><div className="animate-pulse">Loading...</div></div>}>
       <HomeContent />
     </Suspense>
   )

@@ -36,24 +36,6 @@ export default function Hero({ setCurrentSection }: HeroProps) {
         <p className="text-base sm:text-lg text-foreground/60 mb-8 leading-relaxed max-w-md mx-auto">
           Welcome to my cozy corner of the digital world. Here you&lsquo;ll find my thoughts, artwork, and stories from the magical realm where anime meets reality.
         </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button
-            onClick={() => setCurrentSection('about')}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            size="lg"
-          >
-            Learn About Me
-          </Button>
-          <Button
-            onClick={() => setCurrentSection('blog')}
-            variant="outline"
-            size="lg"
-            className="border-primary/30 hover:bg-primary/10"
-          >
-            Read My Stories
-          </Button>
-        </div>
       </div>
     </section>
   )
