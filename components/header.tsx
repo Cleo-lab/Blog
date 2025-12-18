@@ -1,27 +1,38 @@
-'use client'
+// components/header.tsx
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Globe, LogOut, User, MessageSquare, Menu, X, Search, Heart } from 'lucide-react' // Добавили Heart для иконки
-import { useAuth } from '@/hooks/use-auth'
-import SearchBar from '@/components/search-bar'
+} from '@/components/ui/dropdown-menu';
+import {
+  Globe,
+  LogOut,
+  User,
+  MessageSquare,
+  Menu,
+  X,
+  Search,
+  Heart,
+  Award,
+  Bell,
+} from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import SearchBar from '@/components/search-bar';
+import NotificationsBell from '@/components/notifications-bell';
 
 interface HeaderProps {
-  currentSection: string
-  setCurrentSection: (section: string) => void
-  language: string
-  setLanguage: (lang: string) => void
-  isLoggedIn?: boolean
-  isAdmin?: boolean
-  onSignOut?: () => void
+  currentSection: string;
+  setCurrentSection: (section: string) => void;
+  language: string;
+  setLanguage: (lang: string) => void;
+  isLoggedIn?: boolean;
+  isAdmin?: boolean;
+  onSignOut?: () => void;
 }
 
 const translations = {
@@ -31,206 +42,164 @@ const translations = {
     blog: 'Blog',
     gallery: 'Gallery',
     subscribe: 'Subscribe',
-    // НОВЫЙ ПЕРЕВОД
-    support: 'Donate / Support', 
+    support: 'Donate / Support',
     signIn: 'Sign In',
     profile: 'Profile',
     comments: 'Comments',
     signOut: 'Sign Out',
-    blogManagement: 'Blog Management'
+    blogManagement: 'Blog Management',
+    achievements: 'Achievements',
+    favourites: 'Favourites',
+    notifications: 'Notifications',
   },
-  es: {
-    home: 'Inicio',
-    about: 'Acerca de',
-    blog: 'Blog',
-    gallery: 'Galería',
-    subscribe: 'Suscribirse',
-    // НОВЫЙ ПЕРЕВОД
-    support: 'Donar / Apoyar', 
-    signIn: 'Iniciar Sesión',
-    profile: 'Perfil',
-    comments: 'Comentarios',
-    signOut: 'Cerrar Sesión',
-    blogManagement: 'Gestión del Blog'
-  }
-}
+  // ... другие языки
+};
 
 export default function Header({ currentSection, setCurrentSection, language, setLanguage, isLoggedIn, isAdmin, onSignOut }: HeaderProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [showMobileSearch, setShowMobileSearch] = useState(false)
-  const { avatarUrl } = useAuth()
-  const t = translations[language as keyof typeof translations] || translations.en
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { avatarUrl } = useAuth();
+  const t = translations[language as keyof typeof translations] || translations.en;
 
   const navItems = [
     { id: 'home', label: t.home },
     { id: 'about', label: t.about },
     { id: 'blog', label: t.blog },
     { id: 'gallery', label: t.gallery },
-    { id: 'subscribe', label: t.subscribe }
-  ]
+    { id: 'subscribe', label: t.subscribe },
+    { id: 'support', label: t.support, isSpecial: true },
+  ];
 
-  // Добавляем новую ссылку "Support" в конец списка
-  const allNavItems = [
-    ...navItems,
-    // НОВЫЙ ПУНКТ НАВИГАЦИИ, ведущий на 'support'
-    { id: 'support', label: t.support, isSpecial: true } 
-  ]
+  // НОВАЯ ФУНКЦИЯ: Навигация внутри профиля
+  const navigateToProfileSection = (sectionId: string) => {
+    // 1. Сначала переключаем экран на Профиль
+    setCurrentSection('profile');
+    
+    // 2. Ждем, пока компонент UserProfile загрузится, и скроллим к нужному ID
+    setTimeout(() => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
 
   const handleNavClick = (sectionId: string) => {
-    // Если это 'support', просто переходим в новую секцию
     if (sectionId === 'support') {
-      setCurrentSection('support')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
+      setCurrentSection('support');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
-
-    // Логика для прокрутки на главной странице
     if (currentSection !== 'home' || sectionId === 'home') {
-      setCurrentSection('home')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      setCurrentSection('home');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-
     if (sectionId !== 'home') {
-      // Даем Next.js время перерендерить 'home', если мы были на другой странице
       setTimeout(() => {
-        const element = document.getElementById(sectionId)
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' })
-        }
-      }, currentSection !== 'home' ? 50 : 0) // Небольшая задержка, если переходим с другой страницы
+        const element = document.getElementById(sectionId);
+        if (element) element.scrollIntoView({ behavior: 'smooth' });
+      }, currentSection !== 'home' ? 50 : 0);
     }
-  }
+  };
 
-  // Функция для рендеринга кнопки навигации
-  const renderNavItem = (item: { id: string, label: string, isSpecial?: boolean }, isMobile: boolean = false) => {
-    // Если это "Support", делаем её заметной, как кнопку
-    if (item.id === 'support') {
+  const renderNavItem = (item: { id: string; label: string; isSpecial?: boolean }, isMobile = false) => {
+    if (item.isSpecial) {
       return (
         <Button
           key={item.id}
           onClick={() => handleNavClick(item.id)}
-          // На десктопе используем кнопку с акцентным стилем
-          className={`
-            ${isMobile ? 'w-full justify-start block text-left' : ''}
-            bg-pink-600 hover:bg-pink-700 text-white font-bold transition-all duration-200 shadow-md hover:shadow-lg
-          `}
+          className={`${isMobile ? 'w-full' : ''} bg-pink-600 hover:bg-pink-700 text-white font-bold transition-all duration-200 shadow-md hover:shadow-lg`}
           variant="default"
           size={isMobile ? 'default' : 'sm'}
         >
-          <Heart className="w-4 h-4 mr-2" />
+          <Heart className="w-4 h-4 mr-2 shrink-0" />
           {item.label}
         </Button>
-      )
+      );
     }
-
-    // Обычные ссылки навигации
     return (
       <button
         key={item.id}
         onClick={() => handleNavClick(item.id)}
-        className={`
-          ${isMobile ? 'block w-full text-left px-4 py-2' : 'px-3 py-2'}
-          rounded-lg text-sm font-medium transition-colors 
-          ${(currentSection === 'home' && currentSection === item.id) ? 
-             'text-primary bg-muted' : 
-             'text-foreground/70 hover:bg-muted hover:text-foreground'}
-        `}
+        className={`${isMobile ? 'block w-full text-left px-4 py-2' : 'px-3 py-2'} rounded-lg text-sm font-medium transition-colors ${
+          currentSection === 'home' && currentSection === item.id ? 'text-primary bg-muted' : 'text-foreground/70 hover:bg-muted hover:text-foreground'
+        }`}
       >
         {item.label}
       </button>
-    )
-  }
-
+    );
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavClick('home')} suppressHydrationWarning>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary animate-float" />
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavClick('home')}>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary" />
             <span className="hidden sm:inline font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Yurie
             </span>
           </div>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            {/* Обычные ссылки */}
-            {navItems.map((item) => renderNavItem(item))} 
-            {/* Кнопка Support */}
-            {renderNavItem(allNavItems.find(item => item.id === 'support')!, false)}
+            {navItems.map((item) => renderNavItem(item))}
           </nav>
 
-          {/* Right Actions */}
           <div className="flex items-center gap-3">
             <SearchBar />
-            {/* Language Switcher */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="w-8 h-8">
-                  <Globe className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setLanguage('en')}>
-                  English
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('es')}>
-                  Español
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* User Menu / Sign In */}
+            
             {!isLoggedIn ? (
-              <Button 
-                onClick={() => setCurrentSection('signin')}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
+              <Button onClick={() => setCurrentSection('signin')} className="bg-primary hover:bg-primary/90">
                 {t.signIn}
               </Button>
             ) : (
               <>
                 {isAdmin && (
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentSection('admin')}
-                    className="hidden sm:inline-flex"
-                  >
+                  <Button variant="outline" size="sm" onClick={() => setCurrentSection('admin')} className="hidden sm:inline-flex">
                     {t.blogManagement}
                   </Button>
                 )}
+
+                {!isAdmin && <NotificationsBell />}
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary hover:shadow-lg transition-shadow overflow-hidden">
+                    <button className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary hover:shadow-lg transition-shadow overflow-hidden border border-border/50">
                       {avatarUrl ? (
-                        <img
-                          src={avatarUrl}
-                          alt="Avatar"
-                          className="w-full h-full object-cover"
-                        />
+                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-sm font-bold text-primary-foreground">
-                          👤
-                        </div>
+                        <div className="w-full h-full flex items-center justify-center text-sm font-bold text-primary-foreground">👤</div>
                       )}
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setCurrentSection('profile')}>
+                  <DropdownMenuContent align="end" className="w-56">
+                    {/* ТЕПЕРЬ ВСЕ ПУНКТЫ ВЕДУТ В РАЗНЫЕ ЧАСТИ ОДНОЙ СТРАНИЦЫ */}
+                    <DropdownMenuItem onClick={() => navigateToProfileSection('profile-info')}>
                       <User className="w-4 h-4 mr-2" />
                       {t.profile}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setCurrentSection('mycomments')}>
+                    
+                    <DropdownMenuItem onClick={() => navigateToProfileSection('profile-comments')}>
                       <MessageSquare className="w-4 h-4 mr-2" />
                       {t.comments}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => {
-                      onSignOut?.()
-                      setIsMenuOpen(false)
-                    }}>
+
+                    <DropdownMenuItem onClick={() => navigateToProfileSection('profile-achievements')}>
+                      <Award className="w-4 h-4 mr-2" />
+                      {t.achievements}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={() => navigateToProfileSection('profile-favourites')}>
+                      <Heart className="w-4 h-4 mr-2" />
+                      {t.favourites}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={() => navigateToProfileSection('profile-notifications')}>
+                      <Bell className="w-4 h-4 mr-2" />
+                      {t.notifications}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="text-red-500 focus:text-red-500" onClick={() => onSignOut?.()}>
                       <LogOut className="w-4 h-4 mr-2" />
                       {t.signOut}
                     </DropdownMenuItem>
@@ -238,48 +207,9 @@ export default function Header({ currentSection, setCurrentSection, language, se
                 </DropdownMenu>
               </>
             )}
-
-            {/* Mobile Menu Toggle */}
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-muted"
-            >
-              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
           </div>
-
-          {/* Mobile Search - Оставляем как есть, если нужно его добавить в мобильное меню, то это отдельная задача */}
-          {/* <button onClick={() => setShowMobileSearch(!showMobileSearch)} className="md:hidden p-2 rounded-lg hover:bg-muted">
-             <Search className="w-5 h-5" />
-          </button>
-          {showMobileSearch && <SearchBar />} */}
-
-
-        {/* Mobile Navigation - Выносим в отдельный блок для лучшей читаемости и правильного отображения */}
-        {isMenuOpen && (
-            <div className="absolute top-16 left-0 right-0 bg-background/90 backdrop-blur-sm shadow-lg md:hidden">
-                <nav className="pb-4 space-y-2 border-t border-border pt-4 px-4">
-                    {allNavItems.map((item) => (
-                        <div key={item.id} onClick={() => setIsMenuOpen(false)}> 
-                            {renderNavItem(item, true)}
-                        </div>
-                    ))}
-                    {isAdmin && (
-                        <button
-                            onClick={() => {
-                                setCurrentSection('admin')
-                                setIsMenuOpen(false)
-                            }}
-                            className="block w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-foreground/70 hover:bg-muted hover:text-foreground transition-colors"
-                        >
-                            {t.blogManagement}
-                        </button>
-                    )}
-                </nav>
-            </div>
-        )}
         </div>
       </div>
     </header>
-  )
+  );
 }
