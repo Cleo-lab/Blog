@@ -177,7 +177,9 @@ export default function Header({ currentSection, setCurrentSection, language, se
     </DropdownMenuItem>
   </DropdownMenuContent>
 </DropdownMenu>
-            <SearchBar />
+            <div className="hidden md:block">
+  <SearchBar />
+</div>
             
             {!isLoggedIn ? (
               <Button onClick={() => setCurrentSection('signin')} className="bg-primary hover:bg-primary/90 hidden sm:flex">
@@ -247,6 +249,9 @@ export default function Header({ currentSection, setCurrentSection, language, se
       {isMenuOpen && (
         <div className="md:hidden bg-background border-b border-border animate-in slide-in-from-top duration-300 overflow-hidden">
           <div className="px-4 pt-2 pb-6 space-y-2">
+		  <div className="pt-2 pb-2">
+        <SearchBar />
+      </div>
             {navItems.map((item) => (
               <div key={item.id} onClick={() => setIsMenuOpen(false)}>
                 {renderNavItem(item, true)}
