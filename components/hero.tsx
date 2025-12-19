@@ -9,7 +9,7 @@ interface HeroProps {
 
 export default function Hero({ setCurrentSection }: HeroProps) {
   return (
-    <section className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[60vh] sm:min-h-[calc(100svh-4rem)] pt-12 pb-8 sm:pt-0 sm:pb-0 flex items-center justify-center overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-float" />
       <div className="absolute bottom-20 right-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
