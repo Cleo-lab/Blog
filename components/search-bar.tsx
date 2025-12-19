@@ -80,7 +80,7 @@ export default function SearchBar() {
   }
 
   return (
-    <div className="relative hidden sm:block ml-4">
+    <div className="relative flex-1 sm:flex-none">
       <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-2 py-1 w-40 h-8 focus-within:ring-2 focus-within:ring-primary">
         <Search className="w-4 h-4 text-foreground/60 shrink-0" />
         <input
