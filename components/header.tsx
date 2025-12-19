@@ -141,15 +141,16 @@ export default function Header({ currentSection, setCurrentSection, language, se
             </span>
           </div>
 
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => renderNavItem(item))}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <SearchBar />
             
             {!isLoggedIn ? (
-              <Button onClick={() => setCurrentSection('signin')} className="bg-primary hover:bg-primary/90">
+              <Button onClick={() => setCurrentSection('signin')} className="bg-primary hover:bg-primary/90 hidden sm:flex">
                 {t.signIn}
               </Button>
             ) : (
@@ -159,7 +160,6 @@ export default function Header({ currentSection, setCurrentSection, language, se
                     {t.blogManagement}
                   </Button>
                 )}
-
                 {!isAdmin && <NotificationsBell />}
 
                 <DropdownMenu>
@@ -173,32 +173,26 @@ export default function Header({ currentSection, setCurrentSection, language, se
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    {/* ТЕПЕРЬ ВСЕ ПУНКТЫ ВЕДУТ В РАЗНЫЕ ЧАСТИ ОДНОЙ СТРАНИЦЫ */}
                     <DropdownMenuItem onClick={() => navigateToProfileSection('profile-info')}>
                       <User className="w-4 h-4 mr-2" />
                       {t.profile}
                     </DropdownMenuItem>
-                    
                     <DropdownMenuItem onClick={() => navigateToProfileSection('profile-comments')}>
                       <MessageSquare className="w-4 h-4 mr-2" />
                       {t.comments}
                     </DropdownMenuItem>
-
                     <DropdownMenuItem onClick={() => navigateToProfileSection('profile-achievements')}>
                       <Award className="w-4 h-4 mr-2" />
                       {t.achievements}
                     </DropdownMenuItem>
-
                     <DropdownMenuItem onClick={() => navigateToProfileSection('profile-favourites')}>
                       <Heart className="w-4 h-4 mr-2" />
                       {t.favourites}
                     </DropdownMenuItem>
-
                     <DropdownMenuItem onClick={() => navigateToProfileSection('profile-notifications')}>
                       <Bell className="w-4 h-4 mr-2" />
                       {t.notifications}
                     </DropdownMenuItem>
-
                     <DropdownMenuItem className="text-red-500 focus:text-red-500" onClick={() => onSignOut?.()}>
                       <LogOut className="w-4 h-4 mr-2" />
                       {t.signOut}
@@ -207,9 +201,38 @@ export default function Header({ currentSection, setCurrentSection, language, se
                 </DropdownMenu>
               </>
             )}
+
+            {/* НОВАЯ КНОПКА МЕНЮ ДЛЯ МОБИЛОК */}
+            <button 
+              className="md:hidden p-2 rounded-lg text-foreground/70 hover:bg-muted"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
         </div>
       </div>
+
+      {/* МОБИЛЬНОЕ МЕНЮ (выпадает при клике) */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-background border-b border-border animate-in slide-in-from-top duration-300 overflow-hidden">
+          <div className="px-4 pt-2 pb-6 space-y-2">
+            {navItems.map((item) => (
+              <div key={item.id} onClick={() => setIsMenuOpen(false)}>
+                {renderNavItem(item, true)}
+              </div>
+            ))}
+            {!isLoggedIn && (
+              <Button 
+                onClick={() => { setCurrentSection('signin'); setIsMenuOpen(false); }} 
+                className="w-full bg-primary mt-4"
+              >
+                {t.signIn}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
