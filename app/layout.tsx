@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import { Poppins } from 'next/font/google'
-import Script from 'next/script'
+import { Analytics } from '@vercel/analytics/react' // Импортируем аналитику
 import './globals.css'
 import { ProvidersWrapper } from '@/components/providers-wrapper'
-import CookieBanner from '@/components/cookie-banner'   // ← свой клиентский
+import CookieBanner from '@/components/cookie-banner'
 
 const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'] })
 
@@ -17,13 +17,12 @@ export default function RootLayout({ children }: { readonly children: React.Reac
   return (
     <html lang="en">
       <body className={poppins.className}>
-        <ProvidersWrapper>{children}</ProvidersWrapper>
+        <ProvidersWrapper>
+          {children}
+        </ProvidersWrapper>
 
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
-          strategy="afterInteractive"
-        />
+        {/* Vercel Analytics автоматически отслеживает посещения */}
+        <Analytics />
 
         <CookieBanner />
       </body>

@@ -12,7 +12,8 @@ import AboutManager from './about-manager';
 import DonationsManager from './donations-manager';
 import { ArrowLeft, BarChart3, Eye, Users, TrendingUp } from 'lucide-react';
 import { useSupabase } from '@/hooks/use-supabase';
-import { useSearchParams, useRouter } from 'next/navigation'; 
+import { useSearchParams, useRouter } from 'next/navigation';
+import AnalyticsChart from '@/components/admin/analytics-chart' 
 
 interface AdminPanelProps {
   readonly setCurrentSection?: (section: string) => void;
@@ -160,53 +161,42 @@ export default function AdminPanel({ setCurrentSection }: AdminPanelProps) {
               <TabsContent value="newsletter" className="m-0"><NewsletterManager /></TabsContent>
               
               {/* КОНТЕНТ ВКЛАДКИ СТАТИСТИКИ */}
-              <TabsContent value="statistics" className="m-0 space-y-6 animate-in fade-in duration-500">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Карточка: Всего просмотров */}
-                  <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 rounded-xl text-primary">
-                      <Eye className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Total Views</p>
-                      <h3 className="text-3xl font-bold tracking-tight">{totalViews}</h3>
-                    </div>
-                  </div>
+<TabsContent value="statistics" className="m-0 space-y-6 animate-in fade-in duration-500">
+  
+  {/* ВЕРХНИЙ РЯД: Оставляем только одну красивую карточку */}
+  <div className="grid grid-cols-1 gap-6">
+    <div className="p-6 rounded-3xl bg-primary/5 border border-primary/10 flex items-center justify-between shadow-sm">
+      <div className="flex items-center gap-4">
+        <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+          <Eye className="w-6 h-6" />
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Total Page Views</p>
+          <h3 className="text-3xl font-bold tracking-tight">{totalViews}</h3>
+        </div>
+      </div>
+      
+      {/* Маленький декоративный текст справа */}
+      <div className="hidden md:block text-right">
+        <p className="text-[10px] text-primary/40 uppercase font-bold tracking-widest">Global Reach</p>
+        <p className="text-xs text-muted-foreground italic">All time statistics</p>
+      </div>
+    </div>
+  </div>
 
-                  {/* Заглушка: Посетители */}
-                  <div className="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-center gap-4 opacity-60">
-                    <div className="p-3 bg-blue-500/10 rounded-xl text-blue-500">
-                      <Users className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Unique Visitors</p>
-                      <h3 className="text-3xl font-bold tracking-tight">--</h3>
-                    </div>
-                  </div>
+  {/* СЕКЦИЯ ГРАФИКА: Здесь уже есть Unique Guests внутри */}
+  <div className="w-full"> 
+    <AnalyticsChart />
+  </div>
 
-                  {/* Заглушка: Аналитика */}
-                  <div className="p-6 rounded-2xl bg-green-500/5 border border-green-500/10 flex items-center gap-4 opacity-60">
-                    <div className="p-3 bg-green-500/10 rounded-xl text-green-500">
-                      <TrendingUp className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Engagement</p>
-                      <h3 className="text-3xl font-bold tracking-tight italic text-sm">Coming Soon</h3>
-                    </div>
-                  </div>
-                </div>
+  {/* ФУТЕР СТАТИСТИКИ */}
+  <div className="p-4 rounded-2xl bg-muted/5 border border-border/20 text-center">
+    <p className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.2em]">
+      Data is synced with Supabase Realtime
+    </p>
+  </div>
 
-                {/* Информационный блок */}
-                <div className="bg-muted/20 p-12 rounded-3xl border border-dashed border-border/50 flex flex-col items-center justify-center text-center">
-                   <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mb-4 shadow-sm text-primary/40">
-                      <BarChart3 className="w-8 h-8" />
-                   </div>
-                   <h4 className="font-bold text-xl mb-2">Detailed Analytics is under development</h4>
-                   <p className="max-w-md text-sm text-muted-foreground">
-                     Soon you will be able to see daily traffic charts, popular posts and where your visitors are coming from.
-                   </p>
-                </div>
-              </TabsContent>
+</TabsContent>
             </div>
           </Tabs>
         </div>

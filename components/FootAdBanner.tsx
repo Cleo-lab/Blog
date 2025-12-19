@@ -29,17 +29,11 @@ export default function FootAdBanner({
           />
         </svg>
       </div>
-
       {/* контент по центру */}
       <div className="relative z-10 h-full flex items-center justify-center text-white">
+	  <span className="text-3xl">✨</span>
         <p className="text-xl sm:text-2xl font-semibold drop-shadow-md text-balance text-center px-4">
-          📢 For advertisement →{' '}
-          <a
-            href="mailto:your@email.com?subject=Ad%20spot%20on%20Yurie%20Blog"
-            className="underline hover:text-yellow-200 transition"
-          >
-            contact me
-          </a>
+          Gracias por estar aquí.
         </p>
       </div>
     </aside>

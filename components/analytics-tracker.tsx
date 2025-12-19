@@ -17,17 +17,25 @@ export default function AnalyticsTracker({ isAdmin }: AnalyticsTrackerProps) {
     if (isAdmin) return;
 
     const trackView = async () => {
-      try {
-        await supabase.from('page_views').insert([
-          { 
-            page_path: pathname, 
-            is_admin_view: false 
-          }
-        ]);
-      } catch (error) {
-        console.error("Error tracking view:", error);
+  try {
+    // Создаем или берем существующий ID пользователя из хранилища браузера
+    let visitorId = localStorage.getItem('visitor_id');
+    if (!visitorId) {
+      visitorId = Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('visitor_id', visitorId);
+    }
+
+    await supabase.from('page_views').insert([
+      { 
+        page_path: pathname, 
+        is_admin_view: false,
+        visitor_id: visitorId // <--- Добавляем это поле
       }
-    };
+    ]);
+  } catch (error) {
+    console.error("Error tracking view:", error);
+  }
+};
 
     trackView();
   }, [pathname, isAdmin, supabase]);

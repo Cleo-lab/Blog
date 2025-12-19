@@ -24,16 +24,9 @@ export default function TopAdStrip() {
 
         <div className="flex-1">
           <p className="text-lg font-semibold drop-shadow-sm">
-        📢 For advertisement →{' '}
+        Thank you for being here.
           </p>
         </div>
-
-        <a
-          href="mailto:your@email.com?subject=Ad%20spot%20728x90"
-          className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-md text-sm font-medium transition"
-        >
-          Contact me
-        </a>
       </div>
     </aside>
   );
