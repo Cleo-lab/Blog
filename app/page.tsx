@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
+import { Heart, Sparkles, Lock, UserPlus} from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Header from '@/components/header'
 import Hero from '@/components/hero'
@@ -18,6 +19,8 @@ import DonorList from '@/components/donor-list'
 import BlueskyFeed from '@/components/bluesky-feed'
 import AnalyticsTracker from '@/components/analytics-tracker';
 import BlogTeaser from '@/components/blog/blog-teaser';
+
+
 
 const SignIn = dynamic(() => import('@/components/auth/sign-in'), {
   loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>
@@ -121,17 +124,35 @@ function HomeContent() {
       <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         
         {/* ЛЕВАЯ КОЛОНКА: Доноры */}
-        <div className="lg:col-span-3 order-2 lg:order-1">
-          <div className="bg-muted/10 p-4 rounded-2xl border border-border/50 shadow-lg h-fit">
-            <h3 className="text-sm font-bold mb-3 text-center text-primary">Supporters ❤️</h3>
-            <DonorList key={refreshKey} />
-          </div>
-        </div>
+<div className="lg:col-span-3 order-2 lg:order-1">
+  <div className="relative overflow-hidden p-5 rounded-[2.5rem] border border-white/10 shadow-[0_20px_50px_rgba(225,29,72,0.2)] h-fit transition-all 
+    bg-gradient-to-br from-indigo-950 via-purple-900 to-rose-900">
+    
+    {/* Декоративные пятна света, чтобы фон не был скучным */}
+    <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/30 blur-[60px] rounded-full" />
+    <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/20 blur-[60px] rounded-full" />
 
-        {/* ЦЕНТРАЛЬНАЯ КОЛОНКА: Hero */}
-        <div className="lg:col-span-5 order-1 lg:order-2 lg:-mt-5">
-          <Hero setCurrentSection={setCurrentSection} />
-        </div>
+    {/* Заголовок теперь ярко-белый и заметный */}
+    <h3 className="relative z-10 text-sm font-black mb-4 text-center uppercase tracking-[0.15em] text-white flex items-center justify-center gap-2">
+      <Heart className="w-4 h-4 text-rose-400 animate-pulse fill-rose-400" />
+      The People Who Keep My Blog Alive
+      <Heart className="w-4 h-4 text-rose-400 animate-pulse fill-rose-400" />
+    </h3>
+
+    <div className="relative z-10">
+      <DonorList key={refreshKey} />
+    </div>
+
+    <p className="relative z-10 text-[9px] text-center mt-4 text-rose-200/50 font-medium uppercase tracking-widest">
+      You keep this dream alive ✨
+    </p>
+  </div>
+</div>
+
+{/* ЦЕНТРАЛЬНАЯ КОЛОНКА: Hero */}
+<div className="lg:col-span-5 order-1 lg:order-2 lg:-mt-5">
+  <Hero setCurrentSection={setCurrentSection} />
+</div>
 
         {/* ПРАВАЯ КОЛОНКА: Bluesky + Тизер */}
 <div className="lg:col-span-3 order-3 flex flex-col">
