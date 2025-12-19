@@ -120,7 +120,7 @@ function HomeContent() {
 <AnalyticsTracker isAdmin={isAdmin} />
       {currentSection === 'home' && (
   <>
-    <section id="home" className="pt-20 pb-4 px-2">
+    <section id="home" className="pt-15 pb-4 px-2">
       <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         
         {/* ЛЕВАЯ КОЛОНКА: Доноры */}

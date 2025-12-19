@@ -61,7 +61,7 @@ export default function Subscribe({ language }: SubscribeProps) {
   }
 
   return (
-    <section className="py-16 sm:py-24 px-4 bg-background">
+    <section className="py-1 sm:py-4 px-4 bg-background">
       <div className="max-w-2xl mx-auto text-center">
         <h2 className="text-3xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
           {t.title}

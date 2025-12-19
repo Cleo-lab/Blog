@@ -57,13 +57,15 @@ export default function BlogSection({ language }: BlogSectionProps) {
   }
 
   return (
-    <section className="py-16 sm:py-24 px-4 bg-background">
+    <section className="py-1 sm:py-4 px-4 bg-background">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-12">
-          <h2 className="text-3xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        {/* 2. Уменьшаем отступ под заголовком с mb-12 до mb-8 */}
+        <div className="mb-8">
+          <h2 className="text-3xl sm:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Blog Posts
           </h2>
-          <div className="w-20 h-1 bg-gradient-to-r from-primary to-secondary rounded-full" />
+          {/* Уменьшили ширину полоски (w-16) для компактности */}
+          <div className="w-16 h-1 bg-gradient-to-r from-primary to-secondary rounded-full" />
         </div>
 
         {(() => {
@@ -101,7 +103,7 @@ export default function BlogSection({ language }: BlogSectionProps) {
               </div>
 
               {posts.length > 6 && (
-                <div className="w-full flex justify-center mt-10">
+                <div className="w-full flex justify-center mt-1">
                   <LoadMoreBtn href="/archiveblog" text="More stories" color="pink" />
                 </div>
               )}
