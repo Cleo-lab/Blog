@@ -42,17 +42,32 @@ const translations = {
     blog: 'Blog',
     gallery: 'Gallery',
     subscribe: 'Subscribe',
-    support: 'Donate / Support',
+    support: 'Support',
     signIn: 'Sign In',
     profile: 'Profile',
     comments: 'Comments',
     signOut: 'Sign Out',
-    blogManagement: 'Blog Management',
+    blogManagement: 'Admin',
     achievements: 'Achievements',
     favourites: 'Favourites',
     notifications: 'Notifications',
   },
-  // ... другие языки
+  es: {
+    home: 'Inicio',
+    about: 'Sobre mí',
+    blog: 'Blog',
+    gallery: 'Galería',
+    subscribe: 'Suscribirse',
+    support: 'Apoyar',
+    signIn: 'Entrar',
+    profile: 'Perfil',
+    comments: 'Comentarios',
+    signOut: 'Cerrar sesión',
+    blogManagement: 'Administración',
+    achievements: 'Logros',
+    favourites: 'Favoritos',
+    notifications: 'Notificaciones',
+  },
 };
 
 export default function Header({ currentSection, setCurrentSection, language, setLanguage, isLoggedIn, isAdmin, onSignOut }: HeaderProps) {
@@ -147,6 +162,21 @@ export default function Header({ currentSection, setCurrentSection, language, se
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
+<DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full hover:bg-muted">
+      <Globe className="w-5 h-5 text-foreground/70" />
+    </Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent align="end">
+    <DropdownMenuItem onClick={() => setLanguage('en')} className={language === 'en' ? 'bg-muted font-bold' : ''}>
+      🇺🇸 English {language === 'en' && '✓'}
+    </DropdownMenuItem>
+    <DropdownMenuItem onClick={() => setLanguage('es')} className={language === 'es' ? 'bg-muted font-bold' : ''}>
+      🇪🇸 Español {language === 'es' && '✓'}
+    </DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
             <SearchBar />
             
             {!isLoggedIn ? (

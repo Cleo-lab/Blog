@@ -66,7 +66,7 @@ export default function Gallery({ language }: GalleryProps) {
   }
 
   return (
-    <section className="py-16 sm:py-24 px-4 bg-gradient-to-b from-background via-muted/5 to-background">
+    <section className="py-1 sm:py-4 px-4 bg-gradient-to-b from-background via-muted/5 to-background">
       <div className="max-w-6xl mx-auto">
         <div className="mb-12">
           <h2 className="text-3xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -104,7 +104,7 @@ export default function Gallery({ language }: GalleryProps) {
             </div>
 
             {totalCount > 6 && (
-              <div className="w-full flex justify-center mt-10">
+              <div className="w-full flex justify-center mt-1">
                 <LoadMoreBtn href="/archivegallery" text="More images" color="purple" />
               </div>
             )}

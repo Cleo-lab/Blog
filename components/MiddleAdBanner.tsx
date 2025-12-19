@@ -1,13 +1,13 @@
 'use client';
 
-export default function TopAdStrip() {
+export default function MiddleAdBanner() {
   return (
     <aside
       className="
         /* размеры: длинный и низкий */
         w-full max-w-4xl h-[90px]
         /* центрирование + отступы сверху/снизу */
-        mx-auto my-8
+        mx-auto my-1
         /* внешний вид */
         bg-gradient-to-r from-fuchsia-500 via-purple-600 to-indigo-600
         rounded-xl shadow-md

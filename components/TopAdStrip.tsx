@@ -175,7 +175,7 @@ export default function TopAdStrip() {
   return (
     <aside
       ref={bannerRef}
-      className="relative w-full h-[100px] bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-600 overflow-hidden rounded-none cursor-pointer select-none"
+      className="relative w-full h-[80px] bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-600 overflow-hidden rounded-none cursor-pointer select-none"
     >
       {/* Фоновый волнистый SVG */}
       <div className="absolute inset-0 opacity-20">

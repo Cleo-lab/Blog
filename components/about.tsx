@@ -31,20 +31,20 @@ export default function About({ language }: AboutProps) {
   const t = content[language as keyof typeof content] || content.en
 
   return (
-    <section className="py-16 sm:py-24 px-4 bg-gradient-to-b from-background via-muted/5 to-background">
+    <section className="py-1 sm:py-4 px-4 bg-gradient-to-b from-background via-muted/2 to-background">
       <div className="max-w-4xl mx-auto">
-        <div className="space-y-8">
+        <div className="space-y-6">
           <div>
             <h2 className="text-3xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               {t.title}
             </h2>
-            <div className="w-20 h-1 bg-gradient-to-r from-primary to-secondary rounded-full mb-8" />
+            <div className="w-16 h-1 bg-gradient-to-r from-primary to-secondary rounded-full mb-6" />
           </div>
 
-          <div className="bg-card rounded-2xl p-8 sm:p-12 border border-border/50 shadow-lg">
-            <p className="text-lg text-foreground/80 leading-relaxed mb-6">{t.bio}</p>
+          <div className="bg-card rounded-2xl p-6 sm:p-8 border border-border/50 shadow-lg">
+            <p className="text-lg text-foreground/80 leading-relaxed mb-4">{t.bio}</p>
             <p className="text-lg text-foreground/70 leading-relaxed">
-              On this blog, you&apos;ll find my personal musings, fan artwork, travel stories, and everything that makes my heart sparkle. Whether you&apos;re here for the anime discussions, photography, or just some cozy content, I&apos;m glad you stopped by!
+              On this blog, you&apos;ll find my personal musings, fan artwork, travel stories, and everything that makes my heart sparkle.
             </p>
           </div>
 
