@@ -15,6 +15,7 @@ interface BlogPost {
   title: string
   slug: string
   excerpt: string
+  content: string // Добавлено, чтобы подтягивать текст статьи
   featured_image: string | null
   created_at: string
 }
@@ -26,6 +27,16 @@ export default function ArchiveBlogClient() {
   const [loading, setLoading] = useState(true)
 
   const supabase = useSupabase()
+
+  // Функция для очистки текста превью от системных тегов и символов Markdown
+  const cleanText = (text: string) => {
+    if (!text) return ''
+    return text
+      .replace(/\[(yellow|blue|purple|pink)\]/g, '') // Убираем цветовые теги
+      .replace(/^[> \t]+/gm, '')                   // Убираем символы цитат >
+      .replace(/[#*`]/g, '')                       // Убираем маркдаун символы
+      .trim()
+  }
 
   useEffect(() => {
     fetchPosts(currentPage)
@@ -61,20 +72,29 @@ export default function ArchiveBlogClient() {
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         {posts.map((post) => (
-          <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-            <img
-              src={post.featured_image || '/placeholder.svg'}
-              alt={post.title}
-              className="w-full h-48 object-cover"
-            />
+          <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow border-border/50 bg-card">
+            <div className="relative h-48 bg-muted overflow-hidden">
+              <img
+                src={post.featured_image || '/placeholder.svg'}
+                alt={post.title}
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </div>
             <div className="p-4">
               <p className="text-xs text-foreground/60 mb-2">
                 {new Date(post.created_at).toLocaleDateString()}
               </p>
-              <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
-              <p className="text-foreground/70 text-sm mb-4">{post.excerpt}</p>
+              <h3 className="text-lg font-semibold mb-2 line-clamp-2">{post.title}</h3>
+              
+              {/* Исправленный вывод текста */}
+              <p className="text-foreground/70 text-sm mb-4 line-clamp-3">
+                {cleanText(post.excerpt || post.content.substring(0, 150))}...
+              </p>
+
               <Link href={`/blog/${post.slug}`}>
-                <Button size="sm">Read More</Button>
+                <Button size="sm" className="w-full bg-primary/10 hover:bg-primary/20 text-primary border-none">
+                  Read More
+                </Button>
               </Link>
             </div>
           </Card>

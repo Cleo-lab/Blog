@@ -29,6 +29,16 @@ export default function BlogSection({ language }: BlogSectionProps) {
 
   const supabase = useSupabase()
 
+  // ФУНКЦИЯ ДЛЯ ОЧИСТКИ ТЕКСТА ОТ ТЕГОВ [blue], [pink] и т.д.
+  const cleanText = (text: string) => {
+    if (!text) return ''
+    return text
+      .replace(/\[(yellow|blue|purple|pink)\]/g, '') // Убираем цветовые теги
+      .replace(/^[> \t]+/gm, '')                   // Убираем символы цитат (>) в начале строк
+      .replace(/[#*`]/g, '')                       // Убираем остальные маркдаун символы
+      .trim()
+  }
+
   const fetchPosts = useCallback(async () => {
     try {
       if (typeof globalThis.window === 'undefined') return
@@ -59,12 +69,10 @@ export default function BlogSection({ language }: BlogSectionProps) {
   return (
     <section className="py-1 sm:py-4 px-4 bg-background">
       <div className="max-w-6xl mx-auto">
-        {/* 2. Уменьшаем отступ под заголовком с mb-12 до mb-8 */}
         <div className="mb-8">
           <h2 className="text-3xl sm:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Blog Posts
           </h2>
-          {/* Уменьшили ширину полоски (w-16) для компактности */}
           <div className="w-16 h-1 bg-gradient-to-r from-primary to-secondary rounded-full" />
         </div>
 
@@ -89,9 +97,12 @@ export default function BlogSection({ language }: BlogSectionProps) {
                         {new Date(post.created_at).toLocaleDateString()} • {getReadTime(post.content)} min read
                       </p>
                       <h3 className="text-xl font-bold mb-3 text-foreground line-clamp-2">{post.title}</h3>
+                      
+                      {/* ИСПРАВЛЕННЫЙ ВЫВОД ЭКСЦЕРПТА */}
                       <p className="text-foreground/60 text-sm mb-4 line-clamp-3">
-                        {post.excerpt || post.content.substring(0, 150) + '...'}
+                        {cleanText(post.excerpt || post.content.substring(0, 150)) + '...'}
                       </p>
+
                       <Link href={`/blog/${post.slug}`}>
                         <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" size="sm">
                           Read More
