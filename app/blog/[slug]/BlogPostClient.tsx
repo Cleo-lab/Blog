@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
-import { MessageCircle, X } from 'lucide-react'
+import { MessageCircle, X, ChevronRight } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 
 /* ---------- TYPES ---------- */
@@ -15,6 +15,7 @@ interface BlogPost {
   id: string; title: string; slug: string; content: string; excerpt: string;
   featured_image: string | null; author_id: string; published: boolean;
   created_at: string; updated_at: string;
+  related_slugs?: string[]; // ДОБАВИЛИ ЭТУ СТРОКУ
 }
 
 interface AuthorProfile { id: string; username: string; avatar_url: string | null; }
@@ -37,6 +38,7 @@ export default function BlogPostClient() {
   const [post, setPost] = useState<BlogPost | null>(null)
   const [author, setAuthor] = useState<AuthorProfile | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
+  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]) // СОСТОЯНИЕ ДЛЯ ПОХОЖИХ ПОСТОВ
   const [loading, setLoading] = useState(true)
   const [submittingComment, setSubmittingComment] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string>('')
@@ -47,6 +49,19 @@ export default function BlogPostClient() {
     if (sourceUrl) router.push(decodeURIComponent(sourceUrl))
     else globalThis.history.back()
   }
+
+  // ФУНКЦИЯ ЗАГРУЗКИ ВЫБРАННЫХ ВАМИ ПОСТОВ
+  const fetchRelatedPosts = useCallback(async (slugs: string[]) => {
+    if (!slugs || slugs.length === 0) return
+    try {
+      const { data } = await supabase
+        .from('blog_posts')
+        .select('id, title, slug, excerpt')
+        .in('slug', slugs)
+        .eq('published', true)
+      if (data) setRelatedPosts(data as BlogPost[])
+    } catch (e) { console.error(e) }
+  }, [supabase])
 
   const fetchComments = useCallback(async (postSlug: string) => {
     try {
@@ -75,6 +90,15 @@ export default function BlogPostClient() {
       if (postError) throw postError
       setPost(postData)
 
+      // Если в колонке related_slugs есть данные — грузим их
+      if (postData.related_slugs && postData.related_slugs.length > 0) {
+        await fetchRelatedPosts(postData.related_slugs)
+      }
+
+      if (typeof document !== 'undefined') {
+        document.title = `${postData.title} | Yurie's Blog`
+      }
+
       const { data: authorData } = await supabase
         .from('profiles').select('id, username, avatar_url').eq('id', postData.author_id).single()
       if (authorData) setAuthor(authorData)
@@ -83,7 +107,7 @@ export default function BlogPostClient() {
     } catch (err: any) {
       toast({ title: 'Error', description: 'Post not found', variant: 'destructive' })
     } finally { setLoading(false) }
-  }, [slug, supabase, toast, fetchComments])
+  }, [slug, supabase, toast, fetchComments, fetchRelatedPosts])
 
   useEffect(() => {
     const init = async () => {
@@ -124,7 +148,7 @@ export default function BlogPostClient() {
 
         {post.featured_image && (
           <div className="mb-12 rounded-3xl overflow-hidden bg-muted shadow-xl">
-            <img src={post.featured_image} alt={post.title} className="w-full h-auto max-h-[600px] object-contain" />
+            <img src={post.featured_image} alt={post.title} className="w-full h-auto max-h-[600px] object-contain mx-auto" />
           </div>
         )}
 
@@ -164,7 +188,6 @@ export default function BlogPostClient() {
 
                   return (
                     <div className={`my-8 p-8 rounded-[2rem] italic relative transition-all duration-500 ${styleMap[color]}`}>
-                      {/* Размер текста text-base соответствует стандартному prose */}
                       <div className="relative z-10 leading-relaxed text-base font-semibold">
                         {stripColorTag(children)}
                       </div>
@@ -202,6 +225,32 @@ export default function BlogPostClient() {
             >
               {post.content}
             </ReactMarkdown>
+          </div>
+
+          {/* ОБНОВЛЕННЫЙ БЛОК RELATED POSTS */}
+          <div className="mt-16 p-8 bg-muted/20 rounded-3xl border border-border/50">
+            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+              <ChevronRight className="w-5 h-5 text-pink-500" /> Related Stories
+            </h3>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Сначала выводим те посты, которые ты выбрала вручную в Supabase */}
+              {relatedPosts.map((rPost) => (
+                <li key={rPost.id}>
+                  <Link href={`/blog/${rPost.slug}`} className="block h-full p-4 bg-background rounded-xl border border-border/40 hover:border-pink-500/50 hover:bg-pink-500/5 transition-all">
+                    <p className="font-bold text-pink-400 mb-1 italic uppercase text-[10px] tracking-widest">Read Next</p>
+                    <p className="text-sm font-semibold">{rPost.title}</p>
+                  </Link>
+                </li>
+              ))}
+              
+              {/* Кнопка возврата в общий раздел Blog */}
+              <li>
+                <Link href="/archiveblog" className="block h-full p-4 bg-background rounded-xl border border-border/40 hover:border-pink-500/50 hover:bg-pink-500/5 transition-all">
+                  <p className="font-bold text-pink-400 mb-1 italic uppercase text-[10px] tracking-widest">Explore</p>
+                  <p className="text-sm font-semibold">Back to Blog Feed</p>
+                </Link>
+              </li>
+            </ul>
           </div>
         </article>
 
