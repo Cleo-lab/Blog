@@ -9,32 +9,38 @@ const supabase = createClient(
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://yurieblog.vercel.app'
 
-  // Получаем все опубликованные посты
+  // 1. Получаем все опубликованные посты
   const { data: posts } = await supabase
     .from('blog_posts')
     .select('slug, updated_at')
     .eq('published', true)
 
-  // Получаем все галереи
+  // 2. Получаем все галереи
   const { data: galleries } = await supabase
     .from('gallery')
     .select('id, updated_at')
 
+  // Безопасное преобразование даты
+  const parseDate = (dateStr: string | null) => {
+    const d = dateStr ? new Date(dateStr) : new Date()
+    return isNaN(d.getTime()) ? new Date() : d
+  }
+
   const postUrls = (posts || []).map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.updated_at),
+    lastModified: parseDate(post.updated_at),
     changeFrequency: 'weekly' as const,
     priority: 0.8,
   }))
 
   const galleryUrls = (galleries || []).map((gallery) => ({
     url: `${baseUrl}/gallery/${gallery.id}`,
-    lastModified: new Date(gallery.updated_at),
+    lastModified: parseDate(gallery.updated_at),
     changeFrequency: 'monthly' as const,
     priority: 0.6,
   }))
 
-  return [
+  const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -77,7 +83,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'yearly',
       priority: 0.3,
     },
-    ...postUrls,
-    ...galleryUrls,
   ]
+
+  return [...staticPages, ...postUrls, ...galleryUrls]
 }
