@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import { MessageCircle, X } from 'lucide-react'
-
+import ReactMarkdown from 'react-markdown'
 /* ---------- TYPES ---------- */
 interface BlogPost {
   id: string
@@ -318,9 +318,32 @@ export default function BlogPostPage() {
           </div>
 
           {/* Post Content */}
-          <div className="prose prose-invert max-w-none mb-12">
-            <div className="text-foreground whitespace-pre-wrap leading-relaxed">{post.content}</div>
-          </div>
+          {/* Post Content */}
+<div className="prose prose-pink prose-invert max-w-none mb-12">
+  <ReactMarkdown
+    components={{
+      // Настройка отображения картинок внутри текста
+      img: ({ src, alt }) => (
+        <span className="block my-10">
+          <img 
+            src={src} 
+            alt={alt} 
+            className="rounded-2xl shadow-2xl mx-auto border border-white/10 max-h-[600px] object-contain" 
+          />
+          {alt && <span className="block text-center text-sm text-foreground/60 mt-2 italic">{alt}</span>}
+        </span>
+      ),
+      // Настройка ссылок, чтобы они были красивыми и розовыми
+      a: ({ href, children }) => (
+        <a href={href} className="text-pink-500 hover:text-pink-400 font-bold no-underline border-b border-pink-500/30 transition-all">
+          {children}
+        </a>
+      )
+    }}
+  >
+    {post.content}
+  </ReactMarkdown>
+</div>
         </article>
 
         {/* Comments Section */}

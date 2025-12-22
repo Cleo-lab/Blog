@@ -5,14 +5,41 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
-import { Edit2, Trash2, Plus } from 'lucide-react'
+import { Edit2, Trash2, Plus, ImageIcon } from 'lucide-react' // Добавили ImageIcon
 import { useSupabase } from '@/hooks/use-supabase'
 import { useToast } from '@/hooks/use-toast'
 import type { Database } from '@/types/database.types'
 
 type BlogPost = Database['public']['Tables']['blog_posts']['Row']
-type BlogPostInsert = Database['public']['Tables']['blog_posts']['Insert']
-type BlogPostUpdate = Database['public']['Tables']['blog_posts']['Update']
+
+// --- ФУНКЦИЯ СЖАТИЯ ---
+const compressImage = (file: File): Promise<Blob> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1200; 
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_WIDTH) {
+          height = (MAX_WIDTH / width) * height;
+          width = MAX_WIDTH;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => resolve(blob as Blob), 'image/webp', 0.8);
+      };
+    };
+  });
+};
 
 export default function BlogPostsManager() {
   const [posts, setPosts] = useState<BlogPost[]>([])
@@ -23,15 +50,8 @@ export default function BlogPostsManager() {
   const { toast } = useToast()
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const supabase = useSupabase()
 
-  const slugify = (text: string) =>
-  text
-    .toLowerCase()
-    .replace(/\s+/g, '-')           // ← флаг g
-    .replace(/[^\w-]+/g, '')        // ← флаг g
-    .replace(/--+/g, '-')           // ← флаг g
-    .replace(/^-+/g, '')            // ← флаг g
-    .replace(/-+$/g, '')            // ← флаг g
   const [formData, setFormData] = useState<Omit<BlogPost, 'id' | 'author_id' | 'created_at' | 'updated_at'>>({
     title: '',
     slug: '',
@@ -41,347 +61,157 @@ export default function BlogPostsManager() {
     published: true,
   })
 
-  /* ---------- AUTH ---------- */
+  // --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ЗАГРУЗКИ ---
+  const uploadAndGetUrl = async (file: File) => {
+    if (!currentUserId) throw new Error('Not authenticated');
+    const compressedBlob = await compressImage(file);
+    const fileName = `${currentUserId}/${Date.now()}-${file.name.replace(/\.[^/.]+$/, "")}.webp`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('blog-images')
+      .upload(fileName, compressedBlob, { contentType: 'image/webp', upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage.from('blog-images').getPublicUrl(fileName);
+    return data.publicUrl;
+  };
+
+  const slugify = (text: string) =>
+    text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-').replace(/^-+/g, '').replace(/-+$/g, '')
+
   const init = useCallback(async () => {
     try {
-      const sb = useSupabase()
-      const { data: { user }, error } = await sb.auth.getUser()
-      if (user) setCurrentUserId(user.id)
-      else setCurrentUserId(null)
+      const { data: { user } } = await supabase.auth.getUser()
+      setCurrentUserId(user?.id ?? null)
     } catch {
       setCurrentUserId(null)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [supabase])
 
-  useEffect(() => {
-    init()
-  }, [init])
+  useEffect(() => { init() }, [init])
 
-  /* ---------- POSTS ---------- */
   const fetchPosts = useCallback(async () => {
     if (!currentUserId) return
+    const { data, error } = await supabase.from('blog_posts').select('*').order('created_at', { ascending: false })
+    if (!error) setPosts(data ?? [])
+  }, [currentUserId, supabase])
+
+  useEffect(() => { fetchPosts() }, [fetchPosts])
+
+  const handleSave = async () => {
+    if (!currentUserId) return;
     try {
-      const sb = useSupabase()
-      const { data, error } = await sb
-        .from('blog_posts')
-        .select('*')
-        .order('created_at', { ascending: false })
-      if (error) throw error
-      setPosts(data ?? [])
+      const dataToSave = { ...formData, author_id: currentUserId };
+      let error;
+      if (editingId) {
+        const { error: err } = await supabase.from('blog_posts').update(formData).eq('id', editingId);
+        error = err;
+      } else {
+        const { error: err } = await supabase.from('blog_posts').insert([dataToSave]);
+        error = err;
+      }
+      if (error) throw error;
+      toast({ title: 'Success', description: 'Post saved' });
+      setIsCreating(false); setEditingId(null); fetchPosts();
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Failed to fetch posts', variant: 'destructive' })
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
-  }, [currentUserId, toast])
-
-  useEffect(() => {
-    fetchPosts()
-  }, [fetchPosts])
-
-  /* ---------- HANDLERS ---------- */
-  const handleCreate = () => {
-    setIsCreating(true)
-    setEditingId(null)
-    setSlugManuallyEdited(false)
-    setUploading(false)
-    const fileInput = document.getElementById('image-input') as HTMLInputElement
-    if (fileInput) fileInput.value = ''
-    setFormData({
-      title: '',
-      slug: '',
-      content: '',
-      excerpt: null,
-      featured_image: null,
-      published: true,
-    })
   }
 
   const handleEdit = (post: BlogPost) => {
-    setEditingId(post.id)
-    setIsCreating(false)
-    setSlugManuallyEdited(true)
-    setUploading(false)
-    const fileInput = document.getElementById('image-input') as HTMLInputElement
-    if (fileInput) fileInput.value = ''
-    setFormData({
-      title: post.title,
-      slug: post.slug,
-      content: post.content,
-      excerpt: post.excerpt,
-      featured_image: post.featured_image,
-      published: post.published,
-    })
-  }
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this post?')) return
-    try {
-      const sb = useSupabase()
-      const { error } = await sb.from('blog_posts').delete().eq('id', id)
-      if (error) throw error
-      toast({ title: 'Success', description: 'Post deleted' })
-      fetchPosts()
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' })
-    }
-  }
-
-  const handleSave = async () => {
-    if (!currentUserId) {
-      toast({ title: 'Error', description: 'Not authenticated', variant: 'destructive' })
-      return
-    }
-
-    const titleTrimmed = formData.title.trim()
-    const contentTrimmed = formData.content.trim()
-    const excerptTrimmed = formData.excerpt?.trim() ?? null
-    const finalSlug = formData.slug?.trim() || slugify(titleTrimmed)
-
-    if (!titleTrimmed || !contentTrimmed) {
-      toast({ title: 'Error', description: 'Title and content required', variant: 'destructive' })
-      return
-    }
-
-    try {
-      const sb = useSupabase()
-      if (editingId) {
-        const { error } = await sb
-          .from('blog_posts')
-          .update({
-            title: titleTrimmed,
-            slug: finalSlug,
-            content: contentTrimmed,
-            excerpt: excerptTrimmed,
-            featured_image: formData.featured_image,
-            published: formData.published,
-          })
-          .eq('id', editingId)
-        if (error) throw error
-        toast({ title: 'Success', description: 'Post updated' })
-      } else {
-        const { error } = await sb.from('blog_posts').insert([
-          {
-            title: titleTrimmed,
-            slug: finalSlug,
-            content: contentTrimmed,
-            excerpt: excerptTrimmed,
-            featured_image: formData.featured_image,
-            published: formData.published,
-            author_id: currentUserId,
-          },
-        ])
-        if (error) throw error
-        toast({ title: 'Success', description: 'Post created' })
-      }
-
-      fetchPosts()
-      setUploading(false)
-      const fileInput = document.getElementById('image-input') as HTMLInputElement
-      if (fileInput) fileInput.value = ''
-      handleCancel()
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Failed to save post', variant: 'destructive' })
-      setUploading(false)
-    }
+    setEditingId(post.id); setIsCreating(false); setSlugManuallyEdited(true);
+    setFormData({ title: post.title, slug: post.slug, content: post.content, excerpt: post.excerpt, featured_image: post.featured_image, published: post.published });
   }
 
   const handleCancel = () => {
-    setIsCreating(false)
-    setEditingId(null)
-    setSlugManuallyEdited(false)
-    setUploading(false)
-    const fileInput = document.getElementById('image-input') as HTMLInputElement
-    if (fileInput) fileInput.value = ''
-    setFormData({
-      title: '',
-      slug: '',
-      content: '',
-      excerpt: null,
-      featured_image: null,
-      published: true,
-    })
+    setIsCreating(false); setEditingId(null);
+    setFormData({ title: '', slug: '', content: '', excerpt: null, featured_image: null, published: true });
   }
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value
-    setFormData((prev) => ({ ...prev, title: val }))
-    if (!slugManuallyEdited) setFormData((prev) => ({ ...prev, slug: slugify(val) }))
-  }
-
-  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSlugManuallyEdited(true)
-    setFormData((prev) => ({ ...prev, slug: e.target.value }))
-  }
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (!currentUserId) {
-      toast({ title: 'Error', description: 'Not authenticated. Please refresh the page.', variant: 'destructive' })
-      e.target.value = ''
-      return
-    }
-
-    if (!file.type.startsWith('image/')) {
-      toast({ title: 'Error', description: 'Please upload an image file', variant: 'destructive' })
-      e.target.value = ''
-      return
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: 'Error', description: 'Image size must be less than 5MB', variant: 'destructive' })
-      e.target.value = ''
-      return
-    }
-
-    setUploading(true)
-    try {
-      const sb = useSupabase()
-      const fileName = `${currentUserId}/${Date.now()}-${file.name}`
-      const { error: uploadError } = await sb.storage
-        .from('blog-images')
-        .upload(fileName, file, { upsert: true })
-
-      if (uploadError) {
-        if (uploadError.message?.includes('not found')) {
-          throw new Error('Storage bucket not found. Please contact admin to set up blog-images bucket.')
-        }
-        throw uploadError
-      }
-
-      const { data } = sb.storage.from('blog-images').getPublicUrl(fileName)
-
-      if (!data?.publicUrl) {
-        throw new Error('Failed to get public URL for uploaded image')
-      }
-
-      setFormData((prev) => ({ ...prev, featured_image: data.publicUrl }))
-      toast({ title: 'Success', description: 'Image uploaded successfully' })
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Failed to upload image', variant: 'destructive' })
-    } finally {
-      setUploading(false)
-      e.target.value = ''
-    }
-  }
-
-  /* ---------- RENDER ---------- */
   if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>
 
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Blog Posts Manager</h1>
-        <Button
-          onClick={handleCreate}
-          disabled={!currentUserId || loading}
-          className="flex items-center gap-2"
-          title={!currentUserId ? 'Not authenticated' : 'Create new post'}
-        >
-          <Plus className="w-4 h-4" />
-          Create New Post
+        <Button onClick={() => { setIsCreating(true); setEditingId(null); }} className="flex items-center gap-2">
+          <Plus className="w-4 h-4" /> Create New Post
         </Button>
       </div>
 
       {(isCreating || editingId) && (
         <Card className="p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">{editingId ? 'Edit Post' : 'Create New Post'}</h2>
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
-              <Input value={formData.title} onChange={handleTitleChange} />
+            <Input placeholder="Title" value={formData.title} onChange={(e) => {
+              setFormData(p => ({ ...p, title: e.target.value, slug: slugManuallyEdited ? p.slug : slugify(e.target.value) }))
+            }} />
+            
+            <Input placeholder="Slug" value={formData.slug} onChange={(e) => {
+              setSlugManuallyEdited(true); setFormData(p => ({ ...p, slug: e.target.value }))
+            }} />
+
+            {/* Загрузка главной картинки */}
+            <div className="flex items-center gap-4 border p-4 rounded-lg">
+              {formData.featured_image && <img src={formData.featured_image} className="w-20 h-20 object-cover rounded" />}
+              <Button variant="outline" onClick={() => document.getElementById('main-img')?.click()} disabled={uploading}>
+                {uploading ? 'Uploading...' : 'Upload Featured Image'}
+              </Button>
+              <input id="main-img" type="file" className="hidden" onChange={async (e) => {
+                const file = e.target.files?.[0]; if (!file) return;
+                setUploading(true);
+                try {
+                  const url = await uploadAndGetUrl(file);
+                  setFormData(p => ({ ...p, featured_image: url }));
+                } catch (err: any) { toast({ title: 'Error', description: err.message, variant: 'destructive' }) }
+                finally { setUploading(false) }
+              }} />
             </div>
+
+            {/* Контент с кнопкой добавления картинок внутрь */}
             <div>
-              <label className="block text-sm font-medium mb-1">Slug</label>
-              <Input value={formData.slug} onChange={handleSlugChange} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Featured Image</label>
-              <div className="flex items-center gap-4">
-                {formData.featured_image && (
-                  <div className="w-32 h-32 flex-shrink-0 rounded-lg overflow-hidden border border-border">
-                    <img
-                      src={formData.featured_image}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <div>
-                  <input
-                    type="file"
-                    id="image-input"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    disabled={uploading}
-                    className="hidden"
-                  />
-                  <Button
-                    onClick={() => document.getElementById('image-input')?.click()}
-                    variant="outline"
-                    disabled={uploading || !currentUserId}
-                  >
-                    {uploading ? 'Uploading...' : 'Upload Image'}
-                  </Button>
-                  {formData.featured_image && (
-                    <Button
-                      onClick={() => setFormData((p) => ({ ...p, featured_image: null }))}
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      Remove Image
-                    </Button>
-                  )}
-                </div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-medium">Content (Markdown supported)</label>
+                <Button size="sm" variant="secondary" onClick={() => document.getElementById('inline-img')?.click()} disabled={uploading}>
+                  <ImageIcon className="w-4 h-4 mr-2" /> Add Image into Text
+                </Button>
+                <input id="inline-img" type="file" className="hidden" onChange={async (e) => {
+                  const file = e.target.files?.[0]; if (!file) return;
+                  setUploading(true);
+                  try {
+                    const url = await uploadAndGetUrl(file);
+                    setFormData(p => ({ ...p, content: p.content + `\n\n![image](${url})\n\n` }));
+                    toast({ title: 'Added', description: 'Image link placed at the end of text' });
+                  } catch (err: any) { toast({ title: 'Error', description: err.message, variant: 'destructive' }) }
+                  finally { setUploading(false) }
+                }} />
               </div>
+              <Textarea rows={15} value={formData.content} onChange={(e) => setFormData(p => ({ ...p, content: e.target.value }))} />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Excerpt</label>
-              <Textarea
-                value={formData.excerpt ?? ''}
-                onChange={(e) => setFormData((p) => ({ ...p, excerpt: e.target.value }))}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Content</label>
-              <Textarea
-                value={formData.content}
-                onChange={(e) => setFormData((p) => ({ ...p, content: e.target.value }))}
-                rows={10}
-              />
-            </div>
+
             <div className="flex gap-2">
-              <Button onClick={handleSave}>{editingId ? 'Update Post' : 'Create Post'}</Button>
+              <Button onClick={handleSave}>Save Post</Button>
               <Button variant="outline" onClick={handleCancel}>Cancel</Button>
             </div>
           </div>
         </Card>
       )}
 
-      <div className="grid gap-4 contain-content">
-        {posts.map((post) => (
-          <Card key={post.id} className="p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-semibold">{post.title}</h3>
-                <p className="text-sm text-foreground/60">{post.excerpt}</p>
-                <div className="flex gap-2 text-sm text-foreground/60 mt-1">
-                  <span>Slug: {post.slug}</span>
-                  <span>Status: {post.published ? 'Published' : 'Draft'}</span>
-                  <span>Created: {post.created_at ? new Date(post.created_at).toLocaleDateString() : '—'}</span>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={() => handleEdit(post)}>
-                  <Edit2 className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => handleDelete(post.id)} className="text-red-600 hover:text-red-700">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+      {/* Список постов */}
+      <div className="grid gap-4">
+        {posts.map(post => (
+          <Card key={post.id} className="p-4 flex justify-between items-center">
+            <div>
+              <h3 className="font-bold">{post.title}</h3>
+              <p className="text-sm text-muted-foreground">{post.slug}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="ghost" onClick={() => handleEdit(post)}><Edit2 className="w-4 h-4" /></Button>
+              <Button variant="ghost" className="text-red-500" onClick={async () => {
+                if (confirm('Delete?')) { await supabase.from('blog_posts').delete().eq('id', post.id); fetchPosts(); }
+              }}><Trash2 className="w-4 h-4" /></Button>
             </div>
           </Card>
         ))}
