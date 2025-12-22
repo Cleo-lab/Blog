@@ -84,17 +84,37 @@ export default function UserProfile({ setCurrentSection, onProfileUpdate }: User
   };
 
   const handleSave = async () => {
-    if (!userId) return;
+    console.log("Начинаем сохранение. UserID:", userId); // Проверка 1: есть ли ID
+
+    if (!userId) {
+        console.error("Ошибка: Нет userId, выходим.");
+        return;
+    }
+
     setSaving(true);
     try {
-      const { error } = await supabase
+      console.log("Отправляем upsert запрос в Supabase..."); // Проверка 2
+      const { data, error } = await supabase // Добавим 'data' для просмотра ответа
         .from('profiles')
-        .update({ username: username.trim(), avatar_url: avatarUrl })
-        .eq('id', userId);
-      if (error) throw error;
+        .upsert({
+          id: userId,
+          username: username.trim(),
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .select(); // Добавим .select(), чтобы увидеть результат операции
+
+      if (error) {
+          console.error("Supabase вернул ошибку:", error); // ВАЖНО: Смотри сюда в консоли
+          throw error;
+      }
+
+      console.log("Успешный upsert! Данные:", data); // Проверка 3: что вернулось
       onProfileUpdate?.();
       toast({ title: 'Success', description: 'Profile saved' });
     } catch (error: any) {
+      // Если ошибка дошла сюда, она точно будет в консоли
+      console.error("Пойманная ошибка в catch:", error.message, error.details, error.hint);
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setSaving(false);
