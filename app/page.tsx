@@ -171,16 +171,21 @@ function HomeContent() {
       <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-pink-400/10 blur-[50px] rounded-full" />
 
       {/* Контент ленты */}
-      <div className="relative z-10">
-        <h3 className="text-md font-bold mb-4 bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent flex items-center gap-2">
-          Updates 🦋
-        </h3>
-        
-        {/* Оборачиваем ленту в контейнер, чтобы она была чуть контрастнее на светлом фоне */}
-        <div className={isLoggedIn ? "opacity-100" : "opacity-40"}>
-          <BlueskyFeed />
-        </div>
-      </div>
+<div className="relative z-10 flex flex-col">
+  <h3 className="text-md font-bold mb-4 bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent flex items-center gap-2">
+    Updates 🦋
+  </h3>
+  
+  {/* 1. У внешнего дива убираем overflow-y-auto, оставляем overflow-hidden */}
+  <div className={`relative overflow-hidden ${isLoggedIn ? "opacity-100" : "opacity-40"}`}>
+    
+    {/* 2. ВОТ ЗДЕСЬ УКАЗЫВАЕТСЯ РАЗМЕР (например, h-[450px]) */}
+    <div className="h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+      <BlueskyFeed />
+    </div>
+
+  </div>
+</div>
 
       {/* Дополнительный розовый блик только для красоты залогиненных */}
       {isLoggedIn && (
