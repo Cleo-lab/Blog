@@ -1,45 +1,83 @@
-import type { Metadata } from 'next'
-import { Poppins } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/react' // Импортируем аналитику
-import './globals.css'
-import { ProvidersWrapper } from '@/components/providers-wrapper'
-import CookieBanner from '@/components/cookie-banner'
+import type { Metadata } from 'next';
+import { Poppins } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/react';
+import './globals.css';
+import { ProvidersWrapper } from '@/components/providers-wrapper';
+import CookieBanner from '@/components/cookie-banner';
 
-const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'] })
+const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'] });
 
 export const metadata: Metadata = {
-  title: 'Yurie Jiyūbō - Character Blog',
-  description: "Welcome to Yurie Jiyūbō's personal blog - a dreamy digital world",
+  title: {
+    default: 'Yurie Jiyūbō - Character Blog',
+    template: '%s | Yurie Jiyūbō',
+  },
+  description: 'Personal blog of Yurie Jiyūbō — anime characters, digital dreams, and cozy creativity.',
+  keywords: ['anime blog', 'Yurie Jiyūbō', 'character blog', 'digital art', 'anime culture'],
+  authors: [{ name: 'Yurie Jiyūbō', url: 'https://yurieblog.vercel.app' }],
+  creator: 'Yurie Jiyūbō',
+  publisher: 'Yurie Jiyūbō',
+  robots: 'index, follow',
   verification: { google: 'WXnuGqV3agaGqnSqBJBEuym8I5KkJuvH4AMNKWXodYM' },
   metadataBase: new URL('https://yurieblog.vercel.app'),
+  alternates: { canonical: 'https://yurieblog.vercel.app' },
   openGraph: {
     title: 'Yurie Jiyūbō - Character Blog',
-    description: "Welcome to Yurie Jiyūbō's personal blog - a dreamy digital world",
+    description: 'Personal blog of Yurie Jiyūbō — anime characters, digital dreams, and cozy creativity.',
     images: ['/Yurie_main.jpg'],
     type: 'website',
+    url: 'https://yurieblog.vercel.app',
+    siteName: "Yurie's Blog",
   },
-  // Добавь этот блок для Bluesky и Twitter:
   twitter: {
-    card: 'summary_large_image', // Это заставит картинку быть большой
+    card: 'summary_large_image',
     title: 'Yurie Jiyūbō - Character Blog',
-    description: "Welcome to Yurie Jiyūbō's personal blog",
+    description: 'Personal blog of Yurie Jiyūbō — anime characters, digital dreams, and cozy creativity.',
     images: ['/Yurie_main.jpg'],
+    site: '@yurieblog.bsky.social',
+    creator: '@yurieblog.bsky.social',
   },
+  other: {
+    'hreflang-en': 'https://yurieblog.vercel.app',
+    'hreflang-x-default': 'https://yurieblog.vercel.app',
+    language: 'English',
+    distribution: 'Global',
+    copyright: '© 2025 Yurie Jiyūbō',
+  },
+};
+
+/* ---------- Server-side JSON-LD ---------- */
+function JsonLdScript() {
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Yurie Jiyūbō',
+    url: 'https://yurieblog.vercel.app',
+    description: 'Anime character and blogger sharing digital dreams and cozy creativity.',
+    sameAs: ['https://bsky.app/profile/yurieblog.bsky.social'],
+    image: 'https://yurieblog.vercel.app/Yurie_main.jpg',
+    jobTitle: 'Character Blogger',
+    alumniOf: 'Digital Dream Academy',
+  };
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+    />
+  );
 }
 
 export default function RootLayout({ children }: { readonly children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <JsonLdScript />
+      </head>
       <body className={poppins.className}>
-        <ProvidersWrapper>
-          {children}
-        </ProvidersWrapper>
-
-        {/* Vercel Analytics автоматически отслеживает посещения */}
+        <ProvidersWrapper>{children}</ProvidersWrapper>
         <Analytics />
-
         <CookieBanner />
       </body>
     </html>
-  )
+  );
 }
