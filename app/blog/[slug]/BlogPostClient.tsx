@@ -124,9 +124,17 @@ export default function BlogPostClient() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
 
   const handleClose = () => {
-    if (sourceUrl) router.push(decodeURIComponent(sourceUrl))
-    else globalThis.history.back()
+  try {
+    if (sourceUrl) {
+      router.push(decodeURIComponent(sourceUrl))
+    } else {
+      router.push('/')
+    }
+  } catch {
+    router.push('/')
   }
+}
+
 
   const fetchRelatedPosts = useCallback(
     async (slugs: string[]) => {
