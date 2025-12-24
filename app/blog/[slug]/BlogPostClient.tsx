@@ -124,16 +124,26 @@ export default function BlogPostClient() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
 
   const handleClose = () => {
-    if (sourceUrl) {
-      router.push(decodeURIComponent(sourceUrl));
-      return;
-    }
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      router.back();
-    } else {
-      router.push('/');
-    }
-  };
+    if (sourceUrl) router.push(decodeURIComponent(sourceUrl))
+    else globalThis.history.back()
+  }
+
+  const fetchRelatedPosts = useCallback(
+    async (slugs: string[]) => {
+      if (!slugs || slugs.length === 0) return
+      try {
+        const { data } = await supabase
+          .from('blog_posts')
+          .select('id, title, slug, excerpt')
+          .in('slug', slugs)
+          .eq('published', true)
+        if (data) setRelatedPosts(data as BlogPost[])
+      } catch (e) {
+        console.error(e)
+      }
+    },
+    [supabase]
+  )
 
   const fetchComments = useCallback(
     async (postSlug: string) => {
