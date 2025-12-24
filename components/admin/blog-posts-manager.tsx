@@ -177,16 +177,30 @@ export default function BlogPostsManager() {
                 <Button size="sm" variant="secondary" onClick={() => document.getElementById('inline-img')?.click()} disabled={uploading}>
                   <ImageIcon className="w-4 h-4 mr-2" /> Add Image into Text
                 </Button>
-                <input id="inline-img" type="file" className="hidden" onChange={async (e) => {
-                  const file = e.target.files?.[0]; if (!file) return;
-                  setUploading(true);
-                  try {
-                    const url = await uploadAndGetUrl(file);
-                    setFormData(p => ({ ...p, content: p.content + `\n\n![image](${url})\n\n` }));
-                    toast({ title: 'Added', description: 'Image link placed at the end of text' });
-                  } catch (err: any) { toast({ title: 'Error', description: err.message, variant: 'destructive' }) }
-                  finally { setUploading(false) }
-                }} />
+                <input
+  id="inline-img"
+  type="file"
+  className="hidden"
+  accept="image/*"
+  onChange={async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadAndGetUrl(file);
+      /*  НОВЫЙ ФОРМАТ  */
+      const imageMarkdown = `\n\n![Image caption {scale=100 blur=false}](${url})\n\n`;
+      setFormData(p => ({ ...p, content: p.content + imageMarkdown }));
+      toast({ title: 'Added', description: 'Edit caption and parameters' });
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setUploading(false);
+      /* сбросить input, чтобы можно было выбрать тот же файл снова */
+      e.currentTarget.value = '';
+    }
+  }}
+/>
               </div>
               <Textarea rows={15} value={formData.content} onChange={(e) => setFormData(p => ({ ...p, content: e.target.value }))} />
             </div>
