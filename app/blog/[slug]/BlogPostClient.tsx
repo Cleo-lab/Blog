@@ -212,6 +212,45 @@ export default function BlogPostClient() {
       setLoading(false)
     }
   }, [slug, supabase, toast, fetchComments, fetchRelatedPosts])
+  /* ---------- SEO: Article/BlogPosting JSON-LD ---------- */
+useEffect(() => {
+  if (!post || !author) return;
+
+  const articleLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.excerpt || post.content.slice(0, 160).replace(/[#*`>\[\]]/g, '').trim(),
+    image: post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg',
+    datePublished: post.created_at,
+    dateModified: post.updated_at,
+    author: {
+      '@type': 'Person',
+      name: author.username,
+      url: `https://yurieblog.vercel.app`,
+      image: author.avatar_url || 'https://yurieblog.vercel.app/avatar-placeholder.jpg',
+    },
+    publisher: {
+      '@type': 'Person',
+      name: 'Yurie Jiyūbō',
+      url: 'https://yurieblog.vercel.app',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://yurieblog.vercel.app/Yurie_main.jpg',
+      },
+    },
+    mainEntityOfPage: `https://yurieblog.vercel.app/blog/${post.slug}`,
+  };
+
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.text = JSON.stringify(articleLd);
+  document.head.appendChild(script);
+
+  return () => {
+    document.head.removeChild(script);
+  };
+}, [post, author]);
 
   useEffect(() => {
     const init = async () => {
