@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
-import { randomBytes } from 'node:crypto'
 import { createServerSupabase } from '@/lib/supabaseServer'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -15,7 +14,7 @@ export async function POST(req: NextRequest) {
     // 1. Добавляем подписчика
     const { error: dbError } = await supabase
       .from('newsletter_subscribers')
-      .insert([{ email: email.trim().toLowerCase(), token: randomBytes(32).toString('hex') }])
+      .insert([{ email: email.trim().toLowerCase(), token: Math.random().toString(36).substring(2) + Date.now().toString(36) }])
 
     if (dbError && dbError.code !== '23505') {
       console.error('DB insert error:', dbError)

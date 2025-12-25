@@ -74,13 +74,15 @@ export default function RootLayout({ children }: { readonly children: React.Reac
   return (
     <html lang="en">
       <head>
-        <JsonLdScript />
-		<link rel="preload" as="image" href="/images/Yurie_main.webp" type="image/webp" />
-      </head>
+  <JsonLdScript />
+  <link rel="preconnect" href="https://mdpembzqtrgskqitixym.supabase.co" />
+  <link rel="dns-prefetch" href="https://vercel-analytics.com" />            
+  <link rel="preload" as="image" href="/images/Yurie_main.webp" type="image/webp" />
+</head>
       <body className={poppins.className}>
         <ProvidersWrapper>{children}</ProvidersWrapper>
         <Analytics />
-		<GoogleAnalytics gaId="G-SV2M5CRN5M" strategy="lazyOnload" />
+		<GoogleAnalytics gaId="G-SV2M5CRN5M" strategy="worker" />
         <CookieBanner />
       </body>
     </html>
