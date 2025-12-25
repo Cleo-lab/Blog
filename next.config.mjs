@@ -13,6 +13,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+	  formats: ['image/webp', 'image/avif'],
     remotePatterns: [
       {
         protocol: 'https',

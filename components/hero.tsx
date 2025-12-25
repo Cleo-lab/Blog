@@ -19,11 +19,13 @@ export default function Hero({ setCurrentSection }: HeroProps) {
         <div className="hero-avatar-gradient w-60 h-60 rounded-full bg-gradient-to-br from-primary via-accent to-secondary p-1 mb-6 mx-auto">
           <Image
   src="/images/Yurie_main.webp"
-  alt="Yurie Jiyūbō - anime character and blogger"
+  alt="Yurie Jiyūbō"
   width={240}
   height={240}
   priority
-  className="hero-avatar w-full h-full rounded-full object-cover shadow-lg select-none"
+  sizes="(max-width: 640px) 240px, 240px"
+  quality={85}                               
+  className="hero-avatar w-full h-full rounded-full object-cover"
 />
         </div>
 
