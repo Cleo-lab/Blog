@@ -6,7 +6,9 @@ import './globals.css';
 import { ProvidersWrapper } from '@/components/providers-wrapper';
 import CookieBanner from '@/components/cookie-banner';
 
-const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'] });
+const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'], 
+display: 'swap' });
+
 
 export const metadata: Metadata = {
   title: {
@@ -73,11 +75,12 @@ export default function RootLayout({ children }: { readonly children: React.Reac
     <html lang="en">
       <head>
         <JsonLdScript />
+		<link rel="preload" as="image" href="/images/Yurie_main.webp" type="image/webp" />
       </head>
       <body className={poppins.className}>
         <ProvidersWrapper>{children}</ProvidersWrapper>
         <Analytics />
-		<GoogleAnalytics gaId="G-SV2M5CRN5M" />
+		<GoogleAnalytics gaId="G-SV2M5CRN5M" strategy="lazyOnload" />
         <CookieBanner />
       </body>
     </html>
