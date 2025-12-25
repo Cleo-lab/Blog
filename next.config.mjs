@@ -3,7 +3,7 @@ import withBundleAnalyzer from '@next/bundle-analyzer'
 
 const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
-  openAnalyzer: false, // не пытаемся открыть браузер
+  openAnalyzer: false,
 })
 
 /** @type {import('next').NextConfig} */
@@ -13,7 +13,12 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
+    ],
   },
 }
 

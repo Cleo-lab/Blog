@@ -1,18 +1,6 @@
 'use client';
 
-interface AdBannerProps {
-  readonly imageUrl?: string;
-  readonly linkUrl?: string;
-  readonly alt?: string;
-  readonly callout?: string;
-}
-
-export default function FootAdBanner({
-  imageUrl = '/ad-placeholder.jpg',
-  linkUrl = 'https://example.com?utm_source=yurie_blog&utm_medium=banner&utm_campaign=sidebar',
-  alt = 'Advertisement',
-  callout = 'Here could be your advertisement'
-}: AdBannerProps) {
+export default function FootAdBanner() {
   return (
     <aside className="w-full h-[100px] bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-600 relative overflow-hidden">
       {/* фоновый узор «аниме-облака» (не грузит) */}
@@ -29,9 +17,10 @@ export default function FootAdBanner({
           />
         </svg>
       </div>
+
       {/* контент по центру */}
       <div className="relative z-10 h-full flex items-center justify-center text-white">
-	  <span className="text-3xl">✨</span>
+        <span className="text-3xl">✨</span>
         <p className="text-xl sm:text-2xl font-semibold drop-shadow-md text-balance text-center px-4">
           Gracias por estar aquí.
         </p>

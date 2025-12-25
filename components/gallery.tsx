@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image' // <--- 1. ДОБАВИЛИ ИМПОРТ
 import { useSupabase } from '@/hooks/use-supabase'
 import LoadMoreBtn from '@/components/load-more-btn'
 
@@ -84,12 +85,18 @@ export default function Gallery({ language }: GalleryProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {images.map((item) => (
                 <Link key={item.id} href={`/gallery/${item.id}`}>
+                  {/* Родительский блок должен иметь relative и фиксированную высоту (h-64 уже есть) */}
                   <div className="group relative h-64 rounded-xl overflow-hidden cursor-pointer bg-card border border-border/50 transition-transform hover:scale-105">
-                    <img
+                    
+                    {/* 2. ЗАМЕНИЛИ IMG НА IMAGE */}
+                    <Image
                       src={item.image || '/placeholder.svg'}
                       alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-110 transition-transform duration-300"
                     />
+
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                       <div className="p-4 w-full">
                         <p className="text-white font-semibold">{item.title}</p>
