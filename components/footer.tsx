@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'   // ← добавь импорт
+import Link from 'next/link'
 
 interface FooterProps {
   readonly language: string
@@ -38,17 +38,19 @@ export default function Footer({ language }: FooterProps) {
             <Link
               href="/privacy"
               className="text-xs text-foreground/50 hover:text-foreground transition-colors"
-              aria-label={t.privacy + ' Policy'}
+              aria-label={`Learn more about our ${t.privacy} Policy`}
             >
               {t.privacy}
             </Link>
+
             <Link
               href="/terms"
               className="text-xs text-foreground/50 hover:text-foreground transition-colors"
-              aria-label={t.terms + ' of Service'}
+              aria-label={`${t.terms} of Service`}
             >
               {t.terms}
             </Link>
+
             <Link
               href="/contact"
               className="text-xs text-foreground/50 hover:text-foreground transition-colors"
@@ -56,6 +58,7 @@ export default function Footer({ language }: FooterProps) {
             >
               {t.contact}
             </Link>
+
             <Link
               href="/about"
               className="text-xs text-foreground/50 hover:text-foreground transition-colors"
