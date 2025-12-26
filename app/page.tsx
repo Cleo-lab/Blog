@@ -19,25 +19,15 @@ import AnalyticsTracker from '@/components/analytics-tracker'
 import BlogTeaser from '@/components/blog/blog-teaser'
 
 /* 1. Ленивые клиентские компоненты ---------------------------------- */
-const DonorList = dynamic(
-  () => import('@/components/donor-list'),
-  {
-    loading: () => (
-      <div className="animate-pulse h-40 bg-muted/20 rounded-3xl" />
-    ),
-    ssr: false
-  }
-)
+const DonorList = dynamic(() => import('@/components/donor-list'), {
+  loading: () => <div className="h-40 bg-muted/20 rounded-3xl" />,
+  ssr: false
+})
 
-const BlueskyFeed = dynamic(
-  () => import('@/components/bluesky-feed'),
-  {
-    loading: () => (
-      <div className="animate-pulse h-[450px] bg-muted/20 rounded-3xl" />
-    ),
-    ssr: false
-  }
-)
+const BlueskyFeed = dynamic(() => import('@/components/bluesky-feed'), {
+  loading: () => <div className="h-[450px] bg-muted/20 rounded-3xl" />,
+  ssr: false
+})
 
 const SignIn = dynamic(() => import('@/components/auth/sign-in'), {
   loading: () => (
