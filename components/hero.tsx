@@ -21,7 +21,8 @@ export default function Hero({ setCurrentSection }: HeroProps) {
             alt="Yurie Jiyūbō"
             width={240}
             height={240}
-            priority      
+            priority
+            fetchPriority="high"			
             quality={95}  // 2. Увеличили качество до 95 для JPG
             sizes="(max-width: 768px) 240px, 480px" // 3. Улучшили подсказку для четкости
             className="hero-avatar w-full h-full rounded-full object-cover shadow-xl select-none"

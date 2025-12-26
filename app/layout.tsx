@@ -39,11 +39,6 @@ export default function RootLayout({ children }: { readonly children: React.Reac
   return (
     <html lang="en">
       <head>
-        <link 
-          rel="preload" 
-          as="image" 
-          href="/images/Yurie_main.jpg" 
-        />
       </head>
       <body className={poppins.className}>
         <ProvidersWrapper>{children}</ProvidersWrapper>
