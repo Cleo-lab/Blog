@@ -45,9 +45,7 @@ interface Comment {
 
 /* ---------- УТИЛИТА ПАРСИНГА ИЗОБРАЖЕНИЙ ---------- */
 const parseImageProps = (alt: string) => {
-  // Ищем всё, что в фигурных скобках
   const propsMatch = alt.match(/\{([^}]+)\}/)
-  // Подпись — это всё остальное
   const caption = alt.replace(/\{[^}]+\}/, '').trim()
 
   let scale = 100
@@ -55,9 +53,7 @@ const parseImageProps = (alt: string) => {
 
   if (propsMatch) {
     const props = propsMatch[1]
-    // Ищем scale=число или scale:число
     const scaleMatch = props.match(/scale[:=](\d+)/i)
-    // Ищем blur=true или просто наличие слова blur
     const blurMatch = props.match(/blur[:=](true|false)/i)
     const simpleBlur = props.toLowerCase().includes('blur') && !props.toLowerCase().includes('blur=false')
     
@@ -78,7 +74,6 @@ const MarkdownImage = ({ src, alt }: { src?: string; alt?: string }) => {
       <span
         className="relative inline-block w-full overflow-hidden rounded-2xl shadow-2xl transition-all duration-500"
         style={{
-          // На мобилках всегда 100%, на десктопе — ваш заданный масштаб
           maxWidth: typeof window !== 'undefined' && window.innerWidth < 768 
             ? '100%' 
             : `${scale}%`
@@ -92,6 +87,7 @@ const MarkdownImage = ({ src, alt }: { src?: string; alt?: string }) => {
             isBlurred ? 'blur-2xl hover:blur-none' : 'blur-0'
           }`}
           alt={caption}
+          loading="lazy"
         />
       </span>
       {caption && caption.toLowerCase() !== 'image' && (
@@ -124,17 +120,16 @@ export default function BlogPostClient() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
 
   const handleClose = () => {
-  try {
-    if (sourceUrl) {
-      router.push(decodeURIComponent(sourceUrl))
-    } else {
+    try {
+      if (sourceUrl) {
+        router.push(decodeURIComponent(sourceUrl))
+      } else {
+        router.push('/')
+      }
+    } catch {
       router.push('/')
     }
-  } catch {
-    router.push('/')
   }
-}
-
 
   const fetchRelatedPosts = useCallback(
     async (slugs: string[]) => {
@@ -220,45 +215,91 @@ export default function BlogPostClient() {
       setLoading(false)
     }
   }, [slug, supabase, toast, fetchComments, fetchRelatedPosts])
-  /* ---------- SEO: Article/BlogPosting JSON-LD ---------- */
-useEffect(() => {
-  if (!post || !author) return;
 
-  const articleLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
-    headline: post.title,
-    description: post.excerpt || post.content.slice(0, 160).replace(/[#*`>\[\]]/g, '').trim(),
-    image: post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg',
-    datePublished: post.created_at,
-    dateModified: post.updated_at,
-    author: {
-      '@type': 'Person',
-      name: author.username,
-      url: `https://yurieblog.vercel.app`,
-      image: author.avatar_url || 'https://yurieblog.vercel.app/avatar-placeholder.jpg',
-    },
-    publisher: {
-      '@type': 'Person',
-      name: 'Yurie Jiyūbō',
-      url: 'https://yurieblog.vercel.app',
-      logo: {
-        '@type': 'ImageObject',
-        url: 'https://yurieblog.vercel.app/Yurie_main.jpg',
+  /* ---------- SEO: УЛУЧШЕННЫЙ JSON-LD ---------- */
+  useEffect(() => {
+    if (!post || !author) return;
+
+    // 1. Article/BlogPosting Schema
+    const articleLd = {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: post.title,
+      description: post.excerpt || post.content.slice(0, 160).replace(/[#*`>\[\]]/g, '').trim(),
+      image: post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg',
+      datePublished: post.created_at,
+      dateModified: post.updated_at,
+      wordCount: post.content.split(/\s+/).length,
+      articleBody: post.content.slice(0, 500).replace(/[#*`>\[\]]/g, '').trim(),
+      author: {
+        '@type': 'Person',
+        name: author.username,
+        url: 'https://yurieblog.vercel.app',
+        image: author.avatar_url || 'https://yurieblog.vercel.app/Yurie_main.jpg',
       },
-    },
-    mainEntityOfPage: `https://yurieblog.vercel.app/blog/${post.slug}`,
-  };
+      publisher: {
+        '@type': 'Organization',
+        name: "Yurie's Blog",
+        url: 'https://yurieblog.vercel.app',
+        logo: {
+          '@type': 'ImageObject',
+          url: 'https://yurieblog.vercel.app/Yurie_main.jpg',
+          width: 240,
+          height: 240,
+        },
+      },
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': `https://yurieblog.vercel.app/blog/${post.slug}`,
+      },
+    };
 
-  const script = document.createElement('script');
-  script.type = 'application/ld+json';
-  script.text = JSON.stringify(articleLd);
-  document.head.appendChild(script);
+    // 2. Breadcrumb Schema
+    const breadcrumbLd = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: 'https://yurieblog.vercel.app',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Blog',
+          item: 'https://yurieblog.vercel.app/archiveblog',
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: post.title,
+          item: `https://yurieblog.vercel.app/blog/${post.slug}`,
+        },
+      ],
+    };
 
-  return () => {
-    document.head.removeChild(script);
-  };
-}, [post, author]);
+    // Добавляем скрипты
+    const articleScript = document.createElement('script');
+    articleScript.type = 'application/ld+json';
+    articleScript.text = JSON.stringify(articleLd);
+    articleScript.id = 'blog-post-schema';
+    document.head.appendChild(articleScript);
+
+    const breadcrumbScript = document.createElement('script');
+    breadcrumbScript.type = 'application/ld+json';
+    breadcrumbScript.text = JSON.stringify(breadcrumbLd);
+    breadcrumbScript.id = 'breadcrumb-schema';
+    document.head.appendChild(breadcrumbScript);
+
+    return () => {
+      const existingArticle = document.getElementById('blog-post-schema');
+      const existingBreadcrumb = document.getElementById('breadcrumb-schema');
+      if (existingArticle) document.head.removeChild(existingArticle);
+      if (existingBreadcrumb) document.head.removeChild(existingBreadcrumb);
+    };
+  }, [post, author]);
 
   useEffect(() => {
     const init = async () => {
@@ -303,8 +344,17 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-4xl mx-auto px-4 py-12">
+        {/* ✅ BREADCRUMBS (ХЛЕБНЫЕ КРОШКИ) */}
+        <nav className="mb-6 text-sm text-muted-foreground" aria-label="Breadcrumb">
+          <Link href="/" className="hover:text-pink-500 transition-colors">Home</Link>
+          {' / '}
+          <Link href="/archiveblog" className="hover:text-pink-500 transition-colors">Blog</Link>
+          {' / '}
+          <span className="text-foreground font-medium">{post.title}</span>
+        </nav>
+
         <div className="flex justify-end mb-8">
-          <Button variant="ghost" onClick={handleClose}>
+          <Button variant="ghost" onClick={handleClose} aria-label="Close article">
             <X className="w-4 h-4 mr-2" />
             Close
           </Button>
@@ -316,6 +366,7 @@ useEffect(() => {
               src={post.featured_image}
               alt={post.title}
               className="w-full h-auto max-h-[600px] object-contain mx-auto"
+              loading="eager"
             />
           </div>
         )}
@@ -324,18 +375,19 @@ useEffect(() => {
           <h1 className="text-4xl font-bold mb-6">{post.title}</h1>
           <div className="flex items-center gap-4 mb-8 pb-8 border-b border-border/50">
             {author?.avatar_url && (
-              <img src={author.avatar_url} className="w-12 h-12 rounded-full border border-pink-500/20" alt="" />
+              <img src={author.avatar_url} className="w-12 h-12 rounded-full border border-pink-500/20" alt={`${author.username} avatar`} />
             )}
             <div>
               <p className="font-semibold text-lg">{author?.username}</p>
-              <p className="text-sm text-muted-foreground">{new Date(post.created_at).toLocaleDateString()}</p>
+              <time className="text-sm text-muted-foreground" dateTime={post.created_at}>
+                {new Date(post.created_at).toLocaleDateString()}
+              </time>
             </div>
           </div>
 
           <div className="prose prose-pink prose-invert max-w-none">
             <ReactMarkdown
               components={{
-                // Код для blockquote остается вашим
                 blockquote: ({ children }) => {
                   const collectText = (node: any): string =>
                     typeof node === 'string'
@@ -371,13 +423,28 @@ useEffect(() => {
                     </div>
                   )
                 },
-                // ИСПОЛЬЗУЕМ НАШ ОБНОВЛЕННЫЙ КОМПОНЕНТ
                 img: MarkdownImage,
                 code: ({ children }) => (
                   <code className="bg-[#e91e63] text-white px-2 py-0.5 rounded-md font-bold mx-1 italic shadow-sm whitespace-nowrap">
                     {children}
                   </code>
                 ),
+                // ✅ ОБРАБОТКА ССЫЛОК ДЛЯ SEO
+                a: ({ href, children }) => {
+                  const isExternal = href?.startsWith('http') && !href.includes('yurieblog.vercel.app');
+                  return (
+                    <a 
+                      href={href} 
+                      className="text-pink-500 hover:text-pink-600 underline decoration-pink-500/30 hover:decoration-pink-500 transition-colors"
+                      {...(isExternal && { 
+                        target: "_blank", 
+                        rel: "noopener noreferrer nofollow" 
+                      })}
+                    >
+                      {children}
+                    </a>
+                  );
+                },
               }}
             >
               {post.content}
