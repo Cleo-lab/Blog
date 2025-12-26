@@ -10,20 +10,21 @@ const bundleAnalyzer = withBundleAnalyzer({
 const nextConfig = {
   compress: true,
   experimental: {
-    optimizeCss: true
+    optimizeCss: true   // ← включаем critters
   },
   typescript: {
     ignoreBuildErrors: true,
   },
   images: {
-	  formats: ['image/webp', 'image/avif'],
+    formats: ['image/webp', 'image/avif'],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**.supabase.co',
-      },
-    ],
-  },
+        hostname: '**.supabase.co'
+      }
+    ]
+  }
 }
 
+// экспортируем ОДИН раз
 export default bundleAnalyzer(nextConfig)
