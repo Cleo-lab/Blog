@@ -10,20 +10,23 @@ const supabase = createClient(
 )
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params
+  const { slug } = await params;
   const { data: post } = await supabase
     .from('blog_posts')
     .select('title, excerpt, content, featured_image, created_at')
     .eq('slug', slug)
     .eq('published', true)
-    .single()
+    .single();
 
-  if (!post) return { title: 'Post Not Found' }
+  if (!post) return { title: 'Post Not Found' };
 
-  const description = (post.excerpt || post.content).substring(0, 160).replace(/[#*`>\[\]]/g, '').trim()
+  const description = (post.excerpt || post.content).substring(0, 160).replace(/[#*`>\[\]]/g, '').trim();
   return {
     title: `${post.title} | Yurie's Blog`,
     description,
+    alternates: {
+      canonical: `https://yurieblog.vercel.app/blog/${slug}`,
+    },
     openGraph: {
       title: post.title,
       description,
@@ -32,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       type: 'article',
       publishedTime: post.created_at,
     },
-  }
+  };
 }
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
