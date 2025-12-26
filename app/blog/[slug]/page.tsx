@@ -54,15 +54,20 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       : Promise.resolve({ data: [] }),
   ])
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
-    headline: post.title,
-    description: post.excerpt || post.content.substring(0, 150),
-    image: post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg',
-    datePublished: post.created_at,
-    author: { '@type': 'Person', name: author?.username || 'Yurie' },
-  }
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.title,
+  description: post.excerpt || post.content.substring(0, 150),
+  image: post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg',
+  datePublished: post.created_at,
+  author: {
+    '@type': 'Person',
+    name: author?.username || '✨Yurie✨',
+    url: 'https://yurieblog.vercel.app',         
+  },
+  url: `https://yurieblog.vercel.app/blog/${post.slug}`,
+}
 
   return (
     <>
