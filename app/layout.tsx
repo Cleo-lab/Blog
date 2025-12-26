@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { readonly children: React.Reac
       <body className={poppins.className}>
         <ProvidersWrapper>{children}</ProvidersWrapper>
         <Analytics />
-        <GoogleAnalytics gaId="G-SV2M5CRN5M" strategy="worker" />
+        <GoogleAnalytics gaId="G-SV2M5CRN5M" strategy="lazyOnload" />
         <CookieBanner />
       </body>
     </html>
