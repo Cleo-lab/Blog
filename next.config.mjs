@@ -9,6 +9,9 @@ const bundleAnalyzer = withBundleAnalyzer({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   compress: true,
+  experimental: {
+    optimizeCss: true
+  },
   typescript: {
     ignoreBuildErrors: true,
   },

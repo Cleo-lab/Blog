@@ -54,26 +54,6 @@ export const metadata: Metadata = {
   }
 };
 
-/* ---------- Server-side JSON-LD ---------- */
-function JsonLdScript() {
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'Person',
-    name: 'Yurie Jiyūbō',
-    url: 'https://yurieblog.vercel.app',
-    description: 'Anime character and blogger sharing digital dreams and cozy creativity.',
-    sameAs: ['https://bsky.app/profile/yurieblog.bsky.social'],
-    image: 'https://yurieblog.vercel.app/Yurie_main.jpg',
-    jobTitle: 'Character Blogger',
-    alumniOf: 'Digital Dream Academy'
-  };
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-    />
-  );
-}
 
 export default function RootLayout({ children }: { readonly children: React.ReactNode }) {
   return (

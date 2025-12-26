@@ -84,13 +84,14 @@ export default function BlogSection({ language }: BlogSectionProps) {
           return (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {posts.slice(0, 6).map((post) => (
+                {posts.slice(0, 6).map((post, index) => (
                   <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow border-border/50 bg-card">
                     <div className="relative h-48 bg-muted overflow-hidden">
                       <Image
   src={post.featured_image || '/placeholder.svg'}
   alt={post.title}
   fill
+  loading={index < 3 ? "eager" : "lazy"}
   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw"
   className="object-cover hover:scale-105 transition-transform duration-300"
 />

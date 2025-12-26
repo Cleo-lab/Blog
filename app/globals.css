@@ -99,14 +99,9 @@
   }
 }
 
-/* Anime-style animations */
 @keyframes shimmer {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
 }
 
 .animate-shimmer {
@@ -114,17 +109,14 @@
 }
 
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
+
 .contain-content {
   contain: content;
 }

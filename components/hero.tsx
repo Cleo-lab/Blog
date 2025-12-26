@@ -23,8 +23,8 @@ export default function Hero({ setCurrentSection }: HeroProps) {
   width={240}
   height={240}
   priority
-  sizes="(max-width: 640px) 240px, 240px"
-  quality={85}                               
+  loading="eager"
+  quality={85}
   className="hero-avatar w-full h-full rounded-full object-cover"
 />
         </div>
