@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSupabase } from '@/hooks/use-supabase'
-import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
@@ -41,6 +41,13 @@ interface Comment {
   is_read?: boolean
   author?: AuthorProfile
   replies?: Comment[]
+}
+
+// Новые пропсы, которые приходят из серверного page.tsx
+interface BlogPostClientProps {
+  initialPost: BlogPost
+  initialAuthor: AuthorProfile | null
+  initialRelatedPosts: BlogPost[]
 }
 
 /* ---------- УТИЛИТА ПАРСИНГА ИЗОБРАЖЕНИЙ ---------- */
@@ -99,21 +106,26 @@ const MarkdownImage = ({ src, alt }: { src?: string; alt?: string }) => {
   )
 }
 
-/* ---------- ГЛАВНЫЙ КОМПОНЕНТ СТРАНИЦЫ ПОСТА ---------- */
-export default function BlogPostClient() {
-  const params = useParams()
-  const slug = params.slug as string
+/* ---------- ГЛАВНЫЙ КОМПОНЕНТ (ТЕПЕРЬ ПРИНИМАЕТ ПРОПСЫ) ---------- */
+export default function BlogPostClient({ 
+  initialPost, 
+  initialAuthor, 
+  initialRelatedPosts 
+}: BlogPostClientProps) {
+  
+  // Данные теперь берем из пропсов, а не из стейта
+  const post = initialPost
+  const author = initialAuthor
+  const relatedPosts = initialRelatedPosts
+
   const { toast } = useToast()
   const supabase = useSupabase()
   const router = useRouter()
   const searchParams = useSearchParams()
   const sourceUrl = searchParams.get('sourceUrl')
 
-  const [post, setPost] = useState<BlogPost | null>(null)
-  const [author, setAuthor] = useState<AuthorProfile | null>(null)
+  // Стейты только для динамики (комментарии, юзер)
   const [comments, setComments] = useState<Comment[]>([])
-  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([])
-  const [loading, setLoading] = useState(true)
   const [submittingComment, setSubmittingComment] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string>('')
   const [commentContent, setCommentContent] = useState('')
@@ -131,23 +143,7 @@ export default function BlogPostClient() {
     }
   }
 
-  const fetchRelatedPosts = useCallback(
-    async (slugs: string[]) => {
-      if (!slugs || slugs.length === 0) return
-      try {
-        const { data } = await supabase
-          .from('blog_posts')
-          .select('id, title, slug, excerpt')
-          .in('slug', slugs)
-          .eq('published', true)
-        if (data) setRelatedPosts(data as BlogPost[])
-      } catch (e) {
-        console.error(e)
-      }
-    },
-    [supabase]
-  )
-
+  // Загрузка комментариев остается на клиенте, так как они часто меняются
   const fetchComments = useCallback(
     async (postSlug: string) => {
       try {
@@ -183,132 +179,19 @@ export default function BlogPostClient() {
     [supabase]
   )
 
-  const fetchPost = useCallback(async () => {
-    try {
-      const { data: postData, error: postError } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('slug', slug)
-        .single()
-      if (postError) throw postError
-      setPost(postData)
-
-      if (postData.related_slugs && postData.related_slugs.length > 0) {
-        await fetchRelatedPosts(postData.related_slugs)
-      }
-
-      if (typeof document !== 'undefined') {
-        document.title = `${postData.title} | Yurie's Blog`
-      }
-
-      const { data: authorData } = await supabase
-        .from('profiles')
-        .select('id, username, avatar_url')
-        .eq('id', postData.author_id)
-        .single()
-      if (authorData) setAuthor(authorData)
-
-      await fetchComments(slug)
-    } catch (err: any) {
-      toast({ title: 'Error', description: 'Post not found', variant: 'destructive' })
-    } finally {
-      setLoading(false)
-    }
-  }, [slug, supabase, toast, fetchComments, fetchRelatedPosts])
-
-  /* ---------- SEO: УЛУЧШЕННЫЙ JSON-LD ---------- */
-  useEffect(() => {
-    if (!post || !author) return;
-
-    // 1. Article/BlogPosting Schema
-    const articleLd = {
-      '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      headline: post.title,
-      description: post.excerpt || post.content.slice(0, 160).replace(/[#*`>\[\]]/g, '').trim(),
-      image: post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg',
-      datePublished: post.created_at,
-      dateModified: post.updated_at,
-      wordCount: post.content.split(/\s+/).length,
-      articleBody: post.content.slice(0, 500).replace(/[#*`>\[\]]/g, '').trim(),
-      author: {
-        '@type': 'Person',
-        name: author.username,
-        url: 'https://yurieblog.vercel.app',
-        image: author.avatar_url || 'https://yurieblog.vercel.app/Yurie_main.jpg',
-      },
-      publisher: {
-        '@type': 'Organization',
-        name: "Yurie's Blog",
-        url: 'https://yurieblog.vercel.app',
-        logo: {
-          '@type': 'ImageObject',
-          url: 'https://yurieblog.vercel.app/Yurie_main.jpg',
-          width: 240,
-          height: 240,
-        },
-      },
-      mainEntityOfPage: {
-        '@type': 'WebPage',
-        '@id': `https://yurieblog.vercel.app/blog/${post.slug}`,
-      },
-    };
-
-    // 2. Breadcrumb Schema
-    const breadcrumbLd = {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        {
-          '@type': 'ListItem',
-          position: 1,
-          name: 'Home',
-          item: 'https://yurieblog.vercel.app',
-        },
-        {
-          '@type': 'ListItem',
-          position: 2,
-          name: 'Blog',
-          item: 'https://yurieblog.vercel.app/archiveblog',
-        },
-        {
-          '@type': 'ListItem',
-          position: 3,
-          name: post.title,
-          item: `https://yurieblog.vercel.app/blog/${post.slug}`,
-        },
-      ],
-    };
-
-    // Добавляем скрипты
-    const articleScript = document.createElement('script');
-    articleScript.type = 'application/ld+json';
-    articleScript.text = JSON.stringify(articleLd);
-    articleScript.id = 'blog-post-schema';
-    document.head.appendChild(articleScript);
-
-    const breadcrumbScript = document.createElement('script');
-    breadcrumbScript.type = 'application/ld+json';
-    breadcrumbScript.text = JSON.stringify(breadcrumbLd);
-    breadcrumbScript.id = 'breadcrumb-schema';
-    document.head.appendChild(breadcrumbScript);
-
-    return () => {
-      const existingArticle = document.getElementById('blog-post-schema');
-      const existingBreadcrumb = document.getElementById('breadcrumb-schema');
-      if (existingArticle) document.head.removeChild(existingArticle);
-      if (existingBreadcrumb) document.head.removeChild(existingBreadcrumb);
-    };
-  }, [post, author]);
-
+  // Инициализация: проверка авторизации и загрузка комментариев
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) setCurrentUserId(user.id)
-      await fetchPost()
+      
+      // Загружаем комментарии для текущего поста
+      if (post?.slug) {
+        await fetchComments(post.slug)
+      }
     }
     init()
-  }, [slug, supabase, fetchPost])
+  }, [post?.slug, supabase, fetchComments])
 
   const handleSubmitComment = async () => {
     if (!currentUserId || !commentContent.trim() || !post) return
@@ -319,14 +202,17 @@ export default function BlogPostClient() {
           content: commentContent.trim(),
           author_id: currentUserId,
           source_type: 'blog',
-          source_id: slug,
+          source_id: post.slug,
           parent_id: replyingTo,
           is_read: false,
         },
       ])
       setCommentContent('')
       setReplyingTo(null)
-      await fetchComments(slug)
+      await fetchComments(post.slug)
+      toast({ title: 'Success', description: 'Comment posted!' })
+    } catch (error) {
+       toast({ title: 'Error', description: 'Failed to post comment', variant: 'destructive' })
     } finally {
       setSubmittingComment(false)
     }
@@ -335,16 +221,16 @@ export default function BlogPostClient() {
   const handleDeleteComment = async (id: string) => {
     if (!confirm('Delete?')) return
     await supabase.from('comments').delete().eq('id', id)
-    await fetchComments(slug)
+    if (post?.slug) await fetchComments(post.slug)
   }
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+  // Если вдруг пост null (хотя notFound в page.tsx это перехватит), на всякий случай
   if (!post) return <div className="p-12 text-center">Post not found</div>
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-4xl mx-auto px-4 py-12">
-        {/* ✅ BREADCRUMBS (ХЛЕБНЫЕ КРОШКИ) */}
+        {/* ✅ BREADCRUMBS */}
         <nav className="mb-6 text-sm text-muted-foreground" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-pink-500 transition-colors">Home</Link>
           {' / '}
@@ -366,7 +252,9 @@ export default function BlogPostClient() {
               src={post.featured_image}
               alt={post.title}
               className="w-full h-auto max-h-[600px] object-contain mx-auto"
-              loading="eager"
+              // LCP Optimization: fetchPriority для главной картинки
+              // @ts-ignore
+              fetchPriority="high" 
             />
           </div>
         )}
@@ -378,7 +266,7 @@ export default function BlogPostClient() {
               <img src={author.avatar_url} className="w-12 h-12 rounded-full border border-pink-500/20" alt={`${author.username} avatar`} />
             )}
             <div>
-              <p className="font-semibold text-lg">{author?.username}</p>
+              <p className="font-semibold text-lg">{author?.username || 'Unknown Author'}</p>
               <time className="text-sm text-muted-foreground" dateTime={post.created_at}>
                 {new Date(post.created_at).toLocaleDateString()}
               </time>
@@ -429,7 +317,6 @@ export default function BlogPostClient() {
                     {children}
                   </code>
                 ),
-                // ✅ ОБРАБОТКА ССЫЛОК ДЛЯ SEO
                 a: ({ href, children }) => {
                   const isExternal = href?.startsWith('http') && !href.includes('yurieblog.vercel.app');
                   return (
@@ -451,29 +338,35 @@ export default function BlogPostClient() {
             </ReactMarkdown>
           </div>
 
-          <div className="mt-16 p-8 bg-muted/20 rounded-3xl border border-border/50">
-            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-              <ChevronRight className="w-5 h-5 text-pink-500" /> Related Stories
-            </h3>
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {relatedPosts.map((rPost) => (
-                <li key={rPost.id}>
-                  <Link href={`/blog/${rPost.slug}`} className="block h-full p-4 bg-background rounded-xl border border-border/40 hover:border-pink-500/50 hover:bg-pink-500/5 transition-all">
-                    <p className="font-bold text-pink-400 mb-1 italic uppercase text-[10px] tracking-widest">Read Next</p>
-                    <p className="text-sm font-semibold">{rPost.title}</p>
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <Link href="/archiveblog" className="block h-full p-4 bg-background rounded-xl border border-border/40 hover:border-pink-500/50 hover:bg-pink-500/5 transition-all">
+          {/* Related Stories */}
+          {relatedPosts.length > 0 && (
+            <div className="mt-16 p-8 bg-muted/20 rounded-3xl border border-border/50">
+              <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <ChevronRight className="w-5 h-5 text-pink-500" /> Related Stories
+              </h3>
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {relatedPosts.map((rPost) => (
+                  <li key={rPost.id}>
+                    <Link href={`/blog/${rPost.slug}`} className="block h-full p-4 bg-background rounded-xl border border-border/40 hover:border-pink-500/50 hover:bg-pink-500/5 transition-all">
+                      <p className="font-bold text-pink-400 mb-1 italic uppercase text-[10px] tracking-widest">Read Next</p>
+                      <p className="text-sm font-semibold">{rPost.title}</p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+           
+           {/* Кнопка назад всегда полезна */}
+           <div className="mt-4">
+               <Link href="/archiveblog" className="block w-full p-4 text-center bg-background rounded-xl border border-border/40 hover:border-pink-500/50 hover:bg-pink-500/5 transition-all">
                   <p className="font-bold text-pink-400 mb-1 italic uppercase text-[10px] tracking-widest">Explore</p>
                   <p className="text-sm font-semibold">Back to Blog Feed</p>
                 </Link>
-              </li>
-            </ul>
-          </div>
+           </div>
         </article>
 
+        {/* COMMENTS SECTION */}
         <section className="border-t border-border/30 pt-12">
           <h2 className="text-2xl font-bold mb-8">Comments ({comments.length})</h2>
           {currentUserId ? (
@@ -499,7 +392,7 @@ export default function BlogPostClient() {
               <div key={comment.id} className="space-y-3">
                 <div className="p-5 bg-muted/10 rounded-2xl border border-border/30 hover:border-pink-500/20 transition-colors">
                   <div className="flex justify-between items-center mb-3">
-                    <p className="font-bold text-pink-400">{comment.author?.username}</p>
+                    <p className="font-bold text-pink-400">{comment.author?.username || 'User'}</p>
                     {currentUserId === comment.author_id && <Button variant="ghost" size="sm" onClick={() => handleDeleteComment(comment.id)} className="text-destructive hover:bg-destructive/10">Delete</Button>}
                   </div>
                   <p className="text-foreground/90 mb-3 leading-relaxed">{comment.content}</p>
@@ -507,7 +400,7 @@ export default function BlogPostClient() {
                 </div>
                 {comment.replies?.map((reply) => (
                   <div key={reply.id} className="ml-10 p-4 bg-muted/5 rounded-xl border-l-2 border-pink-500/30 italic text-sm shadow-inner">
-                    <p className="font-bold text-pink-300/70 mb-1">{reply.author?.username}</p>
+                    <p className="font-bold text-pink-300/70 mb-1">{reply.author?.username || 'User'}</p>
                     <p className="text-foreground/80">{reply.content}</p>
                   </div>
                 ))}

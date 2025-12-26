@@ -1,65 +1,73 @@
 // app/blog/[slug]/page.tsx
 import { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import { notFound } from 'next/navigation'
 import BlogPostClient from './BlogPostClient'
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  // 1. Ждем получения slug
-  const { slug } = await params;
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-
-  // 2. ИСПРАВЛЕНО: используем переменную slug вместо params.slug
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
   const { data: post } = await supabase
     .from('blog_posts')
-    .select('*')
-    .eq('slug', slug) 
+    .select('title, excerpt, content, featured_image, created_at')
+    .eq('slug', slug)
+    .eq('published', true)
     .single()
 
-  if (!post) {
-    return { title: 'Post Not Found | Yurie Blog' }
-  }
+  if (!post) return { title: 'Post Not Found' }
 
-  const title = post.title
-  const description = (post.excerpt || post.content.substring(0, 160))
-    .replace(/[#*`>\[\]]/g, '')
-    .trim()
-    
-  const image = post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg'
-  const url = `https://yurieblog.vercel.app/blog/${post.slug}`
-
+  const description = (post.excerpt || post.content).substring(0, 160).replace(/[#*`>\[\]]/g, '').trim()
   return {
-    title: `${title} | Yurie's Blog`,
+    title: `${post.title} | Yurie's Blog`,
     description,
-    keywords: ['blog', 'personal story', 'Bluesky', post.slug],
     openGraph: {
-      title,
+      title: post.title,
       description,
-      url,
-      siteName: "Yurie's Blog",
-      images: [{ url: image, width: 1200, height: 630, alt: title }],
+      url: `https://yurieblog.vercel.app/blog/${post.slug}`,
+      images: [{ url: post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg' }],
       type: 'article',
       publishedTime: post.created_at,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [image],
-      site: '@yurieblog.bsky.social',
-      creator: '@yurieblog.bsky.social',
-    },
-    alternates: {
-      canonical: url,
     },
   }
 }
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
-  // Ждем параметры перед рендерингом
-  const { slug } = await params;
-  return <BlogPostClient />
+  const { slug } = await params
+
+  const { data: post } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .eq('slug', slug)
+    .eq('published', true)
+    .single()
+
+  if (!post) notFound()
+
+  const [{ data: author }, { data: relatedPosts }] = await Promise.all([
+    supabase.from('profiles').select('id, username, avatar_url').eq('id', post.author_id).single(),
+    post.related_slugs?.length
+      ? supabase.from('blog_posts').select('id, title, slug, featured_image').in('slug', post.related_slugs).eq('published', true)
+      : Promise.resolve({ data: [] }),
+  ])
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.excerpt || post.content.substring(0, 150),
+    image: post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg',
+    datePublished: post.created_at,
+    author: { '@type': 'Person', name: author?.username || 'Yurie' },
+  }
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <BlogPostClient initialPost={post} initialAuthor={author} initialRelatedPosts={relatedPosts || []} />
+    </>
+  )
 }
