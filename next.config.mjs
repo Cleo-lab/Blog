@@ -14,7 +14,7 @@ const nextConfig = {
   turbopack: {},
   
   experimental: {
-    optimizeCss: true,
+    optimizeCss: false,
     optimizePackageImports: ['lucide-react', 'react-markdown'],
   },
   
