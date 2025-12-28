@@ -9,7 +9,7 @@ import CookieBanner from '@/components/cookie-banner-client';
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
-  display: 'swap',
+  display: 'block',
   preload: true, // ✅ Добавили preload
   fallback: ['system-ui', 'arial'], // ✅ Добавили fallback
 });
