@@ -24,7 +24,7 @@ export default function Hero({ setCurrentSection }: HeroProps) {
             priority
             fetchPriority="high"			
             quality={85}  // 2. Увеличили качество до 95 для JPG
-            sizes="(max-width: 768px) 240px, 240px" // 3. Улучшили подсказку для четкости
+            sizes="(max-width: 768px) 480px, 480px" // 3. Улучшили подсказку для четкости
             className="hero-avatar w-full h-full rounded-full object-cover shadow-xl select-none"
             draggable="false"
           />
