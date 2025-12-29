@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Heart, Sparkles } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Header from '@/components/header'
-import Hero from '@/components/hero'
 import About from '@/components/about'
 import BlogSection from '@/components/blog-section'
 import Gallery from '@/components/gallery'
@@ -14,11 +13,11 @@ import FootAdBanner from '@/components/FootAdBanner'
 import { useAuth } from '@/hooks/use-auth'
 import { useSupabase } from '@/hooks/use-supabase'
 import MiddleAdBanner from '@/components/MiddleAdBanner'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import AnalyticsTracker from '@/components/analytics-tracker'
 import BlogTeaser from '@/components/blog/blog-teaser'
 
-/* ---------- ленивые компоненты (без изменений) -------------------- */
+/* ---------- ленивые компоненты -------------------- */
 const DonorList = dynamic(() => import('@/components/donor-list'), {
   loading: () => <div className="h-40 bg-muted/20 rounded-3xl" />,
   ssr: false,
@@ -52,22 +51,23 @@ const AdminPanel = dynamic(() => import('@/components/admin/admin-panel'), {
 const SupportPage = dynamic(() => import('@/components/support-page'), {
   loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>,
 })
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------- */
 
 interface HomeClientProps {
-  initialPosts: any[] // готовые посты от сервера
+  initialPosts: any[]
+  hero: React.ReactNode // ✅ Принимаем hero
 }
 
-export default function HomeClient({ initialPosts }: HomeClientProps) {
+// ✅ Исправлено: берем hero из пропсов, skipHero убрали
+export default function HomeClient({ initialPosts, hero }: HomeClientProps) {
   const [language, setLanguage] = useState<'en' | 'ja'>('ja')
   const { isLoggedIn, isAdmin, loading: authLoading } = useAuth()
   const [refreshKey, setRefreshKey] = useState(0)
   const [currentSection, setCurrentSection] = useState('home')
   const searchParams = useSearchParams()
-  const router = useRouter()
   const supabase = useSupabase()
 
-  /* ----------- маршрутизация (без изменений) ----------------------- */
+  /* ----------- маршрутизация ----------------------- */
   useEffect(() => {
     const section = searchParams.get('section')
     const tab = searchParams.get('tab')
@@ -78,6 +78,17 @@ export default function HomeClient({ initialPosts }: HomeClientProps) {
       if (valid.includes(section)) setCurrentSection(section)
     }
   }, [searchParams, isAdmin])
+  
+  useEffect(() => {
+    const unsubscribed = searchParams.get('unsubscribed')
+    if (unsubscribed === 'true') {
+      alert('You have been successfully unsubscribed from the newsletter. 🌸')
+      
+      // Clean up the URL
+      const newUrl = window.location.pathname
+      window.history.replaceState({}, '', newUrl)
+    }
+  }, [searchParams])
 
   const handleSignIn = useCallback(() => setRefreshKey(prev => prev + 1), [])
   const handleSignOut = useCallback(async () => {
@@ -138,13 +149,14 @@ export default function HomeClient({ initialPosts }: HomeClientProps) {
                 </div>
               </div>
 
-              {/* ЦЕНТРАЛЬНАЯ КОЛОНКА: Hero */}
-              <div className="lg:col-span-5 order-1 lg:order-2 -mt-4 lg:-mt-5">
-                <Hero setCurrentSection={setCurrentSection} />
-              </div>
+             {/* ЦЕНТРАЛЬНАЯ КОЛОНКА */}
+<div className="lg:col-span-5 order-1 lg:order-2 -mt-4 lg:-mt-5">
+  {hero}
+</div>
 
               {/* ПРАВАЯ КОЛОНКА: Bluesky + тизер */}
-              <div className="lg:col-span-3 order-3 flex flex-col">
+              {/* ✅ Исправлено: убрали проверку skipHero, ставим стандартный размер col-span-3 */}
+              <div className="order-3 flex flex-col lg:col-span-3">
                 <div className="relative group min-h-[500px]">
                   <div
                     className={`rounded-3xl border border-border/50 p-6 shadow-xl lg:-mt-12 transition-all duration-1000 h-full relative overflow-hidden ${
@@ -183,7 +195,6 @@ export default function HomeClient({ initialPosts }: HomeClientProps) {
             <About language={language} />
           </section>
 
-          {/* БЛОГ: передаём уже готовые посты */}
           <section id="blog">
             <BlogSection language={language} initialPosts={initialPosts} />
           </section>

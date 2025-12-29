@@ -5,11 +5,16 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const emailRaw = searchParams.get('email')
-    if (!emailRaw) return NextResponse.json({ error: 'Email required' }, { status: 400 })
+    
+    if (!emailRaw) {
+      // Если email нет в ссылке, просто кидаем на главную
+      return NextResponse.redirect(new URL('/', req.url))
+    }
 
     const email = emailRaw.trim().toLowerCase()
-    const supabase = await createServerSupabase() // ← await
+    const supabase = await createServerSupabase()
 
+    // 1. Удаляем из базы
     const { error } = await supabase
       .from('newsletter_subscribers')
       .delete()
@@ -17,12 +22,16 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error('Unsubscribe DB error:', error)
-      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+      // В случае ошибки БД отправляем на главную с параметром ошибки
+      return NextResponse.redirect(new URL('/?message=error', req.url))
     }
 
-    return NextResponse.json({ message: 'Unsubscribed successfully' }, { status: 200 })
+    // 2. ПЕРЕНАПРАВЛЯЕМ пользователя на главную страницу 
+    // Добавляем параметр в URL, чтобы на фронтенде показать Toast или Modal
+    return NextResponse.redirect(new URL('/?unsubscribed=true', req.url))
+    
   } catch (err) {
-    console.error('Unsubscribe error:', err)
-    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+    console.error('Unsubscribe server error:', err)
+    return NextResponse.redirect(new URL('/', req.url))
   }
 }
