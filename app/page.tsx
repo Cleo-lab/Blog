@@ -1,24 +1,15 @@
 import HomeWrapper from '@/components/home-wrapper'
 import HeroServer from '@/components/hero-server'
-import { createClient } from '@supabase/supabase-js'
+import { Suspense } from 'react'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// === Больше НЕТ Supabase-запроса здесь ===
+// Всё перенесено в <BlogSection>, который клиентский
 
-export default async function Page() {
-  const { data: posts } = await supabase
-    .from('blog_posts')
-    .select('id, title, slug, excerpt, content, featured_image, created_at')
-    .eq('published', true)
-    .order('created_at', { ascending: false })
-    .limit(6)
-
+export default function Page() {
   return (
-    <HomeWrapper 
-      initialPosts={posts ?? []} 
-      hero={<HeroServer />} 
+    <HomeWrapper
+      initialPosts={[]} // ✅ Пусто — посты подгрузятся клиентом
+      hero={<HeroServer />}
     />
   )
 }

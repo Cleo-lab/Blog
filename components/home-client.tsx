@@ -60,7 +60,7 @@ interface HomeClientProps {
 
 // ✅ Исправлено: берем hero из пропсов, skipHero убрали
 export default function HomeClient({ initialPosts, hero }: HomeClientProps) {
-  const [language, setLanguage] = useState<'en' | 'ja'>('ja')
+  const [language, setLanguage] = useState<'en' | 'es'>('en')
   const { isLoggedIn, isAdmin, loading: authLoading } = useAuth()
   const [refreshKey, setRefreshKey] = useState(0)
   const [currentSection, setCurrentSection] = useState('home')
@@ -119,7 +119,7 @@ export default function HomeClient({ initialPosts, hero }: HomeClientProps) {
         currentSection={currentSection}
         setCurrentSection={setCurrentSection}
         language={language}
-        setLanguage={lang => setLanguage(lang as 'en' | 'ja')}
+        setLanguage={lang => setLanguage(lang as 'en' | 'es')}
         isLoggedIn={isLoggedIn}
         isAdmin={isAdmin}
         onSignOut={handleSignOut}
@@ -196,7 +196,7 @@ export default function HomeClient({ initialPosts, hero }: HomeClientProps) {
           </section>
 
           <section id="blog">
-            <BlogSection language={language} initialPosts={initialPosts} />
+            <BlogSection language={language || 'en'} initialPosts={initialPosts} />
           </section>
 
           <MiddleAdBanner />
