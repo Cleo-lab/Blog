@@ -4,7 +4,7 @@ import { Poppins } from 'next/font/google'
 import './globals.css'
 import { ProvidersWrapper } from '@/components/providers-wrapper'
 import JsonLdClient from '@/components/json-ld-client'     // клиентский
-import AnalyticsClient from '@/components/analytics-client' // клиентский
+import AnalyticsLazy from '@/components/analytics-lazy'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -63,7 +63,7 @@ export default function RootLayout({ children }: { readonly children: React.Reac
       </head>
       <body className={poppins.className}>
         <ProvidersWrapper>{children}</ProvidersWrapper>
-        <AnalyticsClient />
+        <AnalyticsLazy /> {/* ✅ лениво */}
       </body>
     </html>
   )
