@@ -10,7 +10,7 @@
     "build:analyze": "cross-env ANALYZE=true next build"
   },
   "dependencies": {
-    "@atproto/api": "^0.18.8",
+    "@atproto/api": "^0.18.9",
     "@hookform/resolvers": "^3.10.0",
     "@next/third-parties": "^16.1.1",
     "@radix-ui/react-accordion": "1.2.2",

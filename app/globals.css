@@ -105,8 +105,3 @@
   contain: content;
 }
 
-/* ✅ Оптимизация для LCP */
-.hero-avatar {
-  content-visibility: auto;
-  contain-intrinsic-size: 240px;
-}

@@ -1,24 +1,15 @@
 // components/TopAdStrip.tsx
 'use client';
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { useSupabase } from '@/hooks/use-supabase'; // ✅ единый клиент
 
 export default function TopAdStrip() {
   const { isLoggedIn, email } = useAuth();
+  const supabase = useSupabase();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bannerRef = useRef<HTMLDivElement>(null);
   const [text, setText] = useState('');
-
-  // Определяем тип частиц на основе статуса авторизации
-  // Гость (isLoggedIn: false) -> звезды ('star')
-  // Пользователь (isLoggedIn: true) -> сердечки ('heart')
   const particleType = isLoggedIn ? 'heart' : 'star';
 
   // Персональный текст

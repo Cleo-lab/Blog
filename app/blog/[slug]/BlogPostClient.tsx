@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import { MessageCircle, X, ChevronRight } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
+import { useAuth } from '@/hooks/use-auth'
 
 /* ---------- TYPES ---------- */
 interface BlogPost {
@@ -43,7 +44,6 @@ interface Comment {
   replies?: Comment[]
 }
 
-// Новые пропсы, которые приходят из серверного page.tsx
 interface BlogPostClientProps {
   initialPost: BlogPost
   initialAuthor: AuthorProfile | null
@@ -63,11 +63,12 @@ const parseImageProps = (alt: string) => {
     const scaleMatch = props.match(/scale[:=](\d+)/i)
     const blurMatch = props.match(/blur[:=](true|false)/i)
     const simpleBlur = props.toLowerCase().includes('blur') && !props.toLowerCase().includes('blur=false')
-    
+
     if (scaleMatch) scale = parseInt(scaleMatch[1], 10)
     if (blurMatch) blur = blurMatch[1] === 'true'
     else if (simpleBlur) blur = true
   }
+
   return { caption, scale, blur }
 }
 
@@ -106,25 +107,22 @@ const MarkdownImage = ({ src, alt }: { src?: string; alt?: string }) => {
   )
 }
 
-/* ---------- ГЛАВНЫЙ КОМПОНЕНТ (ТЕПЕРЬ ПРИНИМАЕТ ПРОПСЫ) ---------- */
+/* ---------- ГЛАВНЫЙ КОМПОНЕНТ ---------- */
 export default function BlogPostClient({ 
   initialPost, 
   initialAuthor, 
   initialRelatedPosts 
 }: BlogPostClientProps) {
-  
-  // Данные теперь берем из пропсов, а не из стейта
-  const post = initialPost
-  const author = initialAuthor
-  const relatedPosts = initialRelatedPosts
-
-  const { toast } = useToast()
   const supabase = useSupabase()
+  const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
   const sourceUrl = searchParams.get('sourceUrl')
 
-  // Стейты только для динамики (комментарии, юзер)
+  const post = initialPost
+  const author = initialAuthor
+  const relatedPosts = initialRelatedPosts
+
   const [comments, setComments] = useState<Comment[]>([])
   const [submittingComment, setSubmittingComment] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string>('')
@@ -143,49 +141,44 @@ export default function BlogPostClient({
     }
   }
 
-  // Загрузка комментариев остается на клиенте, так как они часто меняются
-  const fetchComments = useCallback(
-    async (postSlug: string) => {
-      try {
-        const { data, error } = await supabase
-          .from('comments')
-          .select(
-            `id, content, author_id, source_id, parent_id, created_at, is_read, author:profiles!author_id(id, username, avatar_url)`
-          )
-          .eq('source_type', 'blog')
-          .eq('source_id', postSlug)
-          .is('parent_id', null)
-          .order('created_at', { ascending: false })
-
-        if (error) throw error
-
-        const withReplies = await Promise.all(
-          (data || []).map(async (comment: any) => {
-            const { data: replies } = await supabase
-              .from('comments')
-              .select(
-                `id, content, author_id, source_id, parent_id, created_at, author:profiles!author_id(id, username, avatar_url)`
-              )
-              .eq('parent_id', comment.id)
-              .order('created_at', { ascending: true })
-            return { ...comment, replies: replies || [] }
-          })
+  const fetchComments = useCallback(async (postSlug: string) => {
+    if (!supabase) return
+    try {
+      const { data, error } = await supabase
+        .from('comments')
+        .select(
+          `id, content, author_id, source_id, parent_id, created_at, is_read, author:profiles!author_id(id, username, avatar_url)`
         )
-        setComments(withReplies)
-      } catch (e) {
-        console.error(e)
-      }
-    },
-    [supabase]
-  )
+        .eq('source_type', 'blog')
+        .eq('source_id', postSlug)
+        .is('parent_id', null)
+        .order('created_at', { ascending: false })
 
-  // Инициализация: проверка авторизации и загрузка комментариев
+      if (error) throw error
+
+      const withReplies = await Promise.all(
+        (data || []).map(async (comment: any) => {
+          const { data: replies } = await supabase
+            .from('comments')
+            .select(
+              `id, content, author_id, source_id, parent_id, created_at, author:profiles!author_id(id, username, avatar_url)`
+            )
+            .eq('parent_id', comment.id)
+            .order('created_at', { ascending: true })
+          return { ...comment, replies: replies || [] }
+        })
+      )
+
+      setComments(withReplies)
+    } catch (e) {
+      console.error(e)
+    }
+  }, [supabase])
+
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) setCurrentUserId(user.id)
-      
-      // Загружаем комментарии для текущего поста
       if (post?.slug) {
         await fetchComments(post.slug)
       }
@@ -212,7 +205,7 @@ export default function BlogPostClient({
       await fetchComments(post.slug)
       toast({ title: 'Success', description: 'Comment posted!' })
     } catch (error) {
-       toast({ title: 'Error', description: 'Failed to post comment', variant: 'destructive' })
+      toast({ title: 'Error', description: 'Failed to post comment', variant: 'destructive' })
     } finally {
       setSubmittingComment(false)
     }
@@ -224,13 +217,12 @@ export default function BlogPostClient({
     if (post?.slug) await fetchComments(post.slug)
   }
 
-  // Если вдруг пост null (хотя notFound в page.tsx это перехватит), на всякий случай
   if (!post) return <div className="p-12 text-center">Post not found</div>
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-4xl mx-auto px-4 py-12">
-        {/* ✅ BREADCRUMBS */}
+        {/* BREADCRUMBS */}
         <nav className="mb-6 text-sm text-muted-foreground" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-pink-500 transition-colors">Home</Link>
           {' / '}
@@ -240,7 +232,7 @@ export default function BlogPostClient({
         </nav>
 
         <div className="flex justify-end mb-8">
-          <Button variant="ghost" onClick={handleClose} aria-label="Close article">
+          <Button variant="ghost" onClick={() => router.push('/archiveblog')} aria-label="Close article">
             <X className="w-4 h-4 mr-2" />
             Close
           </Button>
@@ -252,9 +244,7 @@ export default function BlogPostClient({
               src={post.featured_image}
               alt={post.title}
               className="w-full h-auto max-h-[600px] object-contain mx-auto"
-              // LCP Optimization: fetchPriority для главной картинки
-              // @ts-ignore
-              fetchPriority="high" 
+              fetchPriority="high"
             />
           </div>
         )}
@@ -318,7 +308,7 @@ export default function BlogPostClient({
                   </code>
                 ),
                 a: ({ href, children }) => {
-                  const isExternal = href?.startsWith('http') && !href.includes('yurieblog.vercel.app');
+                  const isExternal = href?.startsWith('http') && !href.includes('yurieblog.vercel.app')
                   return (
                     <a 
                       href={href} 
@@ -330,7 +320,7 @@ export default function BlogPostClient({
                     >
                       {children}
                     </a>
-                  );
+                  )
                 },
               }}
             >
@@ -356,14 +346,13 @@ export default function BlogPostClient({
               </ul>
             </div>
           )}
-           
-           {/* Кнопка назад всегда полезна */}
-           <div className="mt-4">
-               <Link href="/archiveblog" className="block w-full p-4 text-center bg-background rounded-xl border border-border/40 hover:border-pink-500/50 hover:bg-pink-500/5 transition-all">
-                  <p className="font-bold text-pink-400 mb-1 italic uppercase text-[10px] tracking-widest">Explore</p>
-                  <p className="text-sm font-semibold">Back to Blog Feed</p>
-                </Link>
-           </div>
+
+          <div className="mt-4">
+            <Link href="/archiveblog" className="block w-full p-4 text-center bg-background rounded-xl border border-border/40 hover:border-pink-500/50 hover:bg-pink-500/5 transition-all">
+              <p className="font-bold text-pink-400 mb-1 italic uppercase text-[10px] tracking-widest">Explore</p>
+              <p className="text-sm font-semibold">Back to Blog Feed</p>
+            </Link>
+          </div>
         </article>
 
         {/* COMMENTS SECTION */}

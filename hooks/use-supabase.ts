@@ -1,4 +1,5 @@
 'use client'
 import { getBrowserSupabaseClient } from '@/lib/supabase-client'
 
-export const useSupabase = () => getBrowserSupabaseClient()
+// ✅ уже singleton, просто возвращаем
+export const useSupabase = getBrowserSupabaseClient

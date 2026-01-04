@@ -1,18 +1,18 @@
-import type { Metadata } from 'next';
-import { Poppins } from 'next/font/google';
-import { Analytics } from '@vercel/analytics/react';
-import { GoogleAnalytics } from '@next/third-parties/google';
-import './globals.css';
-import { ProvidersWrapper } from '@/components/providers-wrapper';
-import CookieBanner from '@/components/cookie-banner-client';
+// app/layout.tsx
+import type { Metadata } from 'next'
+import { Poppins } from 'next/font/google'
+import './globals.css'
+import { ProvidersWrapper } from '@/components/providers-wrapper'
+import JsonLdClient from '@/components/json-ld-client'     // клиентский
+import AnalyticsClient from '@/components/analytics-client' // клиентский
 
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
-  display: 'block',
-  preload: true, // ✅ Добавили preload
-  fallback: ['system-ui', 'arial'], // ✅ Добавили fallback
-});
+  display: 'swap',        // быстрее, чем 'block'
+  preload: true,
+  fallback: ['system-ui', 'arial'],
+})
 
 export const metadata: Metadata = {
   title: {
@@ -51,44 +51,20 @@ export const metadata: Metadata = {
     distribution: 'Global',
     copyright: '© 2025 Yurie Jiyūbō',
   },
-};
-
-// ✅ JSON-LD вынесен в отдельную функцию
-function JsonLdScript() {
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'Person',
-    name: 'Yurie Jiyūbō',
-    url: 'https://yurieblog.vercel.app',
-    description: 'Anime character and blogger sharing digital dreams and cozy creativity.',
-    sameAs: ['https://bsky.app/profile/yurieblog.bsky.social'],
-    image: 'https://yurieblog.vercel.app/images/Yurie_main.jpg',
-    jobTitle: 'Character Blogger',
-    alumniOf: 'Digital Dream Academy',
-  };
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-    />
-  );
 }
 
 export default function RootLayout({ children }: { readonly children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
-        <JsonLdScript />
-        {/* ✅ Preconnect для Google Analytics */}
+        <JsonLdClient />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
       </head>
       <body className={poppins.className}>
         <ProvidersWrapper>{children}</ProvidersWrapper>
-        <Analytics />
-        <GoogleAnalytics gaId="G-SV2M5CRN5M" />
-        <CookieBanner />
+        <AnalyticsClient />
       </body>
     </html>
-  );
+  )
 }
