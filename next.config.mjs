@@ -16,6 +16,8 @@ const nextConfig = {
   experimental: {
     optimizeCss: false,
     optimizePackageImports: ['lucide-react', 'react-markdown'],
+    // Увеличиваем таймаут для медленных изображений
+    proxyTimeout: 180000,
   },
   
   typescript: {
@@ -33,6 +35,8 @@ const nextConfig = {
         hostname: '**.supabase.co',
       },
     ],
+    // Отключаем оптимизацию для dev режима (помогает с таймаутами)
+    unoptimized: process.env.NODE_ENV === 'development',
   },
   
   // ✅ Заголовки для кеширования

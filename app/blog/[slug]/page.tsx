@@ -116,8 +116,15 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <BlogPostClient initialPost={post} initialAuthor={author} initialRelatedPosts={related || []} />
+      <script 
+        type="application/ld+json" 
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} 
+      />
+      <BlogPostClient 
+        initialPost={post} 
+        initialAuthor={author} 
+        initialRelatedPosts={related || []} 
+      />
     </>
   )
 }

@@ -6,17 +6,27 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/_next/'], // Скрываем служебные страницы
+        disallow: [
+          '/api/',
+          '/admin/',
+          '/_next/',
+          '/auth/', // Добавил страницы авторизации
+        ],
       },
       {
         userAgent: 'Googlebot',
         allow: '/',
-        crawlDelay: 0, // Google может сканировать без задержек
+        disallow: ['/api/', '/admin/', '/auth/'],
+        crawlDelay: 0,
       },
-	  {
-  userAgent: ['GPTBot', 'ChatGPT-User', 'CCBot'], // Боты OpenAI и Common Crawl
-  disallow: '/', // Запрещаем им забирать твой контент для обучения нейросетей
-},
+      {
+        userAgent: 'Googlebot-Image',
+        allow: '/', // Разрешаем индексацию изображений для Discover
+      },
+      {
+        userAgent: ['GPTBot', 'ChatGPT-User', 'CCBot', 'anthropic-ai', 'Claude-Web'],
+        disallow: '/',
+      },
     ],
     sitemap: 'https://yurieblog.vercel.app/sitemap.xml',
     host: 'https://yurieblog.vercel.app',
