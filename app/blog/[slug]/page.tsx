@@ -9,33 +9,36 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const { data: post } = await supabase
     .from('blog_posts')
-    .select('slug, title, excerpt, content, featured_image, created_at') // ✅ Добавили slug в выборку
+    .select('slug, title, excerpt, content, featured_image, created_at')
     .eq('slug', slug)
     .eq('published', true)
     .single()
 
   if (!post) return { title: 'Post Not Found' }
 
-  // Находим эту строку:
-// const description = (post.excerpt || post.content).substring(0, 160).replace(/[#*`>\[\]]/g, '').trim()
-
-// И меняем на этот вариант:
-const rawText = post.excerpt || post.content;
-const description = rawText
-  .replace(/\[(yellow|blue|purple|pink)\]/g, '') // Удаляем теги цветов
-  .replace(/^[> \t]+/gm, '')                    // Удаляем символы цитат
-  .replace(/[#*`]/g, '')                         // Удаляем маркдаун-символы
-  .substring(0, 160)                             // Ограничиваем длину для SEO
-  .trim();
+  // 1. Очищаем текст от кодов [yellow], цитат > и лишних символов для красивого превью
+  const rawText = post.excerpt || post.content;
+  const description = rawText
+    .replace(/\[(yellow|blue|purple|pink)\]/g, '') // Удаляем [yellow] и т.д.
+    .replace(/^[> \t]+/gm, '')                    // Удаляем символы цитат >
+    .replace(/[#*`]/g, '')                         // Удаляем маркдаун (#, *, `)
+    .substring(0, 160)                             // Ограничиваем длину
+    .trim();
   
   return {
     title: `${post.title} | Yurie's Blog`,
     description,
+    // Подсказка для Google Discover, чтобы он брал большую картинку
+    robots: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+    },
     alternates: { canonical: `https://yurieblog.vercel.app/blog/${slug}` },
     openGraph: {
       title: post.title,
       description,
-      url: `https://yurieblog.vercel.app/blog/${post.slug}`, // Теперь post.slug не будет undefined
+      url: `https://yurieblog.vercel.app/blog/${post.slug}`,
       images: [{ 
         url: post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg',
         width: 1200,
@@ -44,7 +47,6 @@ const description = rawText
       type: 'article',
       publishedTime: post.created_at,
     },
-    // Добавим для Twitter, так как он часто капризничает
     twitter: {
       card: 'summary_large_image',
       title: post.title,
@@ -76,19 +78,33 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   ])
 
   const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
-    headline: post.title,
-    description: post.excerpt || post.content.substring(0, 150),
-    image: post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg',
-    datePublished: post.created_at,
-    author: {
-      '@type': 'Person',
-      name: author?.username || '✨Yurie✨',
-      url: 'https://yurieblog.vercel.app',
-    },
-    url: `https://yurieblog.vercel.app/blog/${post.slug}`,
-  }
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.title,
+  description: description, // Используем уже очищенное описание
+  image: [
+    post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg'
+  ],
+  datePublished: post.created_at,
+  dateModified: post.updated_at || post.created_at, // Добавили дату изменения
+  author: {
+    '@type': 'Person',
+    name: author?.username || '✨Yurie✨',
+    url: 'https://yurieblog.vercel.app',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: "Yurie's Blog",
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://yurieblog.vercel.app/Yurie_main.jpg' 
+    }
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': `https://yurieblog.vercel.app/blog/${post.slug}`,
+  },
+}
 
   return (
     <>
