@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const { data: post } = await supabase
     .from('blog_posts')
-    .select('title, excerpt, content, featured_image, created_at')
+    .select('slug, title, excerpt, content, featured_image, created_at') // ✅ Добавили slug в выборку
     .eq('slug', slug)
     .eq('published', true)
     .single()
@@ -17,6 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!post) return { title: 'Post Not Found' }
 
   const description = (post.excerpt || post.content).substring(0, 160).replace(/[#*`>\[\]]/g, '').trim()
+  
   return {
     title: `${post.title} | Yurie's Blog`,
     description,
@@ -24,10 +25,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title: post.title,
       description,
-      url: `https://yurieblog.vercel.app/blog/${post.slug}`,
-      images: [{ url: post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg' }],
+      url: `https://yurieblog.vercel.app/blog/${post.slug}`, // Теперь post.slug не будет undefined
+      images: [{ 
+        url: post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg',
+        width: 1200,
+        height: 630,
+      }],
       type: 'article',
       publishedTime: post.created_at,
+    },
+    // Добавим для Twitter, так как он часто капризничает
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description,
+      images: [post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg'],
     },
   }
 }
@@ -45,6 +57,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
   if (!post) notFound()
 
+  // ... остальной код файла без изменений
   const [{ data: author }, { data: relatedPosts }] = await Promise.all([
     supabase.from('profiles').select('id, username, avatar_url').eq('id', post.author_id).single(),
     post.related_slugs?.length
