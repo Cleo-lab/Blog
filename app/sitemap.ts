@@ -9,16 +9,18 @@ const supabase = createClient(
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://yurieblog.vercel.app'
 
-  // 1. Получаем все опубликованные посты
+  // 1. Получаем все опубликованные посты с created_at для более точных дат
   const { data: posts } = await supabase
     .from('blog_posts')
-    .select('slug, updated_at')
+    .select('slug, created_at, updated_at')
     .eq('published', true)
+    .order('created_at', { ascending: false })
 
   // 2. Получаем все галереи
   const { data: galleries } = await supabase
     .from('gallery')
-    .select('id, updated_at')
+    .select('id, created_at, updated_at')
+    .order('created_at', { ascending: false })
 
   // Безопасное преобразование даты
   const parseDate = (dateStr: string | null) => {
@@ -28,14 +30,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const postUrls = (posts || []).map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: parseDate(post.updated_at),
+    lastModified: parseDate(post.updated_at || post.created_at),
     changeFrequency: 'weekly' as const,
-    priority: 0.8,
+    priority: 0.9, // Повысил приоритет для постов блога
   }))
 
   const galleryUrls = (galleries || []).map((gallery) => ({
     url: `${baseUrl}/gallery/${gallery.id}`,
-    lastModified: parseDate(gallery.updated_at),
+    lastModified: parseDate(gallery.updated_at || gallery.created_at),
     changeFrequency: 'monthly' as const,
     priority: 0.6,
   }))
@@ -48,16 +50,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
+      url: `${baseUrl}/archiveblog`,
+      lastModified: new Date(),
+      changeFrequency: 'daily', // Изменил на daily для более частого сканирования
+      priority: 0.95, // Повысил приоритет для архива блога
+    },
+    {
       url: `${baseUrl}/about`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/archiveblog`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.9,
     },
     {
       url: `${baseUrl}/archivegallery`,
