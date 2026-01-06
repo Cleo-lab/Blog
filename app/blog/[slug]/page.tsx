@@ -16,7 +16,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!post) return { title: 'Post Not Found' }
 
-  const description = (post.excerpt || post.content).substring(0, 160).replace(/[#*`>\[\]]/g, '').trim()
+  // Находим эту строку:
+// const description = (post.excerpt || post.content).substring(0, 160).replace(/[#*`>\[\]]/g, '').trim()
+
+// И меняем на этот вариант:
+const rawText = post.excerpt || post.content;
+const description = rawText
+  .replace(/\[(yellow|blue|purple|pink)\]/g, '') // Удаляем теги цветов
+  .replace(/^[> \t]+/gm, '')                    // Удаляем символы цитат
+  .replace(/[#*`]/g, '')                         // Удаляем маркдаун-символы
+  .substring(0, 160)                             // Ограничиваем длину для SEO
+  .trim();
   
   return {
     title: `${post.title} | Yurie's Blog`,
