@@ -66,6 +66,14 @@ export default function Footer({ language }: FooterProps) {
             >
               {t.about}
             </Link>
+			<a
+  href="https://bsky.app/profile/yurieblog.bsky.social"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="text-xs font-bold text-[#0085ff] hover:brightness-110 transition-all flex items-center gap-1"
+>
+  <span className="text-[14px]">🦋</span> Bluesky
+</a>
           </nav>
         </div>
       </div>

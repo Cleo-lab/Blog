@@ -1,6 +1,9 @@
-export const metadata = {
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
   title: 'Privacy Policy',
   description: 'Privacy Policy and Cookie Policy',
+  alternates: { canonical: 'https://yurieblog.vercel.app/privacy' }
 }
 
 export default function PrivacyPage() {
@@ -10,7 +13,7 @@ export default function PrivacyPage() {
 
       <div className="prose prose-sm dark:prose-invert">
         <p>
-          Privacy Policy for YurieBlog Effective date: 09 December 2025
+          Privacy Policy for YurieBlog. Effective date: 09 December 2025
 
 1. Introduction We operate the website https://yurieblog.vercel.app ("the Service"). This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use the Service and the choices you have associated with that data.
 

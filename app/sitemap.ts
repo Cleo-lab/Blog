@@ -6,8 +6,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://yurieblog.vercel.app'
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> { const baseUrl = 'https://yurieblog.vercel.app'
 
   // 1. Получаем все опубликованные посты с created_at для более точных дат
   const { data: posts } = await supabase

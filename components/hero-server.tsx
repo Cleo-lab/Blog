@@ -11,7 +11,8 @@ export default function HeroServer() {
         <div className="hero-avatar-gradient w-60 h-60 rounded-full bg-gradient-to-br from-primary via-accent to-secondary p-1 mb-6 mx-auto">
           <Image
             src="/images/Yurie_main.jpg"
-            alt="Yurie Jiyūbō"
+            alt="Yurie Jiyūbō — personal blog author, creator and IT enthusiast"
+
             width={240}
             height={240}
             priority
@@ -27,7 +28,7 @@ export default function HeroServer() {
         </h1>
 
         <p className="text-xl sm:text-2xl text-muted-foreground mb-8 max-w-lg mx-auto">
-          Anime character, digital dreams, and cozy creativity.
+          Anime character sharing online experiments, digital projects, and anime-inspired creativity.
         </p>
 
         {/* кнопки подгрузятся позже, не блокируют LCP */}

@@ -1,5 +1,10 @@
+import type { Metadata } from 'next'
 import ArchiveGalleryClient from '@/components/archive-gallery-client'
 import BackToSite from '@/components/back-to-site'
+
+export const metadata: Metadata = {
+  alternates: { canonical: 'https://yurieblog.vercel.app/archivegallery' }
+}
 
 export default function ArchiveGalleryPage() {
   return (
