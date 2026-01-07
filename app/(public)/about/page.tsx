@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'About Yurie — Experiments, Side Hustles & The Internet',
@@ -27,7 +28,10 @@ export default function AboutPage() {
   </h1>
 
   <p className="mt-4"> 
-    Hi! I’m Yurie! This is my personal blog about online experiments, side hustles, and learning how the internet actually works - not how influencers pretend it does.
+    Hi! I’m Yurie! This is {' '}
+  <Link href="/" className="underline text-purple-600 hover:text-pink-500 transition-colors">
+    my personal blog
+  </Link>{' '} about online experiments, side hustles, and learning how the internet actually works - not how influencers pretend it does.
   </p>
 
   <p className="mt-4"> 
