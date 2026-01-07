@@ -1,5 +1,10 @@
+import type { Metadata } from 'next'
 import ArchiveBlogClient from '@/components/archive-blog-client'
 import BackToSite from '@/components/back-to-site'
+
+export const metadata: Metadata = {
+  alternates: { canonical: 'https://yurieblog.vercel.app/archiveblog' }
+}
 
 export default function ArchiveBlogPage() {
   return (
