@@ -6,12 +6,18 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> { const baseUrl = 'https://yurieblog.vercel.app'
+// Расширенный тип для поддержки images (для Google Discover)
+type SitemapWithImages = MetadataRoute.Sitemap[number] & {
+  images?: string[]
+}
 
-  // 1. Получаем все опубликованные посты с created_at для более точных дат
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = 'https://yurieblog.vercel.app'
+
+  // 1. Получаем все опубликованные посты с изображениями
   const { data: posts } = await supabase
     .from('blog_posts')
-    .select('slug, created_at, updated_at')
+    .select('slug, created_at, updated_at, featured_image')
     .eq('published', true)
     .order('created_at', { ascending: false })
 
@@ -21,18 +27,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> { const 
     .select('id, created_at, updated_at')
     .order('created_at', { ascending: false })
 
-  // Безопасное преобразование даты
   const parseDate = (dateStr: string | null) => {
     const d = dateStr ? new Date(dateStr) : new Date()
     return isNaN(d.getTime()) ? new Date() : d
   }
 
-  const postUrls = (posts || []).map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: parseDate(post.updated_at || post.created_at),
-    changeFrequency: 'weekly' as const,
-    priority: 0.9, // Повысил приоритет для постов блога
-  }))
+  const latestPostDate = posts && posts.length > 0 
+    ? parseDate(posts[0].updated_at || posts[0].created_at)
+    : new Date()
+
+  // Посты с изображениями (для Google Discover)
+  const postUrls: SitemapWithImages[] = (posts || []).map((post) => {
+    const entry: SitemapWithImages = {
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: parseDate(post.updated_at || post.created_at),
+      changeFrequency: 'monthly' as const,
+      priority: 0.9,
+    }
+    
+    // Добавляем изображение если есть (важно для Discover!)
+    if (post.featured_image) {
+      entry.images = [post.featured_image]
+    }
+    
+    return entry
+  })
 
   const galleryUrls = (galleries || []).map((gallery) => ({
     url: `${baseUrl}/gallery/${gallery.id}`,
@@ -44,43 +63,45 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> { const 
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
-      lastModified: new Date(),
+      lastModified: latestPostDate,
       changeFrequency: 'daily',
       priority: 1.0,
     },
     {
       url: `${baseUrl}/archiveblog`,
-      lastModified: new Date(),
-      changeFrequency: 'daily', // Изменил на daily для более частого сканирования
-      priority: 0.95, // Повысил приоритет для архива блога
+      lastModified: latestPostDate,
+      changeFrequency: 'weekly',
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/about`,
-      lastModified: new Date(),
+      lastModified: new Date('2025-01-01'),
       changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
       url: `${baseUrl}/archivegallery`,
-      lastModified: new Date(),
+      lastModified: galleries && galleries.length > 0 
+        ? parseDate(galleries[0].updated_at || galleries[0].created_at)
+        : new Date(),
       changeFrequency: 'weekly',
       priority: 0.7,
     },
     {
       url: `${baseUrl}/contact`,
-      lastModified: new Date(),
+      lastModified: new Date('2025-01-01'),
       changeFrequency: 'yearly',
       priority: 0.5,
     },
     {
       url: `${baseUrl}/privacy`,
-      lastModified: new Date(),
+      lastModified: new Date('2025-01-01'),
       changeFrequency: 'yearly',
       priority: 0.3,
     },
     {
       url: `${baseUrl}/terms`,
-      lastModified: new Date(),
+      lastModified: new Date('2025-01-01'),
       changeFrequency: 'yearly',
       priority: 0.3,
     },
