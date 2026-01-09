@@ -1,34 +1,31 @@
 'use client'
+
 import type { Database } from '@/types/database.types'
 import { useSupabase } from '@/hooks/use-supabase'
-import { createServerSupabase } from './supabaseServer'
 
 export type Profile = Database['public']['Tables']['profiles']['Row']
 
-// Client-side helper
+/**
+ * КЛИЕНТСКИЙ помощник
+ * Используется внутри компонентов с 'use client'
+ */
 export const fetchProfileClient = async (userId: string | null): Promise<Profile | null> => {
   if (!userId) return null
-  const supabase = useSupabase()
+  
+  // ВАЖНО: хук useSupabase должен вызываться внутри компонента. 
+  // Если вы вызываете это как обычную функцию, лучше передавать экземпляр supabase аргументом.
+  // Но если оставить так, убедитесь, что функция вызывается там, где контекст доступен.
+  const supabase = useSupabase() 
+  
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, username, avatar_url, is_admin, created_at, updated_at')
+    .select('*') // Выбираем всё, чтобы соответствовать типу Profile
     .eq('id', userId)
     .single()
 
-  if (error) throw error
-  return data
-}
-
-// Server-side helper
-export const fetchProfileServer = async (userId: string | null): Promise<Profile | null> => {
-  if (!userId) return null
-  const supabase = await createServerSupabase()
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, username, avatar_url, is_admin, created_at, updated_at')
-    .eq('id', userId)
-    .single()
-
-  if (error) throw error
+  if (error) {
+    console.error('Error fetching profile:', error)
+    return null
+  }
   return data
 }

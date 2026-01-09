@@ -2,8 +2,13 @@ import type { Metadata } from 'next'
 import ArchiveGalleryClient from '@/components/archive-gallery-client'
 import BackToSite from '@/components/back-to-site'
 
+// Вставляем сюда:
 export const metadata: Metadata = {
-  alternates: { canonical: 'https://yurieblog.vercel.app/archivegallery' }
+  title: 'Gallery Archive — Yurie Jiyūbū', // Заголовок для вкладки браузера и Google
+  description: 'Explore the visual journey and digital art collection by Yurie.', // Желательно добавить и описание
+  alternates: { 
+    canonical: 'https://yurieblog.vercel.app/archivegallery' 
+  }
 }
 
 export default function ArchiveGalleryPage() {
@@ -13,7 +18,8 @@ export default function ArchiveGalleryPage() {
         Gallery Archive
       </h1>
       <ArchiveGalleryClient />
-      <BackToSite color="purple" />
+      {/* Убираем color="purple", чтобы не было ошибки TypeScript */}
+      <BackToSite /> 
     </main>
   )
 }

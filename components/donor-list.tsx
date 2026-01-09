@@ -33,7 +33,7 @@ export default function DonorList() {
 
       if (error) throw error
       
-      const mappedDonors = (data || []).map(item => ({
+      const mappedDonors = (data || []) .map((item: any) => ({
         id: item.id,
         nickname: item.is_anonymous ? 'Secret Donor' : item.nickname,
         created_at: item.created_at,

@@ -7,9 +7,19 @@ import {
 } from 'recharts';
 import { TrendingUp, Users } from 'lucide-react';
 
+interface ViewData {
+  created_at: string;
+  visitor_id: string | null;
+}
+
+interface ChartData {
+  date: string;
+  count: number;
+}
+
 export default function AnalyticsChart() {
   const supabase = useSupabase();
-  const [data, setData] = useState<{ date: string; count: number }[]>([]);
+  const [data, setData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [uniqueCount, setUniqueCount] = useState(0);
 
@@ -29,14 +39,14 @@ export default function AnalyticsChart() {
         // 2. Считаем УНИКАЛЬНЫХ (фильтруем тех, у кого visitor_id не пустой)
         const uniqueIds = new Set(
           views
-            .filter(v => v.visitor_id) // берем только тех, где есть ID
-            .map(v => v.visitor_id)
+            .filter((v: ViewData) => v.visitor_id)
+            .map((v: ViewData) => v.visitor_id)
         ).size;
         
         setUniqueCount(uniqueIds);
 
         // 3. Группируем для графика (просмотры по дням)
-        const grouped = views.reduce((acc: any, view) => {
+        const grouped = views.reduce((acc: Record<string, number>, view: ViewData) => {
           const date = new Date(view.created_at).toLocaleDateString('ru-RU', {
             day: '2-digit',
             month: '2-digit',

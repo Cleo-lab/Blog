@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Copy, Qrcode, Zap, Check } from 'lucide-react';
+import { Copy, QrCode, Zap, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
 

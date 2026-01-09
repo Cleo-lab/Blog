@@ -65,7 +65,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       initSession()
 
       const { data: { subscription } } = client.auth.onAuthStateChange(
-        async (event, session) => {
+        async (event: any, session: any) => {
           if (!mounted) return
           console.debug('Auth event:', event)
           setSession(session ?? null)

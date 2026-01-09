@@ -14,11 +14,21 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { formatDistanceToNow } from 'date-fns';
 
+interface NotificationData {
+  id: string;
+  content: string;
+  created_at: string;
+  source_type: string;
+  source_id: string;
+  source_title?: string;
+  source_url?: string;
+}
+
 export default function NotificationsBell() {
   const { user } = useAuth();
   const supabase = useSupabase();
   const [count, setCount] = useState(0);
-  const [list, setList] = useState<any[]>([]);
+  const [list, setList] = useState<NotificationData[]>([]);
 
   // считаем непрочитанные ответы на мои комменты
   const fetchCount = async () => {
@@ -47,7 +57,7 @@ export default function NotificationsBell() {
     if (!data) return;
 
     const enriched = await Promise.all(
-      data.map(async (r) => {
+      data.map(async (r: NotificationData) => {
         const table = r.source_type === 'blog' ? 'blog_posts' : 'gallery';
         const { data: src } = await supabase
           .from(table)
