@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Heart } from 'lucide-react'
+import { Heart, Loader2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Header from '@/components/header'
 import About from '@/components/about'
@@ -13,66 +13,55 @@ import FootAdBanner from '@/components/FootAdBanner'
 import { useAuth } from '@/hooks/use-auth'
 import { useSupabase } from '@/hooks/use-supabase'
 import MiddleAdBanner from '@/components/MiddleAdBanner'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import AnalyticsTracker from '@/components/analytics-tracker'
-import BlogTeaser from '@/components/blog/blog-teaser'
+import type { Profile } from '@/lib/profile'
+import { useToast } from '@/hooks/use-toast'
+
+// Интерфейс для пропсов BlogSection
+interface BlogSectionProps {
+  language: 'en' | 'es';
+  initialPosts: any[];
+}
 
 /* ---------- ленивые компоненты -------------------- */
-const DonorList = dynamic(() => import('@/components/donor-list'), {
-  loading: () => <div className="h-40 bg-muted/20 rounded-3xl" />,
-  ssr: false,
-})
-
-const BlueskyFeed = dynamic(() => import('@/components/bluesky-feed'), {
-  loading: () => <div className="h-[450px] bg-muted/20 rounded-3xl" />,
-  ssr: false,
-})
-
-const SignIn = dynamic(() => import('@/components/auth/sign-in'), {
-  loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>,
-})
-
-const SignUp = dynamic(() => import('@/components/auth/sign-up'), {
-  loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>,
-})
-
-const UserProfile = dynamic(() => import('@/components/profile/user-profile'), {
-  loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>,
-})
-
-const MyComments = dynamic(() => import('@/components/profile/my-comments'), {
-  loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>,
-})
-
-const AdminPanel = dynamic(() => import('@/components/admin/admin-panel'), {
-  loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>,
-})
-
-const SupportPage = dynamic(() => import('@/components/support-page'), {
-  loading: () => <div className="flex items-center justify-center min-h-screen">Loading...</div>,
-})
-/* -------------------------------------------------- */
+const DonorList = dynamic(() => import('@/components/donor-list'), { ssr: false })
+const BlueskyFeed = dynamic(() => import('@/components/bluesky-feed'), { ssr: false })
+const SignIn = dynamic(() => import('@/components/auth/sign-in'))
+const SignUp = dynamic(() => import('@/components/auth/sign-up'))
+const UserProfile = dynamic(() => import('@/components/profile/user-profile'), { ssr: false })
+const MyComments = dynamic(() => import('@/components/profile/my-comments'), { ssr: false })
+const AdminPanel = dynamic(() => import('@/components/admin/admin-panel'), { ssr: false })
+const SupportPage = dynamic(() => import('@/components/support-page'))
+const BlogTeaser = dynamic(() => import('@/components/blog/blog-teaser'))
 
 interface HomeClientProps {
   initialPosts: any[]
-  hero: React.ReactNode // ✅ Принимаем hero
+  hero: React.ReactNode 
+  initialProfile?: Profile | null
 }
 
-// ✅ Исправлено: берем hero из пропсов, skipHero убрали
-export default function HomeClient({ initialPosts, hero }: HomeClientProps) {
+export default function HomeClient({ initialPosts, hero, initialProfile }: HomeClientProps) {
   const [language, setLanguage] = useState<'en' | 'es'>('en')
-  const { isLoggedIn, isAdmin, loading: authLoading } = useAuth()
+  const { toast } = useToast() // ✅ Перенесено внутрь компонента
+  
+  const { isLoggedIn, isAdmin, loading: authLoading } = useAuth(initialProfile)
   const [refreshKey, setRefreshKey] = useState(0)
   const [currentSection, setCurrentSection] = useState('home')
+  
   const searchParams = useSearchParams()
+  const router = useRouter()
   const supabase = useSupabase()
 
-  /* ----------- маршрутизация ----------------------- */
+  /* ----------- Логика переключения секций ----------------------- */
   useEffect(() => {
     const section = searchParams.get('section')
     const tab = searchParams.get('tab')
+    const action = searchParams.get('action')
+
     if (tab && isAdmin) setCurrentSection('admin')
     else if (section === 'admin' && isAdmin) setCurrentSection('admin')
+    else if (action === 'signin') setCurrentSection('signin')
     else if (section) {
       const valid = ['home', 'signin', 'signup', 'profile', 'mycomments', 'support']
       if (valid.includes(section)) setCurrentSection(section)
@@ -80,109 +69,101 @@ export default function HomeClient({ initialPosts, hero }: HomeClientProps) {
   }, [searchParams, isAdmin])
   
   useEffect(() => {
-    const unsubscribed = searchParams.get('unsubscribed')
-    if (unsubscribed === 'true') {
-      alert('You have been successfully unsubscribed from the newsletter. 🌸')
-      
-      // Clean up the URL
-      const newUrl = window.location.pathname
-      window.history.replaceState({}, '', newUrl)
+    if (searchParams.get('unsubscribed') === 'true') {
+      toast({ title: "Success", description: "Unsubscribed successfully 🌸" })
+      router.replace('/')
     }
-  }, [searchParams])
+  }, [searchParams, router, toast])
 
-  const handleSignIn = useCallback(() => setRefreshKey(prev => prev + 1), [])
+  const handleSignIn = useCallback(() => {
+    setRefreshKey(prev => prev + 1)
+    setCurrentSection('home')
+  }, [])
+
   const handleSignOut = useCallback(async () => {
     await supabase.auth.signOut()
     localStorage.clear()
-    globalThis.location.href = '/'
-  }, [supabase])
+    router.refresh()
+    window.location.href = '/' 
+  }, [supabase, router])
 
+
+  // Защита роутов: если мы не в процессе загрузки и доступа нет — кидаем на главную
   useEffect(() => {
     if (!authLoading) {
-      if (!isLoggedIn && ['profile', 'mycomments'].includes(currentSection)) setCurrentSection('home')
-      if (!isAdmin && currentSection === 'admin') setCurrentSection('home')
+      const isPrivate = ['profile', 'mycomments'].includes(currentSection)
+      const isAdminPrivate = currentSection === 'admin'
+      
+      if (isPrivate && !isLoggedIn) setCurrentSection('home')
+      if (isAdminPrivate && !isAdmin) setCurrentSection('home')
     }
   }, [isLoggedIn, isAdmin, currentSection, authLoading])
 
-  if (authLoading) {
+  // Если данные еще грузятся и у нас нет даже серверного профиля, показываем загрузку
+  if (authLoading && !initialProfile) {
     return (
-      <main className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <div className="animate-pulse">Loading...</div>
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-pink-500 animate-spin" />
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen bg-background text-foreground selection:bg-pink-500/30">
       <Header
         key={refreshKey}
         currentSection={currentSection}
         setCurrentSection={setCurrentSection}
         language={language}
         setLanguage={lang => setLanguage(lang as 'en' | 'es')}
-        isLoggedIn={isLoggedIn}
+        isLoggedIn={isLoggedIn || !!initialProfile} // ✅ Учитываем серверный вход
         isAdmin={isAdmin}
         onSignOut={handleSignOut}
       />
+      
       <AnalyticsTracker isAdmin={isAdmin} />
 
       {currentSection === 'home' && (
-        <>
+        <div className="animate-in fade-in zoom-in-95 duration-1000">
           <section id="home" className="pt-4 sm:pt-10 pb-4 px-2">
-            <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-              {/* ЛЕВАЯ КОЛОНКА: Доноры */}
-              <div className="lg:col-span-3 order-2 lg:order-1">
-                <div className="relative overflow-hidden p-5 rounded-[2.5rem] border border-white/10 shadow-[0_20px_50px_rgba(225,29,72,0.2)] h-fit transition-all bg-gradient-to-br from-indigo-950 via-purple-900 to-rose-900">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/30 blur-[60px] rounded-full" />
-                  <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/20 blur-[60px] rounded-full" />
-                  <h3 className="relative z-10 text-sm font-black mb-4 text-center uppercase tracking-[0.15em] text-white flex items-center justify-center gap-2">
-                    <Heart className="w-4 h-4 text-rose-400 animate-pulse fill-rose-400" />
-                    The People Who Keep My Blog Alive
-                    <Heart className="w-4 h-4 text-rose-400 animate-pulse fill-rose-400" />
-                  </h3>
-                  <div className="relative z-10">
+            <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              
+              {/* Supporters Column */}
+              <div className="lg:col-span-3 order-2 lg:order-1 sticky top-24">
+                <div className="p-1 rounded-[2.6rem] bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 shadow-2xl">
+                  <div className="p-5 rounded-[2.5rem] bg-zinc-950/90 backdrop-blur-xl h-fit">
+                    <h3 className="text-xs font-black mb-6 text-center uppercase tracking-[0.2em] text-white/90 flex items-center justify-center gap-2">
+                      <Heart className="w-3 h-3 text-rose-500 fill-rose-500 animate-pulse" />
+                      Hall of Fame
+                      <Heart className="w-3 h-3 text-rose-500 fill-rose-500 animate-pulse" />
+                    </h3>
                     <DonorList key={refreshKey} />
                   </div>
-                  <p className="relative z-10 text-[9px] text-center mt-4 text-rose-200/50 font-medium uppercase tracking-widest">
-                    You keep this dream alive ✨
-                  </p>
                 </div>
               </div>
 
-             {/* ЦЕНТРАЛЬНАЯ КОЛОНКА */}
-<div className="lg:col-span-5 order-1 lg:order-2 -mt-4 lg:-mt-5">
-  {hero}
-</div>
+              {/* Central Hero */}
+              <div className="lg:col-span-6 order-1 lg:order-2">
+                {hero}
+              </div>
 
-              {/* ПРАВАЯ КОЛОНКА: Bluesky + тизер */}
-              {/* ✅ Исправлено: убрали проверку skipHero, ставим стандартный размер col-span-3 */}
-              <div className="order-3 flex flex-col lg:col-span-3">
-                <div className="relative group min-h-[500px]">
-                  <div
-                    className={`rounded-3xl border border-border/50 p-6 shadow-xl lg:-mt-12 transition-all duration-1000 h-full relative overflow-hidden ${
-                      !isLoggedIn
-                        ? 'blur-[4px] select-none pointer-events-none'
-                        : 'animate-in fade-in slide-in-from-right-4'
-                    } bg-gradient-to-br from-purple-500/5 via-white/80 dark:via-zinc-900/80 to-pink-500/5 backdrop-blur-md`}
-                  >
-                    <div className="absolute -top-20 -right-20 w-40 h-40 bg-purple-400/10 blur-[50px] rounded-full" />
-                    <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-pink-400/10 blur-[50px] rounded-full" />
-                    <div className="relative z-10 flex flex-col">
-                      <h3 className="text-md font-bold mb-4 bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent flex items-center gap-2">
-                        Updates 🦋
-                      </h3>
-                      <div className={`relative overflow-hidden ${isLoggedIn ? 'opacity-100' : 'opacity-40'}`}>
-                        <div className="h-[450px] overflow-y-auto pr-2 custom-scrollbar">
-                          <BlueskyFeed />
-                        </div>
-                      </div>
+              {/* Feed Column */}
+              <div className="lg:col-span-3 order-3 sticky top-24">
+                <div className="relative group">
+                  <div className={`rounded-[2.5rem] border border-border/40 p-6 bg-card/40 backdrop-blur-md transition-all duration-700 ${
+                    !isLoggedIn && !initialProfile ? 'blur-md grayscale opacity-50' : ''
+                  }`}>
+                    <h3 className="text-sm font-bold mb-4 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
+                      Live Feed 🦋
+                    </h3>
+                    <div className="h-[500px] overflow-y-auto custom-scrollbar">
+                      <BlueskyFeed />
                     </div>
-                    {isLoggedIn && (
-                      <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-transparent via-pink-400/20 to-transparent" />
-                    )}
                   </div>
-                  {!isLoggedIn && (
-                    <div className="absolute inset-0 z-30 flex items-center justify-center lg:-mt-12 p-4">
+                  
+                  {(!isLoggedIn && !initialProfile) && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center p-6">
                       <BlogTeaser onSignIn={() => setCurrentSection('signin')} />
                     </div>
                   )}
@@ -191,53 +172,51 @@ export default function HomeClient({ initialPosts, hero }: HomeClientProps) {
             </div>
           </section>
 
-          <section id="about">
-            <About language={language} />
-          </section>
-
-          <section id="blog">
-            <BlogSection language={language || 'en'} initialPosts={initialPosts} />
+          <About language={language} />
+          
+          <section id="blog" className="py-20">
+            {/* Передаем initialPosts, загруженные в page.tsx */}
+            <BlogSection language={language} />
           </section>
 
           <MiddleAdBanner />
-          <section id="gallery">
-            <Gallery language={language} />
-          </section>
-          <section id="subscribe">
-            <Subscribe language={language} />
-          </section>
+          <Gallery language={language} />
+          <Subscribe language={language} />
           <FootAdBanner />
           <Footer language={language} />
-        </>
+        </div>
       )}
 
-      {currentSection === 'support' && <SupportPage />}
-      {currentSection === 'signin' && (
-        <SignIn
-          onSignIn={handleSignIn}
-          onSwitchToSignUp={() => setCurrentSection('signup')}
-          setCurrentSection={setCurrentSection}
-        />
-      )}
-      {currentSection === 'signup' && (
-        <SignUp
-          onSignUp={handleSignIn}
-          onSwitchToSignIn={() => setCurrentSection('signin')}
-          setCurrentSection={setCurrentSection}
-        />
-      )}
-      {currentSection === 'profile' && isLoggedIn && (
-        <UserProfile
-          setCurrentSection={setCurrentSection}
-          onProfileUpdate={() => setRefreshKey(prev => prev + 1)}
-        />
-      )}
-      {currentSection === 'mycomments' && isLoggedIn && (
-        <MyComments setCurrentSection={setCurrentSection} />
-      )}
-      {currentSection === 'admin' && isAdmin && (
-        <AdminPanel setCurrentSection={setCurrentSection} />
-      )}
+      {/* Pages Mapping */}
+      <div className="relative z-50">
+        {currentSection === 'support' && <SupportPage />}
+        {currentSection === 'signin' && (
+          <SignIn 
+            onSignIn={handleSignIn} 
+            onSwitchToSignUp={() => setCurrentSection('signup')} 
+            setCurrentSection={setCurrentSection} 
+          />
+        )}
+        {currentSection === 'signup' && (
+          <SignUp 
+            onSignUp={handleSignIn} 
+            onSwitchToSignIn={() => setCurrentSection('signin')} 
+            setCurrentSection={setCurrentSection} 
+          />
+        )}
+        {(currentSection === 'profile' && (isLoggedIn || initialProfile)) && (
+          <UserProfile 
+            setCurrentSection={setCurrentSection} 
+            onProfileUpdate={() => setRefreshKey(prev => prev + 1)} 
+          />
+        )}
+        {(currentSection === 'mycomments' && (isLoggedIn || initialProfile)) && (
+          <MyComments setCurrentSection={setCurrentSection} />
+        )}
+        {(currentSection === 'admin' && isAdmin) && (
+          <AdminPanel setCurrentSection={setCurrentSection} />
+        )}
+      </div>
     </main>
   )
 }

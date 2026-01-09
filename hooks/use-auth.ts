@@ -2,63 +2,84 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useSupabase } from '@/hooks/use-supabase'
+import type { Profile } from '@/lib/profile'
 
-export function useAuth() {
-  const supabase = useSupabase() // ✅ один клиент на всё приложение
+// Добавляем возможность передать начальные данные (с сервера)
+export function useAuth(initialProfile?: Profile | null) {
+  const supabase = useSupabase()
+  
   const [user, setUser] = useState<any>(null)
   const [email, setEmail] = useState('')
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [avatarUrl, setAvatarUrl] = useState('')
-  const [loading, setLoading] = useState(true)
+  
+  // ✅ Если пришел initialProfile, сразу ставим isLoggedIn = true
+  const [isLoggedIn, setIsLoggedIn] = useState(!!initialProfile)
+  const [isAdmin, setIsAdmin] = useState(initialProfile?.is_admin ?? false)
+  const [avatarUrl, setAvatarUrl] = useState(initialProfile?.avatar_url ?? '')
+  
+  // ✅ Если есть серверный профиль, загрузку можно не показывать сразу
+  const [loading, setLoading] = useState(!initialProfile)
 
   const loadUser = useCallback(async () => {
-    if (!supabase) return // ✅ защита от SSR или неинициализированного клиента
+    if (!supabase) return
 
-    setLoading(true)
     try {
+      // getSession быстрее, чем getUser, используем его для первичной проверки
       const { data: { session } } = await supabase.auth.getSession()
+      
       if (!session) {
-        setUser(null)
-        setEmail('')
-        setIsLoggedIn(false)
-        setIsAdmin(false)
-        setAvatarUrl('')
+        resetStates()
         return
       }
 
-      const { data: { user }, error } = await supabase.auth.getUser()
-      if (error || !user) {
-        setUser(null)
-        setEmail('')
-        setIsLoggedIn(false)
-        setIsAdmin(false)
-        setAvatarUrl('')
+      const { data: { user: authUser }, error } = await supabase.auth.getUser()
+      if (error || !authUser) {
+        resetStates()
         return
       }
 
-      setUser(user)
-      setEmail(user.email ?? '')
+      setUser(authUser)
+      setEmail(authUser.email ?? '')
       setIsLoggedIn(true)
 
+      // Загружаем актуальный профиль из БД
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_admin, avatar_url')
-        .eq('id', user.id)
+        .eq('id', authUser.id)
         .maybeSingle()
 
-      setIsAdmin(profile?.is_admin ?? false)
-      setAvatarUrl(profile?.avatar_url ?? '')
+      if (profile) {
+        setIsAdmin(profile.is_admin ?? false)
+        setAvatarUrl(profile.avatar_url ?? '')
+      }
+    } catch (err) {
+      console.error('Auth check error:', err)
+      resetStates()
     } finally {
       setLoading(false)
     }
   }, [supabase])
 
+  // Вспомогательная функция для сброса
+  const resetStates = () => {
+    setUser(null)
+    setEmail('')
+    setIsLoggedIn(false)
+    setIsAdmin(false)
+    setAvatarUrl('')
+    setLoading(false)
+  }
+
   useEffect(() => {
     loadUser()
 
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      loadUser()
+    // Слушаем изменения: вход, выход, смена пароля
+    const { data: listener } = supabase.auth.onAuthStateChange((event: any, session: any) => {
+      if (event === 'SIGNED_OUT') {
+        resetStates()
+      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        loadUser()
+      }
     })
 
     return () => {

@@ -9,27 +9,33 @@ import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import { MessageCircle, X, ChevronRight } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
-import { useAuth } from '@/hooks/use-auth'
-
+import React from 'react' // Добавлено для React.cloneElement
 /* ---------- TYPES ---------- */
 interface BlogPost {
   id: string
   title: string
   slug: string
   content: string
-  excerpt: string
+  excerpt: string | null
   featured_image: string | null
-  author_id: string
-  published: boolean
-  created_at: string
-  updated_at: string
-  related_slugs?: string[]
+  author_id: string | null
+  published: boolean | null
+  created_at: string | null
+  updated_at: string | null
+  related_slugs: string[] | null
 }
 
 interface AuthorProfile {
   id: string
-  username: string
+  username: string | null
   avatar_url: string | null
+}
+
+interface BlogPostPreview {
+  id: string
+  title: string
+  slug: string
+  featured_image: string | null
 }
 
 interface Comment {
@@ -47,8 +53,9 @@ interface Comment {
 interface BlogPostClientProps {
   initialPost: BlogPost
   initialAuthor: AuthorProfile | null
-  initialRelatedPosts: BlogPost[]
+  initialRelatedPosts: BlogPostPreview[]
 }
+
 
 /* ---------- УТИЛИТА ПАРСИНГА ИЗОБРАЖЕНИЙ ---------- */
 const parseImageProps = (alt: string) => {
@@ -73,39 +80,34 @@ const parseImageProps = (alt: string) => {
 }
 
 /* ---------- ОТДЕЛЬНЫЙ КОМПОНЕНТ ДЛЯ КАРТИНОК ---------- */
-const MarkdownImage = ({ src, alt }: { src?: string; alt?: string }) => {
-  const { caption, scale, blur } = parseImageProps(alt || '')
-  const [isBlurred, setIsBlurred] = useState(blur)
+const MarkdownImage = (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
+  const { src = '', alt = '', ...rest } = props;
+  const { caption, scale, blur } = parseImageProps(alt);
+  const [isBlurred, setIsBlurred] = useState(blur);
 
   return (
     <span className="block my-12 text-center">
       <span
-        className="relative inline-block w-full overflow-hidden rounded-2xl shadow-2xl transition-all duration-500"
-        style={{
-          maxWidth: typeof window !== 'undefined' && window.innerWidth < 768 
-            ? '100%' 
-            : `${scale}%`
-        }}
+        className="relative inline-block w-full overflow-hidden rounded-2xl shadow-2xl cursor-pointer"
+        style={{ maxWidth: `${scale}%` }}
         onClick={() => setIsBlurred(false)}
-        onTouchStart={() => setIsBlurred(false)}
       >
         <img
+          {...rest}
           src={src}
+          alt={caption}
+          loading="lazy"
           className={`mx-auto w-full h-auto block transition-all duration-700 ${
             isBlurred ? 'blur-2xl hover:blur-none' : 'blur-0'
           }`}
-          alt={caption}
-          loading="lazy"
         />
       </span>
       {caption && caption.toLowerCase() !== 'image' && (
-        <span className="block mt-4 text-sm text-muted-foreground italic px-4">
-          {caption}
-        </span>
+        <span className="block mt-4 text-sm text-muted-foreground italic px-4">{caption}</span>
       )}
     </span>
-  )
-}
+  );
+};
 
 /* ---------- ГЛАВНЫЙ КОМПОНЕНТ ---------- */
 export default function BlogPostClient({ 
@@ -129,26 +131,15 @@ export default function BlogPostClient({
   const [commentContent, setCommentContent] = useState('')
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
 
-  const handleClose = () => {
-    try {
-      if (sourceUrl) {
-        router.push(decodeURIComponent(sourceUrl))
-      } else {
-        router.push('/')
-      }
-    } catch {
-      router.push('/')
-    }
-  }
-
   const fetchComments = useCallback(async (postSlug: string) => {
     if (!supabase) return
     try {
       const { data, error } = await supabase
         .from('comments')
-        .select(
-          `id, content, author_id, source_id, parent_id, created_at, is_read, author:profiles!author_id(id, username, avatar_url)`
-        )
+        .select(`
+          id, content, author_id, source_id, parent_id, created_at, is_read, 
+          author:profiles!author_id(id, username, avatar_url)
+        `)
         .eq('source_type', 'blog')
         .eq('source_id', postSlug)
         .is('parent_id', null)
@@ -160,9 +151,10 @@ export default function BlogPostClient({
         (data || []).map(async (comment: any) => {
           const { data: replies } = await supabase
             .from('comments')
-            .select(
-              `id, content, author_id, source_id, parent_id, created_at, author:profiles!author_id(id, username, avatar_url)`
-            )
+            .select(`
+              id, content, author_id, source_id, parent_id, created_at, 
+              author:profiles!author_id(id, username, avatar_url)
+            `)
             .eq('parent_id', comment.id)
             .order('created_at', { ascending: true })
           return { ...comment, replies: replies || [] }
@@ -190,7 +182,7 @@ export default function BlogPostClient({
     if (!currentUserId || !commentContent.trim() || !post) return
     setSubmittingComment(true)
     try {
-      await supabase.from('comments').insert([
+      const { error } = await supabase.from('comments').insert([
         {
           content: commentContent.trim(),
           author_id: currentUserId,
@@ -200,6 +192,8 @@ export default function BlogPostClient({
           is_read: false,
         },
       ])
+      if (error) throw error
+      
       setCommentContent('')
       setReplyingTo(null)
       await fetchComments(post.slug)
@@ -212,7 +206,7 @@ export default function BlogPostClient({
   }
 
   const handleDeleteComment = async (id: string) => {
-    if (!confirm('Delete?')) return
+    if (!confirm('Delete this comment?')) return
     await supabase.from('comments').delete().eq('id', id)
     if (post?.slug) await fetchComments(post.slug)
   }
@@ -244,7 +238,6 @@ export default function BlogPostClient({
               src={post.featured_image}
               alt={post.title}
               className="w-full h-auto max-h-[600px] object-contain mx-auto"
-              fetchPriority="high"
             />
           </div>
         )}
@@ -253,12 +246,12 @@ export default function BlogPostClient({
           <h1 className="text-4xl font-bold mb-6">{post.title}</h1>
           <div className="flex items-center gap-4 mb-8 pb-8 border-b border-border/50">
             {author?.avatar_url && (
-              <img src={author.avatar_url} className="w-12 h-12 rounded-full border border-pink-500/20" alt={`${author.username} avatar`} />
+              <img src={author.avatar_url} className="w-12 h-12 rounded-full border border-pink-500/20" alt={author.username || 'Author'} />
             )}
             <div>
               <p className="font-semibold text-lg">{author?.username || 'Unknown Author'}</p>
-              <time className="text-sm text-muted-foreground" dateTime={post.created_at}>
-                {new Date(post.created_at).toLocaleDateString()}
+              <time className="text-sm text-muted-foreground" dateTime={post.created_at || undefined}>
+                {post.created_at ? new Date(post.created_at).toLocaleDateString() : 'Unknown date'}
               </time>
             </div>
           </div>
@@ -275,6 +268,7 @@ export default function BlogPostClient({
                       : node?.props?.children
                       ? collectText(node.props.children)
                       : ''
+
                   const fullText = collectText(children)
                   const colorMatch = fullText.match(/\[(yellow|blue|purple|pink)\]/)
                   const color = colorMatch ? colorMatch[1] : 'pink'
@@ -282,7 +276,12 @@ export default function BlogPostClient({
                   const stripColorTag = (node: any): any => {
                     if (typeof node === 'string') return node.replace(/\[(yellow|blue|purple|pink)\]/g, '').trimStart()
                     if (Array.isArray(node)) return node.map(stripColorTag)
-                    if (node?.props?.children) return { ...node, props: { ...node.props, children: stripColorTag(node.props.children) } }
+                    if (node?.props?.children) {
+                      return React.cloneElement(node, {
+                        ...node.props,
+                        children: stripColorTag(node.props.children)
+                      })
+                    }
                     return node
                   }
 
@@ -346,13 +345,6 @@ export default function BlogPostClient({
               </ul>
             </div>
           )}
-
-          <div className="mt-4">
-            <Link href="/archiveblog" className="block w-full p-4 text-center bg-background rounded-xl border border-border/40 hover:border-pink-500/50 hover:bg-pink-500/5 transition-all">
-              <p className="font-bold text-pink-400 mb-1 italic uppercase text-[10px] tracking-widest">Explore</p>
-              <p className="text-sm font-semibold">Back to Blog Feed</p>
-            </Link>
-          </div>
         </article>
 
         {/* COMMENTS SECTION */}
@@ -363,14 +355,20 @@ export default function BlogPostClient({
               {replyingTo && (
                 <Button variant="ghost" size="sm" onClick={() => setReplyingTo(null)} className="mb-2 text-pink-500">Cancel Reply</Button>
               )}
-              <Textarea value={commentContent} onChange={(e) => setCommentContent(e.target.value)} placeholder="Write a comment..." className="mb-4 bg-background border-border/40 focus:border-pink-500/50 transition-colors" />
+              <Textarea 
+                value={commentContent} 
+                onChange={(e) => setCommentContent(e.target.value)} 
+                placeholder="Write a comment..." 
+                className="mb-4 bg-background border-border/40 focus:border-pink-500/50" 
+              />
               <Button onClick={handleSubmitComment} disabled={submittingComment} className="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold">
                 {submittingComment ? 'Sending...' : 'Post Comment'}
               </Button>
             </div>
           ) : (
             <div className="mb-10 p-6 text-center border border-dashed border-border/50 rounded-2xl bg-muted/5">
-              <Link href="/auth/sign-in">
+              {/* Исправлено: Ссылка ведет на главную, где открывается попап (согласно вашей логике в home-client) */}
+              <Link href="/?action=signin">
                 <Button variant="outline" className="border-pink-500/30 hover:bg-pink-500/10">Sign In to Comment</Button>
               </Link>
             </div>
@@ -382,10 +380,14 @@ export default function BlogPostClient({
                 <div className="p-5 bg-muted/10 rounded-2xl border border-border/30 hover:border-pink-500/20 transition-colors">
                   <div className="flex justify-between items-center mb-3">
                     <p className="font-bold text-pink-400">{comment.author?.username || 'User'}</p>
-                    {currentUserId === comment.author_id && <Button variant="ghost" size="sm" onClick={() => handleDeleteComment(comment.id)} className="text-destructive hover:bg-destructive/10">Delete</Button>}
+                    {currentUserId === comment.author_id && (
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteComment(comment.id)} className="text-destructive hover:bg-destructive/10">Delete</Button>
+                    )}
                   </div>
                   <p className="text-foreground/90 mb-3 leading-relaxed">{comment.content}</p>
-                  <Button variant="ghost" size="sm" onClick={() => setReplyingTo(comment.id)} className="text-muted-foreground hover:text-pink-400"><MessageCircle className="w-4 h-4 mr-2" />Reply</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setReplyingTo(comment.id)} className="text-muted-foreground hover:text-pink-400">
+                    <MessageCircle className="w-4 h-4 mr-2" />Reply
+                  </Button>
                 </div>
                 {comment.replies?.map((reply) => (
                   <div key={reply.id} className="ml-10 p-4 bg-muted/5 rounded-xl border-l-2 border-pink-500/30 italic text-sm shadow-inner">

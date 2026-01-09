@@ -18,6 +18,15 @@ interface Notification {
   source_url: string;
 }
 
+interface ReplyData {
+  id: string;
+  content: string;
+  created_at: string;
+  is_read: boolean;
+  source_type: string;
+  source_id: string;
+}
+
 export default function MyNotifications() {
   const { user } = useAuth();
   const supabase = useSupabase();
@@ -27,7 +36,7 @@ export default function MyNotifications() {
   useEffect(() => {
     if (!user) return;
     loadNotifications();
-  }, [user]);
+  }, [user, supabase]);
 
   const loadNotifications = async () => {
     // все ответы на комменты пользователя
@@ -40,7 +49,7 @@ export default function MyNotifications() {
     if (!replies) return;
 
     const enriched = await Promise.all(
-      replies.map(async (r) => {
+      replies.map(async (r: ReplyData) => {
         const table = r.source_type === 'blog' ? 'blog_posts' : 'gallery';
         const { data: src } = await supabase
           .from(table)

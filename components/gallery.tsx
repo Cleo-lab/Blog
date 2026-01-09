@@ -15,6 +15,14 @@ interface GalleryImage {
   image: string
 }
 
+interface GalleryData {
+  id: string
+  title: string | null
+  description: string | null
+  image: string
+  created_at: string
+}
+
 interface GalleryProps {
   language: 'en' | 'es'
 }
@@ -24,7 +32,7 @@ export default function Gallery({ language }: GalleryProps) {
   const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
-  const lang: 'en' | 'es' = (language === 'es' ? 'es' : 'en') || 'en'
+  const lang: 'en' | 'es' = (language === 'es' ? 'es' : 'en')
   const supabase = useSupabase()
 
   useEffect(() => {
@@ -43,7 +51,7 @@ export default function Gallery({ language }: GalleryProps) {
 
       setTotalCount(count ?? 0)
 
-      const mappedImages = (data || []).map((item) => ({
+      const mappedImages = (data || []).map((item: GalleryData) => ({
         id: item.id,
         title: item.title || 'Untitled',
         description: item.description || '',

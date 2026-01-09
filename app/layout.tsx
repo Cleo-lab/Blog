@@ -24,7 +24,6 @@ export const metadata: Metadata = {
   authors: [{ name: 'Yurie Jiyūbō', url: 'https://yurieblog.vercel.app' }],
   creator: 'Yurie Jiyūbō',
   publisher: 'Yurie Jiyūbō',
-  robots: 'index, follow',
   verification: { google: 'WXnuGqV3agaGqnSqBJBEuym8I5KkJuvH4AMNKWXodYM' },
   metadataBase: new URL('https://yurieblog.vercel.app'),
   alternates: { canonical: 'https://yurieblog.vercel.app' },

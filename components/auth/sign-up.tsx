@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useSupabase } from '@/hooks/use-supabase'
-
 import { useToast } from '@/hooks/use-toast'
 
 interface SignUpProps {
@@ -13,15 +12,19 @@ interface SignUpProps {
   readonly setCurrentSection?: (section: string) => void
 }
 
-export default function SignUp({ onSignUp, onSwitchToSignIn, setCurrentSection }: SignUpProps) {
+export default function SignUp({
+  onSignUp,
+  onSwitchToSignIn,
+  setCurrentSection,
+}: SignUpProps) {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { toast } = useToast()
 
+  const { toast } = useToast()
   const supabase = useSupabase()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,53 +49,40 @@ export default function SignUp({ onSignUp, onSwitchToSignIn, setCurrentSection }
     setLoading(true)
 
     try {
-      // Create auth user with metadata
-      // Триггер автоматически создаст профиль используя эти данные
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: `${location.origin}/auth/callback`,
           data: {
-            username: username.trim() // Это попадёт в raw_user_meta_data
-          }
-        }
+            username: username.trim(),
+          },
+        },
       })
 
-      if (authError) throw authError
-
-      if (!authData.user) {
-        throw new Error('Failed to create user')
-      }
-
-      // ❌ УДАЛЕНО: Ручное создание профиля больше не нужно
-      // Триггер on_auth_user_created автоматически создаст профиль
-
-      // Sign in user after registration
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
-
-      if (signInError) {
-        console.warn('Auto sign-in failed:', signInError)
-      }
+      if (signUpError) throw signUpError
+      if (!data.user) throw new Error('Failed to create user')
 
       toast({
-        title: 'Success',
-        description: 'Account created successfully!'
+        title: 'Check your email',
+        description: 'Please confirm your email to finish registration.',
       })
 
       onSignUp?.(email, username)
+
+      // НЕ логиним пользователя автоматически
+      // Он войдёт после подтверждения email
+
       setTimeout(() => {
-        setCurrentSection?.('home')
-      }, 500)
+        setCurrentSection?.('signin')
+      }, 800)
     } catch (err: any) {
-      const message = err?.message || 'Registration failed. Please try again.'
+      const message = err?.message || 'Registration failed'
       setError(message)
       toast({
         title: 'Error',
         description: message,
-        variant: 'destructive'
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
@@ -116,80 +106,66 @@ export default function SignUp({ onSignUp, onSwitchToSignIn, setCurrentSection }
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="signup-username" className="block text-sm font-medium mb-2 text-foreground">Username</label>
+              <label className="block text-sm font-medium mb-2">Username</label>
               <Input
-                id="signup-username"
-                type="text"
-                placeholder="your_username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                required
                 disabled={loading}
-                className="bg-background border-border/50"
+                required
               />
             </div>
 
             <div>
-              <label htmlFor="signup-email" className="block text-sm font-medium mb-2 text-foreground">Email</label>
+              <label className="block text-sm font-medium mb-2">Email</label>
               <Input
-                id="signup-email"
                 type="email"
-                placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
                 disabled={loading}
-                className="bg-background border-border/50"
+                required
               />
             </div>
 
             <div>
-              <label htmlFor="signup-password" className="block text-sm font-medium mb-2 text-foreground">Password</label>
+              <label className="block text-sm font-medium mb-2">Password</label>
               <Input
-                id="signup-password"
                 type="password"
-                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
                 disabled={loading}
-                className="bg-background border-border/50"
+                required
               />
             </div>
 
             <div>
-              <label htmlFor="signup-confirm" className="block text-sm font-medium mb-2 text-foreground">Confirm Password</label>
+              <label className="block text-sm font-medium mb-2">
+                Confirm password
+              </label>
               <Input
-                id="signup-confirm"
                 type="password"
-                placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                required
                 disabled={loading}
-                className="bg-background border-border/50"
+                required
               />
             </div>
 
             <Button
               type="submit"
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="w-full"
               disabled={loading}
             >
-              {loading ? 'Creating account...' : 'Sign Up'}
+              {loading ? 'Creating account…' : 'Sign Up'}
             </Button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-border/50">
-            <p className="text-sm text-foreground/60 text-center">
-              Already have an account?{' '}
-              <button
-                onClick={onSwitchToSignIn}
-                className="text-primary hover:text-primary/80 font-medium"
-              >
-                Sign in
-              </button>
-            </p>
+          <div className="mt-6 pt-6 border-t border-border/50 text-center">
+            <button
+              onClick={onSwitchToSignIn}
+              className="text-primary hover:text-primary/80 text-sm font-medium"
+            >
+              Already have an account? Sign in
+            </button>
           </div>
         </div>
       </div>

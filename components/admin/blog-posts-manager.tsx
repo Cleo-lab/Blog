@@ -12,6 +12,16 @@ import type { Database } from '@/types/database.types'
 
 type BlogPost = Database['public']['Tables']['blog_posts']['Row']
 
+interface FormDataType {
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string | null;
+  featured_image: string | null;
+  published: boolean | null;
+  related_slugs: string[] | null;
+}
+
 // --- ФУНКЦИЯ СЖАТИЯ ---
 const compressImage = (file: File): Promise<Blob> => {
   return new Promise((resolve) => {
@@ -52,13 +62,14 @@ export default function BlogPostsManager() {
   const [uploading, setUploading] = useState(false)
   const supabase = useSupabase()
 
-  const [formData, setFormData] = useState<Omit<BlogPost, 'id' | 'author_id' | 'created_at' | 'updated_at'>>({
+  const [formData, setFormData] = useState<FormDataType>({
     title: '',
     slug: '',
     content: '',
     excerpt: null,
     featured_image: null,
     published: true,
+    related_slugs: null,
   })
 
   // --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ЗАГРУЗКИ ---
@@ -123,12 +134,28 @@ export default function BlogPostsManager() {
 
   const handleEdit = (post: BlogPost) => {
     setEditingId(post.id); setIsCreating(false); setSlugManuallyEdited(true);
-    setFormData({ title: post.title, slug: post.slug, content: post.content, excerpt: post.excerpt, featured_image: post.featured_image, published: post.published });
+    setFormData({ 
+      title: post.title, 
+      slug: post.slug, 
+      content: post.content, 
+      excerpt: post.excerpt, 
+      featured_image: post.featured_image, 
+      published: post.published,
+      related_slugs: post.related_slugs,
+    });
   }
 
   const handleCancel = () => {
     setIsCreating(false); setEditingId(null);
-    setFormData({ title: '', slug: '', content: '', excerpt: null, featured_image: null, published: true });
+    setFormData({ 
+      title: '', 
+      slug: '', 
+      content: '', 
+      excerpt: null, 
+      featured_image: null, 
+      published: true,
+      related_slugs: null,
+    });
   }
 
   if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>
@@ -178,29 +205,29 @@ export default function BlogPostsManager() {
                   <ImageIcon className="w-4 h-4 mr-2" /> Add Image into Text
                 </Button>
                 <input
-  id="inline-img"
-  type="file"
-  className="hidden"
-  accept="image/*"
-  onChange={async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const url = await uploadAndGetUrl(file);
-      /*  НОВЫЙ ФОРМАТ  */
-      const imageMarkdown = `\n\n![Image caption {scale=100 blur=false}](${url})\n\n`;
-      setFormData(p => ({ ...p, content: p.content + imageMarkdown }));
-      toast({ title: 'Added', description: 'Edit caption and parameters' });
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
-    } finally {
-      setUploading(false);
-      /* сбросить input, чтобы можно было выбрать тот же файл снова */
-      e.currentTarget.value = '';
-    }
-  }}
-/>
+      id="inline-img"
+      type="file"
+      className="hidden"
+      accept="image/*"
+      onChange={async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+          const url = await uploadAndGetUrl(file);
+          /*  НОВЫЙ ФОРМАТ  */
+          const imageMarkdown = `\n\n![Image caption {scale=100 blur=false}](${url})\n\n`;
+          setFormData(p => ({ ...p, content: p.content + imageMarkdown }));
+          toast({ title: 'Added', description: 'Edit caption and parameters' });
+        } catch (err: any) {
+          toast({ title: 'Error', description: err.message, variant: 'destructive' });
+        } finally {
+          setUploading(false);
+          /* сбросить input, чтобы можно было выбрать тот же файл снова */
+          e.currentTarget.value = '';
+        }
+      }}
+    />
               </div>
               <Textarea rows={15} value={formData.content} onChange={(e) => setFormData(p => ({ ...p, content: e.target.value }))} />
             </div>

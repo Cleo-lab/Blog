@@ -28,39 +28,43 @@ export default function SearchBar() {
     }
     setLoading(true)
     try {
-      const blog = supabase
+      // 1. Запрос к блогу
+      const blogPromise = supabase
         .from('blog_posts')
         .select('id, title, slug, excerpt')
         .eq('published', true)
         .or(`title.ilike.%${q}%,excerpt.ilike.%${q}%`)
         .limit(5)
 
-      const gallery = supabase
+      // 2. Запрос к галерее
+      const galleryPromise = supabase
         .from('gallery')
-        .select('id, title, slug, description')
+        .select('id, title, description') // убрали slug из select, если его нет в таблице gallery
         .or(`title.ilike.%${q}%,description.ilike.%${q}%`)
         .limit(5)
 
-      const [blogRes, galleryRes] = await Promise.all([blog, gallery])
+      const [blogRes, galleryRes] = await Promise.all([blogPromise, galleryPromise])
 
-      const mapped: SearchResult[] = [
-        ...(blogRes.data?.map((p) => ({
-          id: p.id,
-          title: p.title,
-          slug: p.slug,
-          type: 'blog' as const,
-          excerpt: p.excerpt,
-        })) ?? []),
-        ...(galleryRes.data?.map((g) => ({
-          id: g.id,
-          title: g.title,
-          slug: g.id,
-          type: 'gallery' as const,
-          excerpt: g.description,
-        })) ?? []),
-      ]
+      // 3. Обработка результатов (Разделяем логику, чтобы TS не ругался)
+      const blogItems: SearchResult[] = (blogRes.data || []).map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        type: 'blog',
+        excerpt: p.excerpt,
+      }))
 
-      setResults(mapped)
+      const galleryItems: SearchResult[] = (galleryRes.data || []).map((g: any) => ({
+        id: g.id,
+        title: g.title,
+        slug: g.id, // Используем ID как слаг для галереи
+        type: 'gallery',
+        excerpt: g.description,
+      }))
+
+      // 4. Объединяем
+      setResults([...blogItems, ...galleryItems])
+
     } catch (e) {
       console.error('Search error:', e)
     } finally {
@@ -68,8 +72,9 @@ export default function SearchBar() {
     }
   }, [supabase])
 
+  // Дебаунс ввода (задержка перед поиском)
   useEffect(() => {
-    const debounce = setTimeout(() => fetchSearch(query), 200)
+    const debounce = setTimeout(() => fetchSearch(query), 300) // увеличил до 300мс для оптимизации
     return () => clearTimeout(debounce)
   }, [query, fetchSearch])
 
@@ -80,44 +85,48 @@ export default function SearchBar() {
   }
 
   return (
-    <div className="relative flex-1 sm:flex-none">
-      <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-2 py-1 w-40 h-8 focus-within:ring-2 focus-within:ring-primary">
+    <div className="relative flex-1 sm:flex-none z-50"> {/* Добавил z-50 */}
+      <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-2 py-1 w-40 h-8 focus-within:ring-2 focus-within:ring-primary transition-all">
         <Search className="w-4 h-4 text-foreground/60 shrink-0" />
         <input
           type="text"
-          placeholder="Search…"
+          placeholder="Search..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setOpen(true)}
-          className="bg-transparent outline-none flex-1 text-sm placeholder:text-foreground/60"
+          // onBlur={() => setTimeout(() => setOpen(false), 200)} // Опционально: закрытие при потере фокуса
+          className="bg-transparent outline-none flex-1 text-sm placeholder:text-foreground/60 min-w-0"
         />
         {query && (
-          <button onClick={() => setQuery('')} aria-label="Clear" className="shrink-0">
+          <button onClick={() => { setQuery(''); setResults([]); }} aria-label="Clear" className="shrink-0">
             <X className="w-4 h-4 text-foreground/60 hover:text-foreground" />
           </button>
         )}
       </div>
 
       {open && (query || results.length > 0) && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
-          {loading && <div className="px-4 py-2 text-sm text-foreground/60">Searching…</div>}
+        <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-xl max-h-96 overflow-y-auto w-64 sm:w-80 -left-20 sm:left-0">
+          {loading && <div className="px-4 py-3 text-sm text-foreground/60">Searching...</div>}
+          
           {!loading && results.length === 0 && query && (
-            <div className="px-4 py-2 text-sm text-foreground/60">No results</div>
+            <div className="px-4 py-3 text-sm text-foreground/60">No results found</div>
           )}
-          {!loading &&
-            results.map((res) => (
+
+          {!loading && results.map((res) => (
               <Link
                 key={`${res.type}-${res.id}`}
                 href={res.type === 'blog' ? `/blog/${res.slug}` : `/gallery/${res.slug}`}
                 onClick={onResultClick}
-                className="flex items-start gap-3 px-4 py-2 hover:bg-muted/50 transition-colors"
+                className="flex items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border/30 last:border-0"
               >
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">{res.title}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{res.title}</p>
                   {res.excerpt && (
-                    <p className="text-xs text-foreground/60 line-clamp-2">{res.excerpt}</p>
+                    <p className="text-xs text-foreground/60 line-clamp-2 mt-0.5">{res.excerpt}</p>
                   )}
-                  <span className="text-xs text-primary/60 uppercase">{res.type}</span>
+                  <span className="inline-block mt-1 text-[10px] font-bold text-primary/80 uppercase tracking-wider bg-primary/10 px-1.5 py-0.5 rounded">
+                    {res.type}
+                  </span>
                 </div>
               </Link>
             ))}

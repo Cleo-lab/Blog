@@ -20,9 +20,6 @@ const nextConfig = {
     proxyTimeout: 180000,
   },
   
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   
   images: {
     formats: ['image/webp', 'image/avif'],
@@ -40,28 +37,25 @@ const nextConfig = {
   },
   
   // ✅ Заголовки для кеширования
-  async headers() {
+ // ✅ Добавляем robots + оставляем старые заголовки
+async headers() {
     return [
       {
         source: '/:all*(svg|jpg|jpeg|png|webp|avif|gif|ico)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
       {
         source: '/_next/static/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
+        source: '/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'index, follow, max-image-preview:large' }],
       },
     ]
-  },
+  }, // ← запятая!
+
+  // ---------- дальше экспорт ----------
 }
 
-export default bundleAnalyzer(nextConfig)
+export default bundleAnalyzer(nextConfig);

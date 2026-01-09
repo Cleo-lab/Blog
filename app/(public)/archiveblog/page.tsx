@@ -19,8 +19,12 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+	googleBot: {
+      index: true,
+      follow: true,
     'max-image-preview': 'large',
     'max-snippet': -1,
+  },
   },
   openGraph: {
     title: 'Blog Archive — Yurie Jiyūbū',
@@ -146,14 +150,14 @@ export default function ArchiveBlogPage() {
 
           {/* Блок с картинкой */}
           <div className="flex-1 order-1 md:order-2">
-            <Image 
-              src="/images/Archive_Preview.webp" 
-              alt="Yurie Blog Archive - Digital experiments and creative insights" 
-              width={500} 
-              height={350}
-              priority
-              className="rounded-2xl shadow-2xl object-cover hover:scale-105 transition-transform duration-500"
-            />
+            <Image
+  src="/images/Archive_Preview.webp"
+  alt="Yurie Blog Archive - Digital experiments and creative insights"
+  width={500}
+  height={350}
+  priority
+  className="rounded-2xl shadow-2xl object-cover hover:scale-105 transition-transform duration-500 h-auto"
+/>
           </div>
         </div>
 

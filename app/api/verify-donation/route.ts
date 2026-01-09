@@ -77,7 +77,7 @@ async function verifyTronTx(txId: string, expectedAddress: string): Promise<Veri
     const amount = amountRaw / 1e6; // USDT 6 decimals
 
     // 4. Сравниваем адреса (hex → base58)
-    const toBase58 = TronWeb.address.fromHex(toHex);
+    const toBase58 = (TronWeb as any).address.fromHex(toHex);
     if (toBase58 !== expectedAddress)
       return { success: false, message: `Wrong recipient. Expected: ${expectedAddress}, got: ${toBase58}` };
 
@@ -88,7 +88,7 @@ async function verifyTronTx(txId: string, expectedAddress: string): Promise<Veri
       success: true,
       message: 'USDT verified',
       amount: `${amount.toFixed(2)} USDT`,
-      from: TronWeb.address.fromHex(c.parameter.value.owner_address) || 'Unknown'
+      from: (TronWeb as any).address.fromHex(c.parameter.value.owner_address) || 'Unknown'
     };
   } catch (e: any) {
     console.error('USDT verify error:', e);
