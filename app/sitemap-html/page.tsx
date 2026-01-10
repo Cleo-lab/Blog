@@ -6,10 +6,10 @@ export default async function SitemapHTML() {
   
   const { data: posts } = await supabase
     .from('blog_posts')
-    .select('id, title, slug, created_at')
+    .select('id, title, slug, excerpt, content, featured_image, created_at')
     .eq('published', true)
-    .not('created_at', 'is', null)
     .order('created_at', { ascending: false })
+    .limit(6)
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-12">
