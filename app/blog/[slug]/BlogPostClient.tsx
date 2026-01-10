@@ -88,7 +88,8 @@ const MarkdownImage = (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
   return (
     <span className="block my-12 text-center">
       <span
-        className="relative inline-block w-full overflow-hidden rounded-2xl shadow-2xl cursor-pointer"
+        // ДОБАВЛЯЕМ КЛАСС article-image-container ВОТ СЮДА:
+        className="article-image-container relative inline-block w-full overflow-hidden rounded-2xl shadow-2xl cursor-pointer"
         style={{ maxWidth: `${scale}%` }}
         onClick={() => setIsBlurred(false)}
       >
