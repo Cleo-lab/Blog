@@ -4,11 +4,12 @@ import Link from 'next/link'
 export default async function SitemapHTML() {
   const supabase = await createServerSupabase()
   
-  const { data: posts } = await supabase
-    .from('blog_posts')
-    .select('slug, title, created_at')
-    .eq('published', true)
-    .order('created_at', { ascending: false })
+  const { data: posts } = await supabasePublic
+  .from('blog_posts')
+  .select('id, title, slug, created_at')
+  .eq('published', true)
+  .not('created_at', 'is', null)
+  .order('created_at', { ascending: false });
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-12">
