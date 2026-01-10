@@ -1,7 +1,6 @@
-// components/blog-section.tsx
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Card } from '@/components/ui/card'
@@ -22,7 +21,7 @@ interface BlogPost {
 
 interface BlogSectionProps {
   readonly language: 'en' | 'es'
-  initialPosts?: any[]
+  initialPosts?: BlogPost[] // Используем типизированный массив
 }
 
 const LOCALE = {
@@ -33,41 +32,47 @@ const LOCALE = {
 export default function BlogSection({ language, initialPosts = [] }: BlogSectionProps) {
   const supabase = useSupabase()
   
-  // Инициализируем стейт данными с сервера
-  const [posts, setPosts] = useState<BlogPost[]>(initialPosts as BlogPost[])
+  // 1. Инициализируем стейт данными с сервера. 
+  // Если initialPosts есть, стейт сразу будет наполнен, и рендеринг начнется с постов.
+  const [posts, setPosts] = useState<BlogPost[]>(initialPosts)
   const [visible, setVisible] = useState(3)
   
-  // Если посты пришли с сервера, loading сразу false
+  // 2. Loading только если у нас НЕТ данных ни с сервера, ни в стейте.
   const [loading, setLoading] = useState(initialPosts.length === 0)
 
-  const lang: 'en' | 'es' = language === 'es' ? 'es' : 'en'
+  const lang = language === 'es' ? 'es' : 'en'
 
   useEffect(() => {
-    // Если посты уже есть (пришли с сервера), повторно не грузим
-    if (initialPosts && initialPosts.length > 0) {
-      return 
-    }
+    // 3. КЛЮЧЕВОЙ МОМЕНТ: Если данные уже есть (пришли от сервера), 
+    // МЫ ВООБЩЕ ВЫХОДИМ. Никаких setLoading(true) и лишних запросов.
+    if (initialPosts.length > 0) return
 
     async function fetchPosts() {
       try {
-        setLoading(true)
+        // setLoading(true) сработает только если initialPosts был пустым
         const { data } = await supabase
           .from('blog_posts')
           .select('id, title, slug, excerpt, content, featured_image, created_at')
           .eq('published', true)
           .order('created_at', { ascending: false })
-          .limit(20)
+          .limit(10)
 
-        setPosts(data ?? [])
+        if (data) setPosts(data as BlogPost[])
+      } catch (error) {
+        console.error('Error fetching posts:', error)
       } finally {
         setLoading(false)
       }
     }
-    fetchPosts()
-  }, [supabase, initialPosts])
 
+    fetchPosts()
+    // Убираем supabase из зависимостей, чтобы избежать циклов при смене контекста
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) 
+
+  // Функции очистки текста и времени выносим в хелперы, чтобы не пересоздавать
   const cleanText = (text: string) =>
-    text
+    (text || '')
       .replace(/\[(yellow|blue|purple|pink)\]/g, '')
       .replace(/^[> \t]+/gm, '')
       .replace(/[#*`]/g, '')
@@ -75,17 +80,14 @@ export default function BlogSection({ language, initialPosts = [] }: BlogSection
 
   const getReadTime = (content: string) => {
     if (!content) return 1
-    return Math.ceil(content.trim().split(/\s+/).length / 200)
+    const words = content.trim().split(/\s+/).length
+    return Math.ceil(words / 200) || 1
   }
 
-  // ❌ УДАЛЕНО: Старые if (loading) return... и if (!posts.length) return...
-  // Они мешали отображению заголовка.
-
   return (
-    <section className="py-1 sm:py-4 px-4 bg-gradient-to-b from-background via-muted/5 to-background">
+    <section className="py-4 px-4 bg-gradient-to-b from-background via-muted/5 to-background">
       <div className="max-w-6xl mx-auto">
         
-        {/* ✅ ЗАГОЛОВОК: Отрисуется всегда, даже при загрузке */}
         <div className="mb-12">
           <h2 className="text-3xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
             Blog
@@ -93,20 +95,21 @@ export default function BlogSection({ language, initialPosts = [] }: BlogSection
           <div className="w-20 h-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full" />
         </div>
 
-        {loading ? (
-          // Скелетон (показывается пока грузится, если нет initialPosts)
+        {/* Если loading=true и постов нет — показываем скелетон.
+            Если посты есть (даже если они грузятся в фоне) — показываем посты. 
+            Это исключает мигание (Skeleton -> Content).
+        */}
+        {loading && posts.length === 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {Array.from({ length: 3 }).map((_, i) => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="rounded-2xl bg-muted/20 h-80 animate-pulse" />
             ))}
           </div>
         ) : posts.length === 0 ? (
-          // Состояние "Нет постов"
           <div className="text-center py-12">
             <p className="text-foreground/60">{UI[lang].noPosts}</p>
           </div>
         ) : (
-          // Список постов
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {posts.slice(0, visible).map((post, i) => (
@@ -115,17 +118,16 @@ export default function BlogSection({ language, initialPosts = [] }: BlogSection
                   className="group overflow-hidden hover:shadow-2xl transition-all duration-500 border-border/40 bg-card/50 backdrop-blur-sm flex flex-col h-full"
                 >
                   <div className="relative h-52 bg-muted overflow-hidden">
-                    <Image
-                      src={post.featured_image || '/placeholder.svg'}
-                      alt={post.title}
-                      fill
-                      priority={i < 2} // Важно для LCP (SEO)
-                      loading={i < 2 ? undefined : 'lazy'}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
+  <Image
+    src={post.featured_image || '/placeholder.svg'}
+    alt={post.title}
+    fill
+    priority={i < 2} 
+    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw"
+                      style={{ objectFit: 'cover' }} 
+    className="transition-transform duration-500 group-hover:scale-110"
+  />
+</div>
 
                   <div className="p-6 flex flex-col flex-grow">
                     <div className="flex items-center gap-2 mb-3">
@@ -145,11 +147,11 @@ export default function BlogSection({ language, initialPosts = [] }: BlogSection
                     </h3>
 
                     <p className="text-muted-foreground text-sm mb-6 line-clamp-3 flex-grow">
-                      {cleanText(post.excerpt || (post.content ? post.content.substring(0, 150) : ''))}...
+                      {cleanText(post.excerpt || post.content).substring(0, 150)}...
                     </p>
 
-                    <Link href={`/blog/${post.slug}`} aria-label={`Read more about ${post.title}`} className="mt-auto">
-                      <Button size="sm" className="w-full bg-secondary/10 hover:bg-pink-500 hover:text-white text-foreground border border-pink-500/20 transition-all duration-300 shadow-none">
+                    <Link href={`/blog/${post.slug}`} className="mt-auto">
+                      <Button size="sm" className="w-full bg-secondary/10 hover:bg-pink-500 hover:text-white text-foreground border border-pink-500/20 transition-all duration-300">
                         {UI[lang].readStory}
                       </Button>
                     </Link>
@@ -167,5 +169,5 @@ export default function BlogSection({ language, initialPosts = [] }: BlogSection
         )}
       </div>
     </section>
-  );
+  )
 }

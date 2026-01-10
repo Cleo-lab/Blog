@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import HomeWrapper from '@/components/home-wrapper'
 import HeroServer from '@/components/hero-server'
 import { createServerSupabase } from '@/lib/supabaseServer'
-import { fetchProfileServer } from '@/lib/profile-server' // Тот самый импорт
+import { fetchProfileServer } from '@/lib/profile-server'
 import { Suspense } from 'react'
 
 export const metadata: Metadata = {
@@ -14,22 +14,19 @@ export const metadata: Metadata = {
 export default async function Page() {
   const supabase = await createServerSupabase()
   
-  // 1. Получаем сессию пользователя на сервере
   const { data: { user } } = await supabase.auth.getUser()
-  
-  // 2. Если пользователь есть, загружаем его профиль прямо здесь
   const profile = user ? await fetchProfileServer(user.id) : null
 
-  // 3. Загружаем посты для контента
+  // ВАЖНО: Добавили content для расчета Read Time на клиенте
   const { data: posts } = await supabase
     .from('blog_posts')
-    .select('id, title, slug, excerpt, featured_image, created_at')
+    .select('id, title, slug, excerpt, content, featured_image, created_at')
     .eq('published', true)
     .order('created_at', { ascending: false })
-    .limit(6)
+    .limit(9) // Можно взять чуть больше для запаса
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
       <HomeWrapper
         initialPosts={posts || []}
         hero={<HeroServer />}
