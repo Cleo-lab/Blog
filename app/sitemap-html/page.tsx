@@ -38,8 +38,8 @@ export default async function SitemapHTML() {
                 {post.title}
               </Link>
               <span className="text-sm text-muted-foreground ml-2">
-                ({new Date(post.created_at).toLocaleDateString()})
-              </span>
+  ({post.created_at ? new Date(post.created_at).toLocaleDateString() : '—'})
+</span>
             </li>
           ))}
         </ul>
