@@ -35,6 +35,7 @@ export default function Footer({ language }: FooterProps) {
           </p>
 
           <nav className="flex gap-6" aria-label="Footer navigation">
+		  <Link href="/sitemap-html">Sitemap</Link>
             <Link
               href="/privacy"
               className="text-xs text-foreground/50 hover:text-foreground transition-colors"

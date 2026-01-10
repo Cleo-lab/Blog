@@ -10,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
           '/api/',
           '/admin/',
           '/_next/',
-          '/auth/', // Добавил страницы авторизации
+          '/auth/',
         ],
       },
       {
@@ -21,14 +21,33 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: 'Googlebot-Image',
-        allow: '/', // Разрешаем индексацию изображений для Discover
+        allow: '/',
       },
       {
-        userAgent: ['GPTBot', 'ChatGPT-User', 'CCBot', 'anthropic-ai', 'Claude-Web'],
+        userAgent: 'GPTBot',
+        disallow: '/',
+      },
+      {
+        userAgent: 'ChatGPT-User',
+        disallow: '/',
+      },
+      {
+        userAgent: 'CCBot',
+        disallow: '/',
+      },
+      {
+        userAgent: 'anthropic-ai',
+        disallow: '/',
+      },
+      {
+        userAgent: 'Claude-Web',
         disallow: '/',
       },
     ],
-    sitemap: 'https://yurieblog.vercel.app/sitemap.xml',
+    sitemap: [
+      'https://yurieblog.vercel.app/sitemap.xml',
+      'https://yurieblog.vercel.app/sitemap-html'
+    ],
     host: 'https://yurieblog.vercel.app',
   }
 }
