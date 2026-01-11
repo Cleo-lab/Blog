@@ -76,9 +76,8 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
   }, [searchParams, router, toast])
 
   const handleSignIn = useCallback(() => {
-    setRefreshKey(prev => prev + 1)
-    setCurrentSection('home')
-  }, [])
+  window.location.href = '/';
+}, []);
 
   const handleSignOut = useCallback(async () => {
     await supabase.auth.signOut()
