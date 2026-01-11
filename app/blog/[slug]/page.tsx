@@ -7,9 +7,9 @@ import { createServerSupabase } from '@/lib/supabaseServer'
 type Params = { slug: string }
 
 export async function generateMetadata(
-  { params }: { params: Promise<{ slug: string }> } // ← Promise
+  { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
-  const { slug } = await params // ← достаём slug
+  const { slug } = await params
   const supabase = await createServerSupabase()
 
   const { data: post, error } = await supabase
@@ -25,7 +25,7 @@ export async function generateMetadata(
       author_id,
       related_slugs
     `)
-    .eq('slug', slug) // ← используем строку
+    .eq('slug', slug)
     .eq('published', true)
     .single()
 
@@ -33,7 +33,7 @@ export async function generateMetadata(
     return { title: 'Post Not Found' }
   }
 
-  const rawText = post.excerpt ?? post.content
+  const rawText = post.excerpt ?? post.content ?? ''
   const description = rawText
     .replace(/\[(yellow|blue|purple|pink)\]/g, '')
     .replace(/^[> \t]+/gm, '')
@@ -41,8 +41,7 @@ export async function generateMetadata(
     .slice(0, 160)
     .trim()
 
-  const imageUrl =
-    post.featured_image ?? 'https://yurieblog.vercel.app/og-image.jpg'
+  const imageUrl = post.featured_image ?? 'https://yurieblog.vercel.app/og-image.jpg'
 
   return {
     title: `${post.title} | Yurie's Blog`,
@@ -51,6 +50,7 @@ export async function generateMetadata(
       index: true,
       follow: true,
       'max-image-preview': 'large',
+      'max-snippet': -1,
     },
     alternates: {
       canonical: `https://yurieblog.vercel.app/blog/${post.slug}`,
@@ -60,6 +60,7 @@ export async function generateMetadata(
       title: post.title,
       description,
       url: `https://yurieblog.vercel.app/blog/${post.slug}`,
+      siteName: "Yurie's Blog",
       images: [{ url: imageUrl, width: 1200, height: 630, alt: post.title }],
       publishedTime: post.created_at ?? undefined,
       modifiedTime: post.updated_at ?? undefined,
@@ -69,30 +70,22 @@ export async function generateMetadata(
       title: post.title,
       description,
       images: [imageUrl],
+      creator: '@yurieblog.bsky.social',
     },
   }
 }
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params // ← распаковываем params
+  const { slug } = await params
   const supabase = await createServerSupabase()
 
   const { data: post, error } = await supabase
     .from('blog_posts')
     .select(`
-      id,
-      slug,
-      title,
-      content,
-      excerpt,
-      featured_image,
-      author_id,
-      related_slugs,
-      created_at,
-      updated_at,
-      published
+      id, slug, title, content, excerpt, featured_image, author_id,
+      related_slugs, created_at, updated_at, published
     `)
-    .eq('slug', slug) // ← используем обычную строку
+    .eq('slug', slug)
     .eq('published', true)
     .single()
 
@@ -122,11 +115,80 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     content: post.content ?? '',
   }
 
+  // ✅ Очищаем текст для description
+  const cleanDescription = (post.excerpt || post.content || '')
+    .replace(/\[(yellow|blue|purple|pink)\]/g, '')
+    .replace(/^[> \t]+/gm, '')
+    .replace(/[#*`]/g, '')
+    .slice(0, 200)
+    .trim()
+
+  // ✅ Article JSON-LD
+  const articleJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.title,
+  description: cleanDescription,
+  image: post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg',
+  datePublished: post.created_at,
+  dateModified: post.updated_at || post.created_at,
+  author: {
+    '@id': 'https://yurieblog.vercel.app/#author',
+  },
+  publisher: {
+    '@id': 'https://yurieblog.vercel.app/#organization',
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': `https://yurieblog.vercel.app/blog/${post.slug}`,
+  },
+  url: `https://yurieblog.vercel.app/blog/${post.slug}`,
+}
+
+
+
+  // ✅ Breadcrumbs JSON-LD
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://yurieblog.vercel.app',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Blog',
+        item: 'https://yurieblog.vercel.app/archiveblog',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: post.title,
+        item: `https://yurieblog.vercel.app/blog/${post.slug}`,
+      },
+    ],
+  }
+
   return (
-    <BlogPostClient
-      initialPost={normalizedPost}
-      initialAuthor={author}
-      initialRelatedPosts={related ?? []}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      
+      <BlogPostClient
+        initialPost={normalizedPost}
+        initialAuthor={author}
+        initialRelatedPosts={related ?? []}
+      />
+    </>
   )
 }
