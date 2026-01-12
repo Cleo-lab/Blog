@@ -18,13 +18,6 @@ import AnalyticsTracker from '@/components/analytics-tracker'
 import type { Profile } from '@/lib/profile'
 import { useToast } from '@/hooks/use-toast'
 
-// Интерфейс для пропсов BlogSection
-interface BlogSectionProps {
-  language: 'en' | 'es';
-  initialPosts: any[];
-}
-
-/* ---------- ленивые компоненты -------------------- */
 const DonorList = dynamic(() => import('@/components/donor-list'), { ssr: false })
 const BlueskyFeed = dynamic(() => import('@/components/bluesky-feed'), { ssr: false })
 const SignIn = dynamic(() => import('@/components/auth/sign-in'))
@@ -43,7 +36,7 @@ interface HomeClientProps {
 
 export default function HomeClient({ initialPosts, hero, initialProfile }: HomeClientProps) {
   const [language, setLanguage] = useState<'en' | 'es'>('en')
-  const { toast } = useToast() // ✅ Перенесено внутрь компонента
+  const { toast } = useToast()
   
   const { isLoggedIn, isAdmin, loading: authLoading } = useAuth(initialProfile)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -53,7 +46,6 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
   const router = useRouter()
   const supabase = useSupabase()
 
-  /* ----------- Логика переключения секций ----------------------- */
   useEffect(() => {
     const section = searchParams.get('section')
     const tab = searchParams.get('tab')
@@ -76,8 +68,8 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
   }, [searchParams, router, toast])
 
   const handleSignIn = useCallback(() => {
-  window.location.href = '/';
-}, []);
+    window.location.href = '/';
+  }, []);
 
   const handleSignOut = useCallback(async () => {
     await supabase.auth.signOut()
@@ -86,8 +78,12 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
     window.location.href = '/' 
   }, [supabase, router])
 
+  // ✅ Обработчик для кнопки Support в футере
+  const handleSupportClick = useCallback(() => {
+    setCurrentSection('support')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
 
-  // Защита роутов: если мы не в процессе загрузки и доступа нет — кидаем на главную
   useEffect(() => {
     if (!authLoading) {
       const isPrivate = ['profile', 'mycomments'].includes(currentSection)
@@ -98,7 +94,6 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
     }
   }, [isLoggedIn, isAdmin, currentSection, authLoading])
 
-  // Если данные еще грузятся и у нас нет даже серверного профиля, показываем загрузку
   if (authLoading && !initialProfile) {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center">
@@ -115,7 +110,7 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
         setCurrentSection={setCurrentSection}
         language={language}
         setLanguage={lang => setLanguage(lang as 'en' | 'es')}
-        isLoggedIn={isLoggedIn || !!initialProfile} // ✅ Учитываем серверный вход
+        isLoggedIn={isLoggedIn || !!initialProfile}
         isAdmin={isAdmin}
         onSignOut={handleSignOut}
       />
@@ -127,7 +122,6 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
           <section id="home" className="pt-4 sm:pt-10 pb-4 px-2">
             <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               
-              {/* Supporters Column */}
               <div className="lg:col-span-3 order-2 lg:order-1 sticky top-24">
                 <div className="p-1 rounded-[2.6rem] bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 shadow-2xl">
                   <div className="p-5 rounded-[2.5rem] bg-zinc-950/90 backdrop-blur-xl h-fit">
@@ -141,12 +135,10 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
                 </div>
               </div>
 
-              {/* Central Hero */}
               <div className="lg:col-span-6 order-1 lg:order-2">
                 {hero}
               </div>
 
-              {/* Feed Column */}
               <div className="lg:col-span-3 order-3 sticky top-24">
                 <div className="relative group">
                   <div className={`rounded-[2.5rem] border border-border/40 p-6 bg-card/40 backdrop-blur-md transition-all duration-700 ${
@@ -174,7 +166,6 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
           <About language={language} />
           
           <section id="blog" className="py-20">
-            {/* Передаем initialPosts, загруженные в page.tsx */}
             <BlogSection language={language} />
           </section>
 
@@ -182,11 +173,11 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
           <Gallery language={language} />
           <Subscribe language={language} />
           <FootAdBanner />
-          <Footer language={language} />
+          {/* ✅ Передаём обработчик клика в Footer */}
+          <Footer language={language} onSupportClick={handleSupportClick} />
         </div>
       )}
 
-      {/* Pages Mapping */}
       <div className="relative z-50">
         {currentSection === 'support' && <SupportPage />}
         {currentSection === 'signin' && (

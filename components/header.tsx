@@ -16,10 +16,9 @@ import {
   MessageSquare,
   Menu,
   X,
-  Search,
-  Heart,
   Award,
   Bell,
+  Heart,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import SearchBar from '@/components/search-bar';
@@ -42,7 +41,6 @@ const translations = {
     blog: 'Blog',
     gallery: 'Gallery',
     subscribe: 'Subscribe',
-    support: 'Support',
     signIn: 'Sign In',
     profile: 'Profile',
     comments: 'Comments',
@@ -58,7 +56,6 @@ const translations = {
     blog: 'Blog',
     gallery: 'Galería',
     subscribe: 'Suscribirse',
-    support: 'Apoyar',
     signIn: 'Entrar',
     profile: 'Perfil',
     comments: 'Comentarios',
@@ -75,21 +72,17 @@ export default function Header({ currentSection, setCurrentSection, language, se
   const { avatarUrl } = useAuth();
   const t = translations[language as keyof typeof translations] || translations.en;
 
+  // ✅ Убрали Support из навигации
   const navItems = [
     { id: 'home', label: t.home },
     { id: 'about', label: t.about },
     { id: 'blog', label: t.blog },
     { id: 'gallery', label: t.gallery },
     { id: 'subscribe', label: t.subscribe },
-    { id: 'support', label: t.support, isSpecial: true },
   ];
 
-  // НОВАЯ ФУНКЦИЯ: Навигация внутри профиля
   const navigateToProfileSection = (sectionId: string) => {
-    // 1. Сначала переключаем экран на Профиль
     setCurrentSection('profile');
-    
-    // 2. Ждем, пока компонент UserProfile загрузится, и скроллим к нужному ID
     setTimeout(() => {
       const element = document.getElementById(sectionId);
       if (element) {
@@ -99,11 +92,10 @@ export default function Header({ currentSection, setCurrentSection, language, se
   };
 
   const handleNavClick = (sectionId: string) => {
-    if (sectionId === 'support') {
-      setCurrentSection('support');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
+	  if (sectionId === 'about') {
+    window.location.href = '/about';
+    return;
+  }
     if (currentSection !== 'home' || sectionId === 'home') {
       setCurrentSection('home');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -116,21 +108,7 @@ export default function Header({ currentSection, setCurrentSection, language, se
     }
   };
 
-  const renderNavItem = (item: { id: string; label: string; isSpecial?: boolean }, isMobile = false) => {
-    if (item.isSpecial) {
-      return (
-        <Button
-          key={item.id}
-          onClick={() => handleNavClick(item.id)}
-          className={`${isMobile ? 'w-full' : ''} bg-pink-600 hover:bg-pink-700 text-white font-bold transition-all duration-200 shadow-md hover:shadow-lg`}
-          variant="default"
-          size={isMobile ? 'default' : 'sm'}
-        >
-          <Heart className="w-4 h-4 mr-2 shrink-0" />
-          {item.label}
-        </Button>
-      );
-    }
+  const renderNavItem = (item: { id: string; label: string }, isMobile = false) => {
     return (
       <button
         key={item.id}
@@ -162,24 +140,25 @@ export default function Header({ currentSection, setCurrentSection, language, se
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
-<DropdownMenu>
-  <DropdownMenuTrigger asChild>
-    <Button variant="ghost" size="icon" aria-label="Change language" className="w-9 h-9 rounded-full hover:bg-muted">
-      <Globe className="w-5 h-5 text-foreground/70" />
-    </Button>
-  </DropdownMenuTrigger>
-  <DropdownMenuContent align="end">
-    <DropdownMenuItem onClick={() => setLanguage('en')} className={language === 'en' ? 'bg-muted font-bold' : ''}>
-      🇺🇸 English {language === 'en' && '✓'}
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={() => setLanguage('es')} className={language === 'es' ? 'bg-muted font-bold' : ''}>
-      🇪🇸 Español {language === 'es' && '✓'}
-    </DropdownMenuItem>
-  </DropdownMenuContent>
-</DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Change language" className="w-9 h-9 rounded-full hover:bg-muted">
+                  <Globe className="w-5 h-5 text-foreground/70" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setLanguage('en')} className={language === 'en' ? 'bg-muted font-bold' : ''}>
+                  🇺🇸 English {language === 'en' && '✓'}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('es')} className={language === 'es' ? 'bg-muted font-bold' : ''}>
+                  🇪🇸 Español {language === 'es' && '✓'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
             <div className="hidden md:block">
-  <SearchBar />
-</div>
+              <SearchBar />
+            </div>
             
             {!isLoggedIn ? (
               <Button onClick={() => setCurrentSection('signin')} className="bg-primary hover:bg-primary/90 hidden sm:flex">
@@ -234,11 +213,10 @@ export default function Header({ currentSection, setCurrentSection, language, se
               </>
             )}
 
-            {/* НОВАЯ КНОПКА МЕНЮ ДЛЯ МОБИЛОК */}
             <button 
               className="md:hidden p-2 rounded-lg text-foreground/70 hover:bg-muted"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-			  aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -246,13 +224,13 @@ export default function Header({ currentSection, setCurrentSection, language, se
         </div>
       </div>
 
-      {/* МОБИЛЬНОЕ МЕНЮ (выпадает при клике) */}
+      {/* Мобильное меню */}
       {isMenuOpen && (
         <div className="md:hidden bg-background border-b border-border animate-in slide-in-from-top duration-300 overflow-hidden">
           <div className="px-4 pt-2 pb-6 space-y-2">
-		  <div className="pt-2 pb-2">
-        <SearchBar />
-      </div>
+            <div className="pt-2 pb-2">
+              <SearchBar />
+            </div>
             {navItems.map((item) => (
               <div key={item.id} onClick={() => setIsMenuOpen(false)}>
                 {renderNavItem(item, true)}
