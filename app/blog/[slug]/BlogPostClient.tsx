@@ -9,7 +9,9 @@ import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import { MessageCircle, X, ChevronRight } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
-import React from 'react' // Добавлено для React.cloneElement
+import React from 'react'
+import Breadcrumbs from '@/components/breadcrumbs'
+
 /* ---------- TYPES ---------- */
 interface BlogPost {
   id: string
@@ -56,8 +58,7 @@ interface BlogPostClientProps {
   initialRelatedPosts: BlogPostPreview[]
 }
 
-
-/* ---------- УТИЛИТА ПАРСИНГА ИЗОБРАЖЕНИЙ ---------- */
+/* ---------- ПАРСИНГ ИЗОБРАЖЕНИЙ ---------- */
 const parseImageProps = (alt: string) => {
   const propsMatch = alt.match(/\{([^}]+)\}/)
   const caption = alt.replace(/\{[^}]+\}/, '').trim()
@@ -79,16 +80,15 @@ const parseImageProps = (alt: string) => {
   return { caption, scale, blur }
 }
 
-/* ---------- ОТДЕЛЬНЫЙ КОМПОНЕНТ ДЛЯ КАРТИНОК ---------- */
+/* ---------- КОМПОНЕНТ ДЛЯ КАРТИНОК ---------- */
 const MarkdownImage = (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
-  const { src = '', alt = '', ...rest } = props;
-  const { caption, scale, blur } = parseImageProps(alt);
-  const [isBlurred, setIsBlurred] = useState(blur);
+  const { src = '', alt = '', ...rest } = props
+  const { caption, scale, blur } = parseImageProps(alt)
+  const [isBlurred, setIsBlurred] = useState(blur)
 
   return (
     <span className="block my-12 text-center">
       <span
-        // ДОБАВЛЯЕМ КЛАСС article-image-container ВОТ СЮДА:
         className="article-image-container relative inline-block w-full overflow-hidden rounded-2xl shadow-2xl cursor-pointer"
         style={{ maxWidth: `${scale}%` }}
         onClick={() => setIsBlurred(false)}
@@ -107,8 +107,8 @@ const MarkdownImage = (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
         <span className="block mt-4 text-sm text-muted-foreground italic px-4">{caption}</span>
       )}
     </span>
-  );
-};
+  )
+}
 
 /* ---------- ГЛАВНЫЙ КОМПОНЕНТ ---------- */
 export default function BlogPostClient({ 
@@ -217,14 +217,13 @@ export default function BlogPostClient({
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-4xl mx-auto px-4 py-12">
-        {/* BREADCRUMBS */}
-        <nav className="mb-6 text-sm text-muted-foreground" aria-label="Breadcrumb">
-          <Link href="/" className="hover:text-pink-500 transition-colors">Home</Link>
-          {' / '}
-          <Link href="/archiveblog" className="hover:text-pink-500 transition-colors">Blog</Link>
-          {' / '}
-          <span className="text-foreground font-medium">{post.title}</span>
-        </nav>
+        {/* BREADCRUMBS - Using component */}
+        <Breadcrumbs 
+          items={[
+            { label: 'Blog', href: '/archiveblog' },
+            { label: post.title, href: `/blog/${post.slug}` }
+          ]}
+        />
 
         <div className="flex justify-end mb-8">
           <Button variant="ghost" onClick={() => router.push('/archiveblog')} aria-label="Close article">
@@ -243,21 +242,37 @@ export default function BlogPostClient({
           </div>
         )}
 
-        <article className="mb-12">
-          <h1 className="text-4xl font-bold mb-6">{post.title}</h1>
+        <article className="mb-12" itemScope itemType="https://schema.org/BlogPosting">
+          <meta itemProp="url" content={`https://yurieblog.vercel.app/blog/${post.slug}`} />
+          <meta itemProp="datePublished" content={post.created_at || ''} />
+          <meta itemProp="dateModified" content={post.updated_at || post.created_at || ''} />
+          
+          <h1 className="text-4xl font-bold mb-6" itemProp="headline">{post.title}</h1>
+          
           <div className="flex items-center gap-4 mb-8 pb-8 border-b border-border/50">
             {author?.avatar_url && (
-              <img src={author.avatar_url} className="w-12 h-12 rounded-full border border-pink-500/20" alt={author.username || 'Author'} />
+              <img 
+                src={author.avatar_url} 
+                className="w-12 h-12 rounded-full border border-pink-500/20" 
+                alt={author.username || 'Author'} 
+                itemProp="image"
+              />
             )}
-            <div>
-              <p className="font-semibold text-lg">{author?.username || 'Unknown Author'}</p>
-              <time className="text-sm text-muted-foreground" dateTime={post.created_at || undefined}>
+            <div itemProp="author" itemScope itemType="https://schema.org/Person">
+              <p className="font-semibold text-lg" itemProp="name">
+                {author?.username || 'Yurie'}
+              </p>
+              <time 
+                className="text-sm text-muted-foreground" 
+                dateTime={post.created_at || undefined}
+                itemProp="datePublished"
+              >
                 {post.created_at ? new Date(post.created_at).toLocaleDateString() : 'Unknown date'}
               </time>
             </div>
           </div>
 
-          <div className="prose prose-pink prose-invert max-w-none">
+          <div className="prose prose-pink prose-invert max-w-none" itemProp="articleBody">
             <ReactMarkdown
               components={{
                 blockquote: ({ children }) => {
@@ -368,7 +383,6 @@ export default function BlogPostClient({
             </div>
           ) : (
             <div className="mb-10 p-6 text-center border border-dashed border-border/50 rounded-2xl bg-muted/5">
-              {/* Исправлено: Ссылка ведет на главную, где открывается попап (согласно вашей логике в home-client) */}
               <Link href="/?action=signin">
                 <Button variant="outline" className="border-pink-500/30 hover:bg-pink-500/10">Sign In to Comment</Button>
               </Link>

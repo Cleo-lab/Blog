@@ -41,16 +41,33 @@ export async function generateMetadata(
     .slice(0, 160)
     .trim()
 
-  const imageUrl = post.featured_image ?? 'https://yurieblog.vercel.app/og-image.jpg'
+  const imageUrl = post.featured_image ?? 'https://yurieblog.vercel.app/images/Yurie_main.jpg'
 
   return {
-    title: `${post.title} | Yurie's Blog`,
+    title: `${post.title}`,
     description,
+    keywords: [
+      'personal blog',
+      'internet experiments',
+      'side hustles',
+      'creator economy',
+      'digital platforms',
+      'online business',
+      post.title.toLowerCase(),
+    ],
+    authors: [{ name: 'Yurie', url: 'https://yurieblog.vercel.app' }],
+    creator: 'Yurie',
+    publisher: "Yurie's Blog",
     robots: {
       index: true,
       follow: true,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
     },
     alternates: {
       canonical: `https://yurieblog.vercel.app/blog/${post.slug}`,
@@ -61,9 +78,18 @@ export async function generateMetadata(
       description,
       url: `https://yurieblog.vercel.app/blog/${post.slug}`,
       siteName: "Yurie's Blog",
-      images: [{ url: imageUrl, width: 1200, height: 630, alt: post.title }],
+      locale: 'en_US',
+      images: [
+        { 
+          url: imageUrl, 
+          width: 1200, 
+          height: 630, 
+          alt: post.title 
+        }
+      ],
       publishedTime: post.created_at ?? undefined,
       modifiedTime: post.updated_at ?? undefined,
+      authors: ['Yurie'],
     },
     twitter: {
       card: 'summary_large_image',
@@ -72,6 +98,7 @@ export async function generateMetadata(
       images: [imageUrl],
       creator: '@yurieblog.bsky.social',
     },
+    category: 'Personal Blog',
   }
 }
 
@@ -115,7 +142,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     content: post.content ?? '',
   }
 
-  // ✅ Очищаем текст для description
+  // Clean description for Schema
   const cleanDescription = (post.excerpt || post.content || '')
     .replace(/\[(yellow|blue|purple|pink)\]/g, '')
     .replace(/^[> \t]+/gm, '')
@@ -123,31 +150,52 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     .slice(0, 200)
     .trim()
 
-  // ✅ Article JSON-LD
+  // Enhanced Article JSON-LD with more details
   const articleJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'BlogPosting',
-  headline: post.title,
-  description: cleanDescription,
-  image: post.featured_image || 'https://yurieblog.vercel.app/og-image.jpg',
-  datePublished: post.created_at,
-  dateModified: post.updated_at || post.created_at,
-  author: {
-    '@id': 'https://yurieblog.vercel.app/#author',
-  },
-  publisher: {
-    '@id': 'https://yurieblog.vercel.app/#organization',
-  },
-  mainEntityOfPage: {
-    '@type': 'WebPage',
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
     '@id': `https://yurieblog.vercel.app/blog/${post.slug}`,
-  },
-  url: `https://yurieblog.vercel.app/blog/${post.slug}`,
-}
+    headline: post.title,
+    description: cleanDescription,
+    image: {
+      '@type': 'ImageObject',
+      url: post.featured_image || 'https://yurieblog.vercel.app/images/Yurie_main.jpg',
+      width: 1200,
+      height: 630,
+    },
+    datePublished: post.created_at,
+    dateModified: post.updated_at || post.created_at,
+    author: {
+      '@type': 'Person',
+      '@id': 'https://yurieblog.vercel.app/#author',
+      name: 'Yurie',
+      url: 'https://yurieblog.vercel.app',
+    },
+    publisher: {
+      '@type': 'Organization',
+      '@id': 'https://yurieblog.vercel.app/#organization',
+      name: "Yurie's Blog",
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://yurieblog.vercel.app/images/Yurie_main.jpg',
+        width: 512,
+        height: 512,
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://yurieblog.vercel.app/blog/${post.slug}`,
+    },
+    url: `https://yurieblog.vercel.app/blog/${post.slug}`,
+    inLanguage: 'en-US',
+    isPartOf: {
+      '@type': 'Blog',
+      '@id': 'https://yurieblog.vercel.app/#blog',
+    },
+    keywords: 'personal blog, internet experiments, side hustles, creator economy',
+  }
 
-
-
-  // ✅ Breadcrumbs JSON-LD
+  // Breadcrumbs JSON-LD
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
