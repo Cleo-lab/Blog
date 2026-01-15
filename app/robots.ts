@@ -5,47 +5,31 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        allow: [
+          '/', 
+          '/_next/static/images/', // Явно разрешаем ботам видеть оптимизированные картинки Next.js
+        ],
         disallow: [
           '/api/',
           '/admin/',
           '/auth/',
+          '/*?*', // Запрещаем индексировать страницы с параметрами поиска (это сильно экономит квоту Google)
         ],
       },
       {
-        userAgent: 'Googlebot',
+        // Специальное правило для Bing: они иногда слишком агрессивно сканируют
+        userAgent: 'Bingbot',
         allow: '/',
         disallow: ['/api/', '/admin/', '/auth/'],
-        crawlDelay: 0,
       },
       {
-        userAgent: 'Googlebot-Image',
-        allow: '/',
-      },
-      {
-        userAgent: 'GPTBot',
-        disallow: '/',
-      },
-      {
-        userAgent: 'ChatGPT-User',
-        disallow: '/',
-      },
-      {
-        userAgent: 'CCBot',
-        disallow: '/',
-      },
-      {
-        userAgent: 'anthropic-ai',
-        disallow: '/',
-      },
-      {
-        userAgent: 'Claude-Web',
+        // Блокируем ИИ-ботов, чтобы они не тратили ресурсы вашего сервера бесплатно
+        userAgent: ['GPTBot', 'ChatGPT-User', 'CCBot', 'anthropic-ai', 'Claude-Web'],
         disallow: '/',
       },
     ],
     sitemap: [
       'https://yurieblog.vercel.app/sitemap.xml',
-      'https://yurieblog.vercel.app/sitemap-html'
     ],
     host: 'https://yurieblog.vercel.app',
   }

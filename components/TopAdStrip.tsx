@@ -15,7 +15,7 @@ export default function TopAdStrip() {
   // Персональный текст
   useEffect(() => {
     if (!isLoggedIn) {
-      setText('Welcome to digital dreams! Register and feel at home.');
+      setText('Real Stories. Epic Fails. Digital Reality. Join the journey.');
       return;
     }
     (async () => {
