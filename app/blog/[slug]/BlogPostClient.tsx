@@ -120,7 +120,6 @@ export default function BlogPostClient({
   const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const sourceUrl = searchParams.get('sourceUrl')
 
   const post = initialPost
   const author = initialAuthor
@@ -217,7 +216,7 @@ export default function BlogPostClient({
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-4xl mx-auto px-4 py-12">
-        {/* BREADCRUMBS - Using component */}
+        {/* BREADCRUMBS */}
         <Breadcrumbs 
           items={[
             { label: 'Blog', href: '/archiveblog' },
@@ -244,33 +243,35 @@ export default function BlogPostClient({
 
         <article className="mb-12" itemScope itemType="https://schema.org/BlogPosting">
           <meta itemProp="url" content={`https://yurieblog.vercel.app/blog/${post.slug}`} />
+          {/* Эти мета-теги отвечают за даты в SEO, не удаляйте их */}
           <meta itemProp="datePublished" content={post.created_at || ''} />
           <meta itemProp="dateModified" content={post.updated_at || post.created_at || ''} />
           
           <h1 className="text-4xl font-bold mb-6" itemProp="headline">{post.title}</h1>
           
+          {/* ИСПРАВЛЕННЫЙ БЛОК АВТОРА */}
           <div className="flex items-center gap-4 mb-8 pb-8 border-b border-border/50">
-            {author?.avatar_url && (
-              <img 
-                src={author.avatar_url} 
-                className="w-12 h-12 rounded-full border border-pink-500/20" 
-                alt={author.username || 'Author'} 
-                itemProp="image"
-              />
-            )}
-            <div itemProp="author" itemScope itemType="https://schema.org/Person">
-  <p className="font-semibold text-lg" itemProp="name">
-    {author?.username || 'Yurie'}
-  </p>
-</div>
-
-<time 
-  className="text-sm text-muted-foreground"
-  dateTime={post.created_at || undefined}
->
-  {post.created_at ? new Date(post.created_at).toLocaleDateString() : 'Unknown date'}
-</time>
-
+            <div itemProp="author" itemScope itemType="https://schema.org/Person" className="flex items-center gap-4">
+              {author?.avatar_url && (
+                <img 
+                  src={author.avatar_url} 
+                  className="w-12 h-12 rounded-full border border-pink-500/20" 
+                  alt={author.username || 'Author'} 
+                  itemProp="image"
+                />
+              )}
+              <div>
+                <p className="font-semibold text-lg" itemProp="name">
+                  {author?.username || 'Yurie'}
+                </p>
+                {/* Убрали itemProp="datePublished" отсюда, чтобы не было конфликта со схемой Person */}
+                <time 
+                  className="text-sm text-muted-foreground" 
+                  dateTime={post.created_at || undefined}
+                >
+                  {post.created_at ? new Date(post.created_at).toLocaleDateString() : 'Unknown date'}
+                </time>
+              </div>
             </div>
           </div>
 
