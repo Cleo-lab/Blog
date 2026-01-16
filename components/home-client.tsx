@@ -165,7 +165,7 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
 
           <About language={language} />
           
-          <section id="blog" className="py-20">
+          <section id="blog" className="py-2">
             <BlogSection language={language} />
           </section>
 
