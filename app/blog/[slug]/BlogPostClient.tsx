@@ -259,16 +259,18 @@ export default function BlogPostClient({
               />
             )}
             <div itemProp="author" itemScope itemType="https://schema.org/Person">
-              <p className="font-semibold text-lg" itemProp="name">
-                {author?.username || 'Yurie'}
-              </p>
-              <time 
-                className="text-sm text-muted-foreground" 
-                dateTime={post.created_at || undefined}
-                itemProp="datePublished"
-              >
-                {post.created_at ? new Date(post.created_at).toLocaleDateString() : 'Unknown date'}
-              </time>
+  <p className="font-semibold text-lg" itemProp="name">
+    {author?.username || 'Yurie'}
+  </p>
+</div>
+
+<time 
+  className="text-sm text-muted-foreground"
+  dateTime={post.created_at || undefined}
+>
+  {post.created_at ? new Date(post.created_at).toLocaleDateString() : 'Unknown date'}
+</time>
+
             </div>
           </div>
 
