@@ -13,7 +13,6 @@ export default function robots(): MetadataRoute.Robots {
           '/api/',
           '/admin/',
           '/auth/',
-          '/*?*', // Запрещаем индексировать страницы с параметрами поиска (это сильно экономит квоту Google)
         ],
       },
       {
