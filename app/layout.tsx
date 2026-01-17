@@ -15,11 +15,13 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Yurie Blog — Internet Experiments, Side Hustles & Real Stories',
+    // Убрали "NSFW", заменили на бизнес-терминологию
+    default: 'Yurie Blog — Digital Business Experiments & Creator Economy Insights',
     template: '%s | Yurie Blog',
   },
   description:
-    'Personal blog about online experiments, NSFW side hustles, AI tools, creator economy, web development, and honest stories about digital platforms. No BS, just real experiences.',
+    // Переформулировали: убрали "NSFW", добавили "monetization strategies", "digital entrepreneurship"
+    'Personal blog about digital business experiments, monetization strategies, creator economy insights, data-driven content creation, and honest entrepreneurial stories. Real experiences from the trenches of online business.',
   authors: [{ name: 'Yurie', url: 'https://yurieblog.vercel.app' }],
   creator: 'Yurie',
   publisher: "Yurie's Blog",
@@ -34,15 +36,16 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'Yurie Blog — Internet Experiments & Side Hustle Stories',
+    // Язык Эзопа: "digital entrepreneurship" вместо "side hustles"
+    title: 'Yurie Blog — Digital Entrepreneurship & Creator Economy Data',
     description:
-      'Personal blog about online experiments, NSFW platforms, AI tools, creator economy, and honest stories about digital side hustles.',
+      'Personal blog about digital business experiments, content monetization strategies, creator economy analytics, and data-driven entrepreneurial insights.',
     images: [
       {
         url: '/images/Yurie_main.jpg',
         width: 1200,
         height: 630,
-        alt: 'Yurie Blog — Internet Experiments',
+        alt: 'Yurie Blog — Digital Business Experiments',
       },
     ],
     type: 'website',
@@ -52,9 +55,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Yurie Blog — Internet Experiments & Side Hustles',
+    title: 'Yurie Blog — Digital Entrepreneurship & Data Insights',
     description:
-      'Personal blog about online experiments, creator economy, and honest stories about digital platforms.',
+      'Personal blog about creator economy experiments, monetization strategies, and data-driven business insights.',
     images: ['/images/Yurie_main.jpg'],
     site: '@yurieblog.bsky.social',
     creator: '@yurieblog.bsky.social',
@@ -70,7 +73,8 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  category: 'Personal Blog',
+  // Изменили категорию на бизнес
+  category: 'Business & Entrepreneurship',
 }
 
 export default function RootLayout({
@@ -81,11 +85,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Performance optimization */}
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
-        {/* 🧠 Organization Schema */}
+        {/* Organization Schema — добавили бизнес-термины */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -107,14 +110,14 @@ export default function RootLayout({
               ],
               contactPoint: {
                 '@type': 'ContactPoint',
-                contactType: 'Content Creator',
+                contactType: 'Business Inquiries',
                 url: 'https://yurieblog.vercel.app/contact',
               },
             }),
           }}
         />
 
-        {/* 🧠 Person/Author Schema */}
+        {/* Person Schema — убрали упоминания "side hustles", заменили на "Digital Entrepreneur" */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -134,16 +137,17 @@ export default function RootLayout({
               sameAs: [
                 'https://bsky.app/profile/yurieblog.bsky.social',
               ],
-              jobTitle: 'Content Creator & Blogger',
-              description: 'Personal blogger sharing real stories about internet experiments, side hustles, creator economy, and digital platforms',
+              jobTitle: 'Digital Entrepreneur & Content Creator',
+              description: 'Digital entrepreneur sharing data-driven insights about online business experiments, creator economy analytics, and digital marketing strategies',
               knowsAbout: [
                 'Content Creation',
                 'Creator Economy',
+                'Digital Marketing',
+                'Business Analytics',
                 'Web Development',
-                'AI Tools',
-                'Digital Platforms',
-                'Online Business',
-                'Personal Blogging',
+                'Online Monetization',
+                'Digital Entrepreneurship',
+                'Data-Driven Content Strategy',
               ],
             }),
           }}

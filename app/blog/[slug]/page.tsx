@@ -46,13 +46,14 @@ export async function generateMetadata(
   return {
     title: `${post.title}`,
     description,
+    // Заменили keywords на бизнес-ориентированные
     keywords: [
-      'personal blog',
-      'internet experiments',
-      'side hustles',
+      'digital business',
       'creator economy',
-      'digital platforms',
-      'online business',
+      'online monetization',
+      'entrepreneurial insights',
+      'content strategy',
+      'digital marketing',
       post.title.toLowerCase(),
     ],
     authors: [{ name: 'Yurie', url: 'https://yurieblog.vercel.app' }],
@@ -98,7 +99,8 @@ export async function generateMetadata(
       images: [imageUrl],
       creator: '@yurieblog.bsky.social',
     },
-    category: 'Personal Blog',
+    // Категория изменена на Business
+    category: 'Business & Entrepreneurship',
   }
 }
 
@@ -142,7 +144,6 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     content: post.content ?? '',
   }
 
-  // Clean description for Schema
   const cleanDescription = (post.excerpt || post.content || '')
     .replace(/\[(yellow|blue|purple|pink)\]/g, '')
     .replace(/^[> \t]+/gm, '')
@@ -150,7 +151,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     .slice(0, 200)
     .trim()
 
-  // Enhanced Article JSON-LD with more details
+  // Enhanced Article JSON-LD
   const articleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -192,10 +193,10 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       '@type': 'Blog',
       '@id': 'https://yurieblog.vercel.app/#blog',
     },
-    keywords: 'personal blog, internet experiments, side hustles, creator economy',
+    // Обновили keywords в Schema на бизнес-термины
+    keywords: 'digital business, creator economy, online monetization, entrepreneurial insights, content strategy',
   }
 
-  // Breadcrumbs JSON-LD
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
