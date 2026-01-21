@@ -8,8 +8,9 @@ Personal blog built with Next.js, Supabase, TypeScript.
 >>>>>>> 021e88adc1a90d28e1671f44043ea53bff4550ef
 ## Recent Posts & Pages
 
-- [Part 2: When NSFW Turned Into WTF](https://yurieblog.vercel.app/blog/part-2-when-nsfw-turned-into-wtf)  
-- [My NSFW Side-Hustle – Shorter Than a Netflix Series](https://yurieblog.vercel.app/blog/my-nsfw-side-hustle-shorter-than-a-netflix-series)  
+- [Part III How I Made $0 with AI](https://yurieblog.vercel.app/blog/part-iii-how-i-made-0-with-ai)
+- [Part 2: When My Content Strategy Turned Into WTF: The AI Disaster](https://yurieblog.vercel.app/blog/part-2-content-strategy-ai-disaster)  
+- [How I Tried Content Monetization on a Spicy Platform (And Failed)](https://yurieblog.vercel.app/blog/creator-platform-experiment-fail)  
 - [About the Author](https://yurieblog.vercel.app/about)  
 <<<<<<< HEAD
 - [Home / Latest](https://yurieblog.vercel.app)
