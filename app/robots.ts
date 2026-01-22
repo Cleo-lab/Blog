@@ -12,6 +12,11 @@ export default function robots(): MetadataRoute.Robots {
 
   return {
     rules: [
+      {
+        userAgent: 'Googlebot-For-Ads',
+        allow: ['/_next/static/', '/videos/', '/storage/v1/object/public/'],
+        disallow: ['/api/', '/admin/', '/auth/']
+      },
       { userAgent: 'Googlebot', allow: '/', disallow: blockList, crawlDelay: 0.5 },
       { userAgent: 'Bingbot', allow: '/', disallow: blockList, crawlDelay: 1 },
       { userAgent: 'Yandex', allow: '/', disallow: blockList, crawlDelay: 2 },
