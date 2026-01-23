@@ -12,7 +12,6 @@ export default function HeroServer() {
         <div className="hero-avatar-gradient w-60 h-60 rounded-full bg-gradient-to-br from-primary via-accent to-secondary p-1 mb-6 mx-auto">
           <Image
             src="/images/Yurie_main.jpg"
-            // Убрали "Side Hustles", оставили нейтральное описание
             alt="Yurie - Digital Business Experiments & Creator Economy" 
             width={240}
             height={240}
@@ -24,10 +23,9 @@ export default function HeroServer() {
           />
         </div>
 
-        {/* H1 остаётся коротким, но убрали упоминания NSFW */}
-        <h1 className="text-4xl sm:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-          Digital Business Experiments
-        </h1>
+<h1 className="text-4xl sm:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+  Digital Business Experiments by Yurie
+</h1>
 
         {/* Подзаголовок переформулирован в бизнес-стиле */}
         <div className="text-xl sm:text-2xl text-muted-foreground mb-4 max-w-2xl mx-auto">

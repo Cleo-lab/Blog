@@ -116,6 +116,7 @@ export default async function Page() {
 
   return (
     <>
+    <h1 className="sr-only">Yurie Blog - Digital Business Experiments & Creator Economy Insights</h1>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}

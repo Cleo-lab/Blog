@@ -113,3 +113,15 @@
   contain: content;
 }
 
+.prose-justify {
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+}
+
+.prose-justify p,
+.prose-justify li,
+.prose-justify blockquote {
+  text-align: justify;
+}
+

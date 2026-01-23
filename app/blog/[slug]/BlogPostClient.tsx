@@ -264,7 +264,7 @@ export default function BlogPostClient({
                 <p className="font-semibold text-lg" itemProp="name">
                   {author?.username || 'Yurie'}
                 </p>
-                {/* Убрали itemProp="datePublished" отсюда, чтобы не было конфликта со схемой Person */}
+          
                 <time 
                   className="text-sm text-muted-foreground" 
                   dateTime={post.created_at || undefined}
@@ -275,7 +275,7 @@ export default function BlogPostClient({
             </div>
           </div>
 
-          <div className="prose prose-pink prose-invert max-w-none" itemProp="articleBody">
+          <div className="prose prose-pink prose-invert max-w-none prose-justify" itemProp="articleBody">
             <ReactMarkdown
               components={{
                 blockquote: ({ children }) => {
