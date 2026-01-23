@@ -15,13 +15,11 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: {
-    // Убрали "NSFW", заменили на бизнес-терминологию
+    
     default: 'Yurie Blog — Digital Business Experiments & Creator Economy Insights',
     template: '%s | Yurie Blog',
   },
-  description:
-    // Переформулировали: убрали "NSFW", добавили "monetization strategies", "digital entrepreneurship"
-    'Personal blog about digital business experiments, monetization strategies, creator economy insights, data-driven content creation, and honest entrepreneurial stories. Real experiences from the trenches of online business.',
+  description: 'Digital business experiments, creator economy analytics & monetization strategies. Data-driven insights from online entrepreneurship trenches.',
   authors: [{ name: 'Yurie', url: 'https://yurieblog.vercel.app' }],
   creator: 'Yurie',
   publisher: "Yurie's Blog",

@@ -24,10 +24,10 @@ export default function HeroServer() {
         </div>
 
 <h1 className="text-4xl sm:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-  Digital Business Experiments by Yurie
+  Yurie Blog - Digital Business Experiments & Creator Economy Insights
 </h1>
 
-        {/* Подзаголовок переформулирован в бизнес-стиле */}
+        
         <div className="text-xl sm:text-2xl text-muted-foreground mb-4 max-w-2xl mx-auto">
           <p>Creator Economy Insights, Data & Digital Reality.</p>
           <span className="block mt-2 text-lg sm:text-xl font-medium">
@@ -35,7 +35,7 @@ export default function HeroServer() {
           </span>
         </div>
 
-        {/* Убрали "No gurus" (слишком неформально), заменили на профессиональный тон */}
+        
         <p className="text-base sm:text-lg text-muted-foreground/80 mb-8 max-w-xl mx-auto italic">
           Honest insights about digital entrepreneurship, monetization strategies, and creator economy analytics. Data-driven storytelling.
         </p>

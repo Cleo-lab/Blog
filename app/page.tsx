@@ -6,10 +6,10 @@ import { fetchProfileServer } from '@/lib/profile-server'
 import { Suspense } from 'react'
 
 export const metadata: Metadata = {
-  // Заменили "Side Hustles" на "Digital Business"
+  
   title: 'Yurie Blog: Digital Business Experiments & Creator Economy Data',
-  // Убрали "NSFW", переформулировали в бизнес-контекст
-  description: 'Real stories about digital business experiments, creator economy analytics, monetization strategies, and data-driven entrepreneurship. Honest insights from online business trenches.',
+  
+  description: 'Digital business experiments, creator economy analytics & monetization strategies. Data-driven insights from online entrepreneurship trenches.',
   keywords: [
     'digital entrepreneurship',
     'creator economy insights', 
@@ -81,7 +81,7 @@ export default async function Page() {
     '@id': 'https://yurieblog.vercel.app/#website',
     name: "Yurie's Blog",
     url: 'https://yurieblog.vercel.app',
-    // Переформулировали описание
+    
     description: 'Personal blog about digital business experiments, creator economy analytics, and data-driven entrepreneurship.',
     inLanguage: 'en-US',
     publisher: {
@@ -116,7 +116,6 @@ export default async function Page() {
 
   return (
     <>
-    <h1 className="sr-only">Yurie Blog - Digital Business Experiments & Creator Economy Insights</h1>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
