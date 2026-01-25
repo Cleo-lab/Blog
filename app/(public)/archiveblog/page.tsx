@@ -3,23 +3,22 @@ import Image from 'next/image'
 import ArchiveBlogClient from '@/components/archive-blog-client'
 import BackToSite from '@/components/back-to-site'
 import Breadcrumbs from '@/components/breadcrumbs'
+import { createServiceSupabase } from '@/lib/supabaseServer'
 
 const siteUrl = 'https://yurieblog.vercel.app'
 
 export const metadata: Metadata = {
   title: 'Blog Archive — Internet Experiments & Side Hustle Stories',
-  description: 'Explore the complete collection of real stories about online experiments, NSFW side hustles, AI tools, creator economy, web development, and digital platforms. No BS, just honest experiences.',
+  description: 'Digital business experiments, creator economy analytics & monetization strategies. Data-driven insights from online entrepreneurship trenches.',
   keywords: [
-    'blog archive',
-    'internet experiments',
-    'side hustles',
-    'creator economy',
-    'NSFW platforms',
-    'AI tools',
+    'digital entrepreneurship',
+    'creator economy insights', 
+    'online business experiments',
+    'content monetization strategies',
+    'digital marketing analytics',
+    'data-driven content creation',
     'web development',
-    'digital experiments',
-    'online business',
-    'personal blog',
+    'business storytelling'
   ],
   authors: [{ name: 'Yurie', url: siteUrl }],
   creator: 'Yurie',
@@ -64,14 +63,30 @@ export const metadata: Metadata = {
   category: 'Personal Blog',
 }
 
-export default function ArchiveBlogPage() {
+// Тип для поста
+type Post = {
+  id: string
+  title: string
+  slug: string
+}
+
+export default async function ArchiveBlogPage() {
+  // Загружаем посты на сервере
+  const supabase = createServiceSupabase()
+  
+  const { data: posts } = await supabase
+    .from('blog_posts')
+    .select('id, title, slug')
+    .eq('published', true)
+    .order('created_at', { ascending: false })
+
   // Enhanced CollectionPage Schema
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     '@id': `${siteUrl}/archiveblog`,
     name: 'Blog Archive — Internet Experiments & Side Hustles',
-    description: 'Complete collection of real stories about online experiments, NSFW side hustles, AI tools, creator economy, and web development',
+    description: 'Digital business experiments, creator economy analytics & monetization strategies. Data-driven insights from online entrepreneurship trenches.',
     url: `${siteUrl}/archiveblog`,
     inLanguage: 'en-US',
     isPartOf: {
@@ -154,7 +169,7 @@ export default function ArchiveBlogPage() {
               </p>
               <p className="text-base text-foreground/60">
                 Scroll through the cards below to find specific topics on AI tools, web development, 
-                NSFW platforms, and online business experiments.
+                platforms, and online business experiments.
               </p>
             </div>
           </div>
@@ -172,12 +187,27 @@ export default function ArchiveBlogPage() {
           </div>
         </div>
 
-        {/* Список постов (Client Component) */}
+        {/* Список постов */}
         <section aria-label="Blog posts archive">
+          {/* Это видит Google сразу (SSR) */}
+          <div className="sr-only">
+            <h2>All Blog Posts</h2>
+            {posts && posts.length > 0 && (
+              <ul>
+                {(posts as Post[]).map((post) => (
+                  <li key={post.id}>
+                    <a href={`/blog/${post.slug}`}>{post.title}</a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          
+          {/* Это видят пользователи (клиентский компонент) */}
           <ArchiveBlogClient />
         </section>
 
-        {/* Секция Bluesky в стиле About */}
+        {/* Секция Bluesky */}
         <aside className="mt-16 p-6 rounded-2xl bg-[#0085ff]/10 border border-[#0085ff]/30 shadow-sm max-w-3xl">
           <h2 className="text-xl font-bold mb-3 flex items-center gap-2 text-foreground">
             Stay updated! <span className="text-2xl" role="img" aria-label="butterfly">🦋</span>
