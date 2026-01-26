@@ -4,7 +4,7 @@ import { createServiceSupabase } from '@/lib/supabaseServer'
 
 export const revalidate = 86400
 
-/* ---------- типы строк Supabase ---------- */
+/* ---------- types ---------- */
 type BlogRow = {
   slug: string
   created_at: string
@@ -16,25 +16,25 @@ type GalleryRow = {
   created_at: string
 }
 
-/* ---------- вспомогательные функции ---------- */
-const baseUrl = 'https://yurieblog.vercel.app' // ← без пробела
+/* ---------- helpers ---------- */
+const baseUrl = 'https://yurieblog.vercel.app'
 
 const parseDate = (d: string | null): Date =>
   d && !isNaN(Date.parse(d)) ? new Date(d) : new Date()
 
-/* ---------- основной обработчик ---------- */
+/* ---------- main handler ---------- */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createServiceSupabase()
 
   const { data: posts } = await supabase
     .from('blog_posts')
-    .select('slug, created_at, updated_at') // ← строка, без generic
+    .select('slug, created_at, updated_at')
     .eq('published', true)
     .order('created_at', { ascending: false })
 
   const { data: galleries } = await supabase
     .from('gallery')
-    .select('id, created_at') // ← строка, без generic
+    .select('id, created_at')
     .order('created_at', { ascending: false })
 
   const latestPostDate =
@@ -55,13 +55,48 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   const staticPages: MetadataRoute.Sitemap = [
-    { url: baseUrl, lastModified: latestPostDate, changeFrequency: 'daily', priority: 1 },
-    { url: `${baseUrl}/archiveblog`, lastModified: latestPostDate, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${baseUrl}/about`, lastModified: new Date('2025-01-01'), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${baseUrl}/archivegallery`, lastModified: latestPostDate, changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${baseUrl}/contact`, lastModified: new Date('2025-01-01'), changeFrequency: 'yearly', priority: 0.5 },
-    { url: `${baseUrl}/privacy`, lastModified: new Date('2025-01-01'), changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${baseUrl}/terms`, lastModified: new Date('2025-01-01'), changeFrequency: 'yearly', priority: 0.3 },
+    { 
+      url: baseUrl, 
+      lastModified: latestPostDate, 
+      changeFrequency: 'daily', 
+      priority: 1 
+    },
+    { 
+      url: `${baseUrl}/archiveblog`, 
+      lastModified: latestPostDate, 
+      changeFrequency: 'daily', 
+      priority: 0.95 // High priority for archive
+    },
+    { 
+      url: `${baseUrl}/about`, 
+      lastModified: new Date('2025-01-01'), 
+      changeFrequency: 'monthly', 
+      priority: 0.7 
+    },
+    { 
+      url: `${baseUrl}/archivegallery`, 
+      lastModified: latestPostDate, 
+      changeFrequency: 'weekly', 
+      priority: 0.7 
+    },
+    { 
+      url: `${baseUrl}/contact`, 
+      lastModified: new Date('2025-01-01'), 
+      changeFrequency: 'yearly', 
+      priority: 0.5 
+    },
+    { 
+      url: `${baseUrl}/privacy`, 
+      lastModified: new Date('2025-01-01'), 
+      changeFrequency: 'yearly', 
+      priority: 0.3 
+    },
+    { 
+      url: `${baseUrl}/terms`, 
+      lastModified: new Date('2025-01-01'), 
+      changeFrequency: 'yearly', 
+      priority: 0.3 
+    },
   ]
 
   return [...staticPages, ...postUrls, ...galleryUrls]

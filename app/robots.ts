@@ -1,4 +1,3 @@
-
 import { MetadataRoute } from 'next'
 
 export const revalidate = 86400
@@ -16,7 +15,7 @@ export default function robots(): MetadataRoute.Robots {
 
   return {
     rules: [
-      
+      // Block AI scrapers
       {
         userAgent: [
           'GPTBot',
@@ -39,10 +38,13 @@ export default function robots(): MetadataRoute.Robots {
         disallow: '/',
       },
       
+      // Allow Googlebot
       {
         userAgent: 'Googlebot',
         allow: [
           '/',
+          '/archiveblog',
+          '/blog/',
           '/_next/static/',
           '/_next/image',
           '/videos/',
@@ -51,10 +53,13 @@ export default function robots(): MetadataRoute.Robots {
         disallow: privatePaths,
       },
       
+      // Allow Bingbot
       {
         userAgent: 'Bingbot',
         allow: [
           '/',
+          '/archiveblog',
+          '/blog/',
           '/_next/static/',
           '/_next/image',
           '/videos/',
@@ -63,9 +68,14 @@ export default function robots(): MetadataRoute.Robots {
         disallow: privatePaths,
       },
       
+      // Default rule for other bots
       {
         userAgent: '*',
-        allow: '/',
+        allow: [
+          '/',
+          '/archiveblog',
+          '/blog/',
+        ],
         disallow: privatePaths,
       },
     ],

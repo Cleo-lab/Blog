@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import ArchiveBlogClient from '@/components/archive-blog-client'
+import Link from 'next/link'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import BackToSite from '@/components/back-to-site'
 import Breadcrumbs from '@/components/breadcrumbs'
 import { createServiceSupabase } from '@/lib/supabaseServer'
@@ -8,7 +10,7 @@ import { createServiceSupabase } from '@/lib/supabaseServer'
 const siteUrl = 'https://yurieblog.vercel.app'
 
 export const metadata: Metadata = {
-  title: 'Blog Archive — Internet Experiments & Side Hustle Stories',
+  title: 'Blog Archive – Internet Experiments & Side Hustle Stories',
   description: 'Digital business experiments, creator economy analytics & monetization strategies. Data-driven insights from online entrepreneurship trenches.',
   keywords: [
     'digital entrepreneurship',
@@ -38,7 +40,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'Blog Archive — Internet Experiments & Side Hustles',
+    title: 'Blog Archive – Internet Experiments & Side Hustles',
     description: 'Complete collection of real stories about online experiments, creator economy, and digital platforms.',
     url: `${siteUrl}/archiveblog`,
     siteName: "Yurie's Blog",
@@ -55,43 +57,74 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Blog Archive — Internet Experiments & Side Hustles',
+    title: 'Blog Archive – Internet Experiments & Side Hustles',
     description: 'Complete collection of real stories and honest experiences.',
     images: [`${siteUrl}/images/Archive_Preview.webp`],
     creator: '@yurieblog.bsky.social',
   },
-  category: 'Personal Blog',
+  category: 'Business & Entrepreneurship',
 }
 
-// Тип для поста
-type Post = {
+// Revalidate every hour
+export const revalidate = 3600
+
+interface BlogPost {
   id: string
   title: string
   slug: string
+  excerpt: string | null
+  content: string
+  featured_image: string | null
+  created_at: string
+}
+
+// Clean text function
+const cleanText = (text: string) => {
+  if (!text) return ''
+  return text
+    .replace(/\[(yellow|blue|purple|pink)\]/g, '')
+    .replace(/^[> \t]+/gm, '')
+    .replace(/[#*`]/g, '')
+    .trim()
 }
 
 export default async function ArchiveBlogPage() {
-  // Загружаем посты на сервере
   const supabase = createServiceSupabase()
   
-  const { data: posts } = await supabase
+  // ✅ FETCH ALL POSTS ON SERVER (SSR)
+  const { data: posts, error } = await supabase
     .from('blog_posts')
-    .select('id, title, slug')
+    .select('id, title, slug, excerpt, content, featured_image, created_at')
     .eq('published', true)
     .order('created_at', { ascending: false })
 
-  // Enhanced CollectionPage Schema
+  if (error) {
+    console.error('Error fetching posts:', error)
+  }
+
+  const blogPosts = (posts || []) as BlogPost[]
+
+  // Enhanced CollectionPage Schema with ItemList
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     '@id': `${siteUrl}/archiveblog`,
-    name: 'Blog Archive — Internet Experiments & Side Hustles',
+    name: 'Blog Archive – Internet Experiments & Side Hustles',
     description: 'Digital business experiments, creator economy analytics & monetization strategies. Data-driven insights from online entrepreneurship trenches.',
     url: `${siteUrl}/archiveblog`,
     inLanguage: 'en-US',
     isPartOf: {
       '@type': 'Blog',
       '@id': `${siteUrl}/#blog`,
+    },
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: blogPosts.map((post, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `${siteUrl}/blog/${post.slug}`,
+        name: post.title,
+      })),
     },
     author: {
       '@type': 'Person',
@@ -155,9 +188,9 @@ export default async function ArchiveBlogPage() {
         {/* Breadcrumbs Component */}
         <Breadcrumbs />
 
-        {/* Секция Hero: Текст слева, Картинка справа */}
+        {/* Hero Section */}
         <div className="flex flex-col md:flex-row items-center gap-10 mb-12">
-          {/* Блок с текстом */}
+          {/* Text Block */}
           <div className="flex-1 order-2 md:order-1 text-center md:text-left">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">
               Blog Archive
@@ -174,7 +207,7 @@ export default async function ArchiveBlogPage() {
             </div>
           </div>
 
-          {/* Блок с картинкой */}
+          {/* Image Block */}
           <div className="flex-1 order-1 md:order-2">
             <Image
               src="/images/Archive_Preview.webp"
@@ -187,27 +220,60 @@ export default async function ArchiveBlogPage() {
           </div>
         </div>
 
-        {/* Список постов */}
+        {/* ✅ BLOG POSTS GRID - SERVER SIDE RENDERED */}
         <section aria-label="Blog posts archive">
-          {/* Это видит Google сразу (SSR) */}
-          <div className="sr-only">
-            <h2>All Blog Posts</h2>
-            {posts && posts.length > 0 && (
-              <ul>
-                {(posts as Post[]).map((post) => (
-                  <li key={post.id}>
-                    <a href={`/blog/${post.slug}`}>{post.title}</a>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          <h2 className="sr-only">All Blog Posts</h2>
           
-          {/* Это видят пользователи (клиентский компонент) */}
-          <ArchiveBlogClient />
+          {blogPosts.length === 0 ? (
+            <p className="text-center text-foreground/60">No posts available yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+              {blogPosts.map((post) => (
+                <article key={post.id}>
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow border-border/50 bg-card h-full">
+                    <div className="relative h-48 bg-muted overflow-hidden">
+                      <img
+                        src={post.featured_image || '/placeholder.svg'}
+                        alt={post.title}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="p-4">
+                      <time className="text-xs text-foreground/60 mb-2 block" dateTime={post.created_at}>
+                        {new Date(post.created_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </time>
+                      <h3 className="text-lg font-semibold mb-2 line-clamp-2">
+                        <Link 
+                          href={`/blog/${post.slug}`} 
+                          className="hover:text-primary transition-colors"
+                        >
+                          {post.title}
+                        </Link>
+                      </h3>
+                      
+                      <p className="text-foreground/70 text-sm mb-4 line-clamp-3">
+                        {cleanText(post.excerpt || post.content.substring(0, 150))}...
+                      </p>
+
+                      <Link href={`/blog/${post.slug}`}>
+                        <Button size="sm" className="w-full bg-primary/10 hover:bg-primary/20 text-primary border-none">
+                          Read More
+                        </Button>
+                      </Link>
+                    </div>
+                  </Card>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
 
-        {/* Секция Bluesky */}
+        {/* Bluesky Section */}
         <aside className="mt-16 p-6 rounded-2xl bg-[#0085ff]/10 border border-[#0085ff]/30 shadow-sm max-w-3xl">
           <h2 className="text-xl font-bold mb-3 flex items-center gap-2 text-foreground">
             Stay updated! <span className="text-2xl" role="img" aria-label="butterfly">🦋</span>
