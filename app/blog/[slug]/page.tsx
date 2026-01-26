@@ -1,4 +1,5 @@
-// app/blog/[slug]/page.tsx
+// app/blog/[slug]/page.tsx - ПОЛНОСТЬЮ ОБНОВЛЕННАЯ ВЕРСИЯ
+
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import BlogPostClient from './BlogPostClient'
@@ -42,11 +43,13 @@ export async function generateMetadata(
     .trim()
 
   const imageUrl = post.featured_image ?? 'https://yurieblog.vercel.app/images/Yurie_main.jpg'
+  
+  // ✅ Уникальный alt для каждой статьи
+  const imageAlt = `Featured image for: ${post.title} - Yurie's Blog`
 
   return {
-    title: `${post.title}`,
+    title: `${post.title} | Yurie's Blog`,
     description,
-    // Заменили keywords на бизнес-ориентированные
     keywords: [
       'digital business',
       'creator economy',
@@ -70,6 +73,7 @@ export async function generateMetadata(
         'max-snippet': -1,
       },
     },
+    // ✅ КРИТИЧЕСКИ ВАЖНО: каноническая ссылка предотвращает дубликаты
     alternates: {
       canonical: `https://yurieblog.vercel.app/blog/${post.slug}`,
     },
@@ -85,7 +89,7 @@ export async function generateMetadata(
           url: imageUrl, 
           width: 1200, 
           height: 630, 
-          alt: post.title 
+          alt: imageAlt // ✅ Уникальный alt
         }
       ],
       publishedTime: post.created_at ?? undefined,
@@ -99,8 +103,11 @@ export async function generateMetadata(
       images: [imageUrl],
       creator: '@yurieblog.bsky.social',
     },
-    // Категория изменена на Business
     category: 'Business & Entrepreneurship',
+    // ✅ Добавляем verification для Google
+    verification: {
+      google: 'your-google-verification-code', // Замените на свой код из Google Search Console
+    },
   }
 }
 
@@ -151,18 +158,22 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     .slice(0, 200)
     .trim()
 
-  // Enhanced Article JSON-LD
+  const imageUrl = post.featured_image || 'https://yurieblog.vercel.app/images/Yurie_main.jpg'
+  const imageAlt = `Featured image for: ${post.title} - Yurie's Blog`
+
+  // ✅ Улучшенная Article Schema
   const articleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
-    '@id': `https://yurieblog.vercel.app/blog/${post.slug}`,
+    '@id': `https://yurieblog.vercel.app/blog/${post.slug}#article`,
     headline: post.title,
     description: cleanDescription,
     image: {
       '@type': 'ImageObject',
-      url: post.featured_image || 'https://yurieblog.vercel.app/images/Yurie_main.jpg',
+      url: imageUrl,
       width: 1200,
       height: 630,
+      caption: imageAlt, // ✅ Добавляем caption
     },
     datePublished: post.created_at,
     dateModified: post.updated_at || post.created_at,
@@ -192,9 +203,11 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     isPartOf: {
       '@type': 'Blog',
       '@id': 'https://yurieblog.vercel.app/#blog',
+      name: "Yurie's Blog"
     },
-    // Обновили keywords в Schema на бизнес-термины
     keywords: 'digital business, creator economy, online monetization, entrepreneurial insights, content strategy',
+    // ✅ Добавляем информацию о размере контента
+    wordCount: post.content?.split(/\s+/).length || 0,
   }
 
   const breadcrumbJsonLd = {

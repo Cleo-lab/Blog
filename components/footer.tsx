@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 
 interface FooterProps {
   readonly language: string
-  readonly onSupportClick?: () => void // ✅ Добавляем проп для обработки клика
+  readonly onSupportClick?: () => void
 }
 
 const content = {
@@ -16,7 +16,16 @@ const content = {
     terms: 'Terms',
     contact: 'Contact',
     about: 'About',
-    support: 'Support'
+    support: 'Support',
+    // ✅ Добавляем новые переводы для улучшенной навигации
+    explore: 'Explore',
+    home: 'Home',
+    blogArchive: 'Blog Archive',
+    gallery: 'Gallery',
+    topics: 'Topics',
+    connect: 'Connect',
+    legal: 'Legal',
+    sitemap: 'Sitemap',
   },
   es: {
     copyright: '© 2025, Blog de Personaje.',
@@ -24,7 +33,15 @@ const content = {
     terms: 'Términos',
     contact: 'Contacto',
     about: 'Acerca de',
-    support: 'Apoyar'
+    support: 'Apoyar',
+    explore: 'Explorar',
+    home: 'Inicio',
+    blogArchive: 'Archivo del Blog',
+    gallery: 'Galería',
+    topics: 'Temas',
+    connect: 'Conectar',
+    legal: 'Legal',
+    sitemap: 'Mapa del Sitio',
   }
 }
 
@@ -32,10 +49,10 @@ export default function Footer({ language, onSupportClick }: FooterProps) {
   const t = content[language as keyof typeof content] || content.en
 
   return (
-    <footer className="bg-card border-t border-border/50 py-8 px-4">
+    <footer className="bg-card border-t border-border/50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
-        {/* ✅ КНОПКА SUPPORT В ЦЕНТРЕ */}
-        <div className="flex justify-center mb-6">
+        {/* ✅ Support Button */}
+        <div className="flex justify-center mb-8">
           <Button
             onClick={onSupportClick}
             className="bg-pink-600 hover:bg-pink-700 text-white font-bold transition-all duration-200 shadow-md hover:shadow-lg px-8"
@@ -46,60 +63,129 @@ export default function Footer({ language, onSupportClick }: FooterProps) {
           </Button>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        {/* ✅ РАСШИРЕННАЯ НАВИГАЦИЯ ДЛЯ SEO */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          
+          {/* Main Navigation */}
+          <nav aria-label="Main navigation">
+            <h3 className="font-semibold text-base mb-4 text-foreground">
+              {t.explore}
+            </h3>
+            <ul className="space-y-2">
+              <li>
+                <Link 
+                  href="/" 
+                  className="text-sm text-foreground/70 hover:text-primary transition-colors block"
+                >
+                  {t.home}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/archiveblog" 
+                  className="text-sm text-foreground/70 hover:text-primary transition-colors block"
+                >
+                  {t.blogArchive}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/archivegallery" 
+                  className="text-sm text-foreground/70 hover:text-primary transition-colors block"
+                >
+                  {t.gallery}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/about" 
+                  className="text-sm text-foreground/70 hover:text-primary transition-colors block"
+                >
+                  {t.about}
+                </Link>
+              </li>
+            </ul>
+          </nav>
+
+          {/* Topics - статичный список для SEO */}
+          <div>
+            <h3 className="font-semibold text-base mb-4 text-foreground">
+              {t.topics}
+            </h3>
+            <ul className="space-y-2 text-sm text-foreground/60">
+              <li>Digital Business</li>
+              <li>Creator Economy</li>
+              <li>Online Monetization</li>
+              <li>Content Strategy</li>
+            </ul>
+          </div>
+
+          {/* Connect */}
+          <nav aria-label="Social media">
+            <h3 className="font-semibold text-base mb-4 text-foreground">
+              {t.connect}
+            </h3>
+            <ul className="space-y-2">
+              <li>
+                <a 
+                  href="https://bsky.app/profile/yurieblog.bsky.social" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-foreground/70 hover:text-[#0085ff] transition-colors flex items-center gap-1"
+                >
+                  <span className="text-base">🦋</span> Bluesky
+                </a>
+              </li>
+              <li>
+                <Link 
+                  href="/contact" 
+                  className="text-sm text-foreground/70 hover:text-primary transition-colors block"
+                >
+                  {t.contact}
+                </Link>
+              </li>
+            </ul>
+          </nav>
+
+          {/* Legal */}
+          <nav aria-label="Legal information">
+            <h3 className="font-semibold text-base mb-4 text-foreground">
+              {t.legal}
+            </h3>
+            <ul className="space-y-2">
+              <li>
+                <Link 
+                  href="/sitemap-html"
+                  className="text-sm text-foreground/70 hover:text-primary transition-colors block"
+                >
+                  {t.sitemap}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/privacy" 
+                  className="text-sm text-foreground/70 hover:text-primary transition-colors block"
+                >
+                  {t.privacy}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/terms" 
+                  className="text-sm text-foreground/70 hover:text-primary transition-colors block"
+                >
+                  {t.terms}
+                </Link>
+              </li>
+            </ul>
+          </nav>
+        </div>
+
+        {/* Copyright */}
+        <div className="pt-8 border-t border-border/30 text-center">
           <p className="text-sm text-foreground/60">
             {t.copyright} Made with love 💖
           </p>
-
-          <nav className="flex gap-6" aria-label="Footer navigation">
-            <Link 
-              href="/sitemap-html"
-              className="text-xs text-foreground/50 hover:text-foreground transition-colors"
-            >
-              Sitemap
-            </Link>
-            
-            <Link
-              href="/privacy"
-              className="text-xs text-foreground/50 hover:text-foreground transition-colors"
-              aria-label={`Learn more about our ${t.privacy} Policy`}
-            >
-              {t.privacy}
-            </Link>
-
-            <Link
-              href="/terms"
-              className="text-xs text-foreground/50 hover:text-foreground transition-colors"
-              aria-label={`${t.terms} of Service`}
-            >
-              {t.terms}
-            </Link>
-
-            <Link
-              href="/contact"
-              className="text-xs text-foreground/50 hover:text-foreground transition-colors"
-              aria-label={t.contact}
-            >
-              {t.contact}
-            </Link>
-
-            <Link
-              href="/about"
-              className="text-xs text-foreground/50 hover:text-foreground transition-colors"
-              aria-label={t.about}
-            >
-              {t.about}
-            </Link>
-            
-            <a
-              href="https://bsky.app/profile/yurieblog.bsky.social"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-bold text-[#0085ff] hover:brightness-110 transition-all flex items-center gap-1"
-            >
-              <span className="text-[14px]">🦋</span> Bluesky
-            </a>
-          </nav>
         </div>
       </div>
     </footer>

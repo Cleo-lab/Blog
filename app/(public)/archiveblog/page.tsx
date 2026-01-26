@@ -65,6 +65,8 @@ export const metadata: Metadata = {
   category: 'Business & Entrepreneurship',
 }
 
+// Revalidate every 24 hours
+export const revalidate = 86400
 
 interface BlogPost {
   id: string
@@ -89,7 +91,7 @@ const cleanText = (text: string) => {
 export default async function ArchiveBlogPage() {
   const supabase = createServiceSupabase()
   
-  // ✅ FETCH ALL POSTS ON SERVER (SSR)
+  // Fetch all posts on server (SSR)
   const { data: posts, error } = await supabase
     .from('blog_posts')
     .select('id, title, slug, excerpt, content, featured_image, created_at')
@@ -117,7 +119,7 @@ export default async function ArchiveBlogPage() {
     },
     mainEntity: {
       '@type': 'ItemList',
-      itemListElement: blogPosts.map((post, index) => ({
+      itemListElement: blogPosts.slice(0, 50).map((post, index) => ({
         '@type': 'ListItem',
         position: index + 1,
         url: `${siteUrl}/blog/${post.slug}`,
@@ -218,7 +220,7 @@ export default async function ArchiveBlogPage() {
           </div>
         </div>
 
-        {/* ✅ BLOG POSTS GRID - SERVER SIDE RENDERED */}
+        {/* Blog Posts Grid - Server Side Rendered */}
         <section aria-label="Blog posts archive">
           <h2 className="sr-only">All Blog Posts</h2>
           
@@ -232,9 +234,13 @@ export default async function ArchiveBlogPage() {
                     <div className="relative h-48 bg-muted overflow-hidden">
                       <img
                         src={post.featured_image || '/placeholder.svg'}
-                        alt={post.title}
+                        // ✅ УНИКАЛЬНЫЙ alt для каждой статьи
+                        alt={`${post.title} - Digital business experiment and creator economy insight from Yurie's Blog`}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                         loading="lazy"
+                        // ✅ Добавляем width и height для SEO
+                        width={800}
+                        height={450}
                       />
                     </div>
                     <div className="p-4">
@@ -249,6 +255,8 @@ export default async function ArchiveBlogPage() {
                         <Link 
                           href={`/blog/${post.slug}`} 
                           className="hover:text-primary transition-colors"
+                          // ✅ Добавляем aria-label для доступности
+                          aria-label={`Read article: ${post.title}`}
                         >
                           {post.title}
                         </Link>
@@ -259,7 +267,11 @@ export default async function ArchiveBlogPage() {
                       </p>
 
                       <Link href={`/blog/${post.slug}`}>
-                        <Button size="sm" className="w-full bg-primary/10 hover:bg-primary/20 text-primary border-none">
+                        <Button 
+                          size="sm" 
+                          className="w-full bg-primary/10 hover:bg-primary/20 text-primary border-none"
+                          aria-label={`Read more about ${post.title}`}
+                        >
                           Read More
                         </Button>
                       </Link>
