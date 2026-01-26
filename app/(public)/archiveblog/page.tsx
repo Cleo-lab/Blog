@@ -65,8 +65,6 @@ export const metadata: Metadata = {
   category: 'Business & Entrepreneurship',
 }
 
-// Revalidate every hour
-export const revalidate = 3600
 
 interface BlogPost {
   id: string
