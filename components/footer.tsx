@@ -17,7 +17,6 @@ const content = {
     contact: 'Contact',
     about: 'About',
     support: 'Support',
-    // ✅ Добавляем новые переводы для улучшенной навигации
     explore: 'Explore',
     home: 'Home',
     blogArchive: 'Blog Archive',

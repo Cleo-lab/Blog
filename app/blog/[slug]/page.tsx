@@ -104,10 +104,6 @@ export async function generateMetadata(
       creator: '@yurieblog.bsky.social',
     },
     category: 'Business & Entrepreneurship',
-    // ✅ Добавляем verification для Google
-    verification: {
-      google: 'your-google-verification-code', // Замените на свой код из Google Search Console
-    },
   }
 }
 

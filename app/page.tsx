@@ -6,9 +6,7 @@ import { fetchProfileServer } from '@/lib/profile-server'
 import { Suspense } from 'react'
 
 export const metadata: Metadata = {
-  
   title: 'Yurie Blog: Digital Business Experiments & Creator Economy Data',
-  
   description: 'Digital business experiments, creator economy analytics & monetization strategies. Data-driven insights from online entrepreneurship trenches.',
   keywords: [
     'digital entrepreneurship',
@@ -74,41 +72,34 @@ export default async function Page() {
     .order('created_at', { ascending: false })
     .limit(9)
 
-
-  const websiteJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    '@id': 'https://yurieblog.vercel.app/#website',
-    name: "Yurie's Blog",
-    url: 'https://yurieblog.vercel.app',
-    
-    description: 'Personal blog about digital business experiments, creator economy analytics, and data-driven entrepreneurship.',
-    inLanguage: 'en-US',
-    publisher: {
-      '@type': 'Organization',
-      '@id': 'https://yurieblog.vercel.app/#organization',
-      name: "Yurie's Blog",
-      logo: {
-        '@type': 'ImageObject',
-        url: 'https://yurieblog.vercel.app/images/Yurie_main.jpg',
-      },
-    },
-  }
-
+  // ✅ ТОЛЬКО Blog Schema - WebSite уже в layout.tsx!
   const blogJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Blog',
     '@id': 'https://yurieblog.vercel.app/#blog',
     name: "Yurie's Blog",
+    description: 'Personal blog about digital business experiments, creator economy analytics, and data-driven entrepreneurship.',
     url: 'https://yurieblog.vercel.app',
+    inLanguage: 'en-US',
+    author: {
+      '@type': 'Person',
+      '@id': 'https://yurieblog.vercel.app/#author',
+      name: 'Yurie',
+    },
+    publisher: {
+      '@type': 'Organization',
+      '@id': 'https://yurieblog.vercel.app/#organization',
+    },
     blogPost: posts?.slice(0, 5).map((post) => ({
       '@type': 'BlogPosting',
       headline: post.title,
       url: `https://yurieblog.vercel.app/blog/${post.slug}`,
       datePublished: post.created_at,
+      dateModified: post.updated_at || post.created_at,
       image: post.featured_image || 'https://yurieblog.vercel.app/images/Yurie_main.jpg',
       author: {
         '@type': 'Person',
+        '@id': 'https://yurieblog.vercel.app/#author',
         name: 'Yurie',
       },
     })),
@@ -116,10 +107,7 @@ export default async function Page() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-      />
+      {/* ✅ УДАЛИЛИ websiteJsonLd - он уже в layout.tsx */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
