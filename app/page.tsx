@@ -1,9 +1,23 @@
 import type { Metadata } from 'next'
 import HomeWrapper from '@/components/home-wrapper'
 import HeroServer from '@/components/hero-server'
-import { createServerSupabase } from '@/lib/supabaseServer'
+import { createServiceSupabase } from '@/lib/supabaseServer'
 import { fetchProfileServer } from '@/lib/profile-server'
 import { Suspense } from 'react'
+
+const siteUrl = 'https://yurieblog.vercel.app'
+
+// Тип для поста
+interface BlogPost {
+  id: string
+  title: string
+  slug: string
+  excerpt: string | null
+  content: string
+  featured_image: string | null
+  created_at: string
+  updated_at: string | null
+}
 
 export const metadata: Metadata = {
   title: 'Yurie Blog: Digital Business Experiments & Creator Economy Data',
@@ -18,16 +32,16 @@ export const metadata: Metadata = {
     'web development',
     'business storytelling'
   ],
-  authors: [{ name: 'Yurie', url: 'https://yurieblog.vercel.app' }],
+  authors: [{ name: 'Yurie', url: siteUrl }],
   creator: 'Yurie',
   publisher: "Yurie's Blog",
   alternates: {
-    canonical: 'https://yurieblog.vercel.app',
+    canonical: siteUrl,
   },
   openGraph: {
     title: 'Yurie Blog: Digital Business Experiments & Creator Economy',
     description: 'Honest stories about online business experiments, monetization platforms, and the creator economy reality.',
-    url: 'https://yurieblog.vercel.app',
+    url: siteUrl,
     siteName: "Yurie's Blog",
     locale: 'en_US',
     type: 'website',
@@ -59,47 +73,59 @@ export const metadata: Metadata = {
   },
 }
 
+// Revalidate every 24 hours
+export const revalidate = 86400
+
 export default async function Page() {
-  const supabase = await createServerSupabase()
+  const supabase = createServiceSupabase()
+  
+  let posts: BlogPost[] = []
+  let profile = null
 
-  const { data: { user } } = await supabase.auth.getUser()
-  const profile = user ? await fetchProfileServer(user.id) : null
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    profile = user ? await fetchProfileServer(user.id) : null
 
-  const { data: posts } = await supabase
-    .from('blog_posts')
-    .select('id, title, slug, excerpt, content, featured_image, created_at, updated_at')
-    .eq('published', true)
-    .order('created_at', { ascending: false })
-    .limit(9)
+    const { data: postsData } = await supabase
+      .from('blog_posts')
+      .select('id, title, slug, excerpt, content, featured_image, created_at, updated_at')
+      .eq('published', true)
+      .order('created_at', { ascending: false })
+      .limit(9)
 
-  // ✅ ТОЛЬКО Blog Schema - WebSite уже в layout.tsx!
+    posts = (postsData as BlogPost[]) || []
+  } catch (error) {
+    console.error('Error fetching data:', error)
+  }
+
+  // Only Blog Schema - WebSite is already in layout.tsx
   const blogJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Blog',
-    '@id': 'https://yurieblog.vercel.app/#blog',
+    '@id': `${siteUrl}/#blog`,
     name: "Yurie's Blog",
     description: 'Personal blog about digital business experiments, creator economy analytics, and data-driven entrepreneurship.',
-    url: 'https://yurieblog.vercel.app',
+    url: siteUrl,
     inLanguage: 'en-US',
     author: {
       '@type': 'Person',
-      '@id': 'https://yurieblog.vercel.app/#author',
+      '@id': `${siteUrl}/#author`,
       name: 'Yurie',
     },
     publisher: {
       '@type': 'Organization',
-      '@id': 'https://yurieblog.vercel.app/#organization',
+      '@id': `${siteUrl}/#organization`,
     },
-    blogPost: posts?.slice(0, 5).map((post) => ({
+    blogPost: posts.slice(0, 5).map((post) => ({
       '@type': 'BlogPosting',
       headline: post.title,
-      url: `https://yurieblog.vercel.app/blog/${post.slug}`,
+      url: `${siteUrl}/blog/${post.slug}`,
       datePublished: post.created_at,
       dateModified: post.updated_at || post.created_at,
-      image: post.featured_image || 'https://yurieblog.vercel.app/images/Yurie_main.jpg',
+      image: post.featured_image || `${siteUrl}/images/Yurie_main.jpg`,
       author: {
         '@type': 'Person',
-        '@id': 'https://yurieblog.vercel.app/#author',
+        '@id': `${siteUrl}/#author`,
         name: 'Yurie',
       },
     })),
@@ -107,7 +133,6 @@ export default async function Page() {
 
   return (
     <>
-      {/* ✅ УДАЛИЛИ websiteJsonLd - он уже в layout.tsx */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
@@ -115,7 +140,7 @@ export default async function Page() {
 
       <Suspense fallback={<div className="min-h-screen bg-background" />}>
         <HomeWrapper
-          initialPosts={posts || []}
+          initialPosts={posts}
           hero={<HeroServer />}
           initialProfile={profile}
         />
