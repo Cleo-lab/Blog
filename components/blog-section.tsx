@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Card } from '@/components/ui/card'
@@ -21,7 +21,7 @@ interface BlogPost {
 
 interface BlogSectionProps {
   readonly language: 'en' | 'es'
-  initialPosts?: BlogPost[] // Используем типизированный массив
+  initialPosts?: BlogPost[]
 }
 
 const LOCALE = {
@@ -29,48 +29,56 @@ const LOCALE = {
   es: 'es-ES',
 }
 
-export default function BlogSection({ language, initialPosts = [] }: BlogSectionProps) {
+export default function BlogSection({
+  language,
+  initialPosts = [],
+}: BlogSectionProps) {
   const supabase = useSupabase()
-  
-  // 1. Инициализируем стейт данными с сервера. 
-  // Если initialPosts есть, стейт сразу будет наполнен, и рендеринг начнется с постов.
+
+  // === КЛЮЧЕВОЙ ФЛАГ ===
+  const hasSSR = initialPosts.length > 0
+
+  // === STATE ===
   const [posts, setPosts] = useState<BlogPost[]>(initialPosts)
   const [visible, setVisible] = useState(3)
-  
-  // 2. Loading только если у нас НЕТ данных ни с сервера, ни в стейте.
-  const [loading, setLoading] = useState(initialPosts.length === 0)
+  const [loading, setLoading] = useState(!hasSSR)
 
   const lang = language === 'es' ? 'es' : 'en'
 
+  // === CLIENT FETCH ТОЛЬКО ЕСЛИ SSR НЕТ ===
   useEffect(() => {
-    // 3. КЛЮЧЕВОЙ МОМЕНТ: Если данные уже есть (пришли от сервера), 
-    // МЫ ВООБЩЕ ВЫХОДИМ. Никаких setLoading(true) и лишних запросов.
-    if (initialPosts.length > 0) return
+    if (hasSSR) return
+
+    let cancelled = false
 
     async function fetchPosts() {
       try {
-        // setLoading(true) сработает только если initialPosts был пустым
         const { data } = await supabase
           .from('blog_posts')
-          .select('id, title, slug, excerpt, content, featured_image, created_at')
+          .select(
+            'id, title, slug, excerpt, content, featured_image, created_at'
+          )
           .eq('published', true)
           .order('created_at', { ascending: false })
           .limit(10)
 
-        if (data) setPosts(data as BlogPost[])
+        if (!cancelled && data) {
+          setPosts(data as BlogPost[])
+        }
       } catch (error) {
         console.error('Error fetching posts:', error)
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
 
     fetchPosts()
-    // Убираем supabase из зависимостей, чтобы избежать циклов при смене контекста
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) 
 
-  // Функции очистки текста и времени выносим в хелперы, чтобы не пересоздавать
+    return () => {
+      cancelled = true
+    }
+  }, []) // ❗ НИКАКИХ deps
+
   const cleanText = (text: string) =>
     (text || '')
       .replace(/\[(yellow|blue|purple|pink)\]/g, '')
@@ -87,7 +95,6 @@ export default function BlogSection({ language, initialPosts = [] }: BlogSection
   return (
     <section className="py-4 px-4 bg-gradient-to-b from-background via-muted/5 to-background">
       <div className="max-w-6xl mx-auto">
-        
         <div className="mb-12">
           <h2 className="text-3xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
             Blog
@@ -95,14 +102,14 @@ export default function BlogSection({ language, initialPosts = [] }: BlogSection
           <div className="w-20 h-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full" />
         </div>
 
-        {/* Если loading=true и постов нет — показываем скелетон.
-            Если посты есть (даже если они грузятся в фоне) — показываем посты. 
-            Это исключает мигание (Skeleton -> Content).
-        */}
-        {loading && posts.length === 0 ? (
+        {/* === LOADING ТОЛЬКО ЕСЛИ НЕТ SSR === */}
+        {!hasSSR && loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-2xl bg-muted/20 h-80 animate-pulse" />
+              <div
+                key={i}
+                className="rounded-2xl bg-muted/20 h-80"
+              />
             ))}
           </div>
         ) : posts.length === 0 ? (
@@ -113,55 +120,50 @@ export default function BlogSection({ language, initialPosts = [] }: BlogSection
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {posts.slice(0, visible).map((post, i) => (
-                <Card
-                  key={post.id}
-                  className="group overflow-hidden hover:shadow-2xl transition-all duration-500 border-border/40 bg-card/50 backdrop-blur-sm flex flex-col h-full"
-                >
-                  <div className="relative h-52 bg-muted overflow-hidden">
-  <Image
-    src={post.featured_image || '/placeholder.svg'}
-    alt={post.title}
-    fill
-    priority={i < 2} 
-    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw"
-                      style={{ objectFit: 'cover' }} 
-    className="transition-transform duration-500 group-hover:scale-110"
-  />
-</div>
-
-                  <div className="p-6 flex flex-col flex-grow">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-[10px] font-bold text-pink-500 uppercase tracking-widest px-2 py-0.5 bg-pink-500/10 rounded-full">
-                        {new Date(post.created_at).toLocaleDateString(LOCALE[lang], {
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </span>
-                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-                        • {getReadTime(post.content)} {UI[lang].minRead}
-                      </span>
+                <article key={post.id}>
+                  <Card className="group overflow-hidden flex flex-col h-full">
+                    <div className="relative h-52 bg-muted overflow-hidden">
+                      <Image
+                        src={post.featured_image || '/placeholder.svg'}
+                        alt={`Featured image for: ${post.title}`}
+                        fill
+                        priority={i < 3}
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
                     </div>
 
-                    <h3 className="text-xl font-bold mb-3 text-foreground line-clamp-2 group-hover:text-pink-500 transition-colors">
-                      {post.title}
-                    </h3>
+                    <div className="p-6 flex flex-col flex-grow">
+                      <time className="text-xs text-pink-500">
+                        {new Date(post.created_at).toLocaleDateString(
+                          LOCALE[lang],
+                          { month: 'short', day: 'numeric' }
+                        )}
+                      </time>
 
-                    <p className="text-muted-foreground text-sm mb-6 line-clamp-3 flex-grow">
-                      {cleanText(post.excerpt || post.content).substring(0, 150)}...
-                    </p>
+                      <h3 className="text-xl font-bold mt-2">
+                        <Link href={`/blog/${post.slug}`}>
+                          {post.title}
+                        </Link>
+                      </h3>
 
-                    <Link href={`/blog/${post.slug}`} className="mt-auto">
-                      <Button size="sm" className="w-full bg-secondary/10 hover:bg-pink-500 hover:text-white text-foreground border border-pink-500/20 transition-all duration-300">
-                        {UI[lang].readStory}
-                      </Button>
-                    </Link>
-                  </div>
-                </Card>
+                      <p className="text-sm text-muted-foreground mt-3 flex-grow">
+                        {cleanText(post.excerpt || post.content).slice(0, 150)}…
+                      </p>
+
+                      <Link href={`/blog/${post.slug}`} className="mt-4">
+                        <Button size="sm" className="w-full">
+                          {UI[lang].readStory}
+                        </Button>
+                      </Link>
+                    </div>
+                  </Card>
+                </article>
               ))}
             </div>
 
             {visible < posts.length && (
-              <div className="w-full flex justify-center mt-10">
+              <div className="flex justify-center mt-10">
                 <LoadMoreBtn href="/archiveblog" lang={lang} color="pink" />
               </div>
             )}

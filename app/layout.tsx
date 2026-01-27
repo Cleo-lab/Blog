@@ -28,12 +28,7 @@ export const metadata: Metadata = {
     google: 'WXnuGqV3agaGqnSqBJBEuym8I5KkJuvH4AMNKWXodYM',
   },
   metadataBase: new URL(siteUrl),
-  alternates: {
-    canonical: siteUrl,
-    languages: {
-      'en-US': siteUrl,
-    },
-  },
+  
   openGraph: {
     title: 'Yurie Blog — Digital Entrepreneurship & Creator Economy Data',
     description: 'Personal blog about digital business experiments, content monetization strategies, creator economy analytics, and data-driven entrepreneurial insights.',
@@ -77,71 +72,7 @@ export default function RootLayout({
 }: {
   readonly children: React.ReactNode
 }) {
-  // WebSite Schema — помогает Google понять структуру сайта
-  const websiteSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    '@id': `${siteUrl}/#website`,
-    url: siteUrl,
-    name: "Yurie's Blog",
-    description: 'Digital business experiments, creator economy insights & online monetization strategies',
-    publisher: {
-      '@type': 'Organization',
-      '@id': `${siteUrl}/#organization`,
-      name: "Yurie's Blog",
-      url: siteUrl,
-      logo: {
-        '@type': 'ImageObject',
-        url: `${siteUrl}/images/Yurie_main.jpg`,
-        width: 512,
-        height: 512,
-      },
-    },
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${siteUrl}/archiveblog?search={search_term_string}`
-      },
-      'query-input': 'required name=search_term_string'
-    },
-    // Основные разделы сайта для sitelinks
-    mainEntity: {
-      '@type': 'ItemList',
-      itemListElement: [
-        {
-          '@type': 'SiteNavigationElement',
-          position: 1,
-          name: 'Blog Archive',
-          description: 'Complete collection of articles about digital business and creator economy',
-          url: `${siteUrl}/archiveblog`
-        },
-        {
-          '@type': 'SiteNavigationElement',
-          position: 2,
-          name: 'Gallery',
-          description: 'Visual portfolio and creative projects',
-          url: `${siteUrl}/archivegallery`
-        },
-        {
-          '@type': 'SiteNavigationElement',
-          position: 3,
-          name: 'About',
-          description: 'Learn more about Yurie and the blog',
-          url: `${siteUrl}/about`
-        },
-        {
-          '@type': 'SiteNavigationElement',
-          position: 4,
-          name: 'Contact',
-          description: 'Get in touch',
-          url: `${siteUrl}/contact`
-        }
-      ]
-    }
-  }
-
-  // Organization Schema
+  // Organization Schema — Общая информация о "бренде" блога
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -165,7 +96,7 @@ export default function RootLayout({
     },
   }
 
-  // Person Schema
+  // Person Schema — Информация об авторе (важна для Google E-E-A-T)
   const personSchema = {
     '@context': 'https://schema.org',
     '@type': 'Person',
@@ -202,11 +133,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
-        {/* Все Schema.org структуры */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
-        />
+        {/* ВАЖНО: websiteSchema удалена отсюда и перенесена в app/page.tsx.
+          Это нужно, чтобы sitelinks и поиск работали корректно только для главной.
+        */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Heart, Loader2 } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Header from '@/components/header'
 import About from '@/components/about'
@@ -18,6 +18,7 @@ import AnalyticsTracker from '@/components/analytics-tracker'
 import type { Profile } from '@/lib/profile'
 import { useToast } from '@/hooks/use-toast'
 
+// Динамические импорты остаются без изменений
 const DonorList = dynamic(() => import('@/components/donor-list'), { ssr: false })
 const BlueskyFeed = dynamic(() => import('@/components/bluesky-feed'), { ssr: false })
 const SignIn = dynamic(() => import('@/components/auth/sign-in'))
@@ -46,6 +47,7 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
   const router = useRouter()
   const supabase = useSupabase()
 
+  // Логика параметров URL
   useEffect(() => {
     const section = searchParams.get('section')
     const tab = searchParams.get('tab')
@@ -78,29 +80,25 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
     window.location.href = '/' 
   }, [supabase, router])
 
-  // ✅ Обработчик для кнопки Support в футере
   const handleSupportClick = useCallback(() => {
     setCurrentSection('support')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 
+  // Защита приватных разделов
   useEffect(() => {
     if (!authLoading) {
       const isPrivate = ['profile', 'mycomments'].includes(currentSection)
       const isAdminPrivate = currentSection === 'admin'
       
-      if (isPrivate && !isLoggedIn) setCurrentSection('home')
+      if (isPrivate && !isLoggedIn && !initialProfile) setCurrentSection('home')
       if (isAdminPrivate && !isAdmin) setCurrentSection('home')
     }
-  }, [isLoggedIn, isAdmin, currentSection, authLoading])
+  }, [isLoggedIn, isAdmin, currentSection, authLoading, initialProfile])
 
-  if (authLoading && !initialProfile) {
-    return (
-      <main className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-pink-500 animate-spin" />
-      </main>
-    )
-  }
+  /** * КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: 
+   * Мы удалили блок if (authLoading), чтобы страница рендерилась сразу.
+   */
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-pink-500/30">
@@ -110,7 +108,8 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
         setCurrentSection={setCurrentSection}
         language={language}
         setLanguage={lang => setLanguage(lang as 'en' | 'es')}
-        isLoggedIn={isLoggedIn || !!initialProfile}
+        // Показываем состояние "авторизован" только если загрузка прошла ИЛИ если есть данные с сервера
+        isLoggedIn={(isLoggedIn || !!initialProfile)}
         isAdmin={isAdmin}
         onSignOut={handleSignOut}
       />
@@ -122,6 +121,7 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
           <section id="home" className="pt-4 sm:pt-10 pb-4 px-2">
             <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               
+              {/* Левая колонка - Hall of Fame */}
               <div className="lg:col-span-3 order-2 lg:order-1 sticky top-24">
                 <div className="p-1 rounded-[2.6rem] bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 shadow-2xl">
                   <div className="p-5 rounded-[2.5rem] bg-zinc-950/90 backdrop-blur-xl h-fit">
@@ -135,10 +135,12 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
                 </div>
               </div>
 
+              {/* Центр - Hero контент */}
               <div className="lg:col-span-6 order-1 lg:order-2">
                 {hero}
               </div>
 
+              {/* Правая колонка - Bluesky Feed */}
               <div className="lg:col-span-3 order-3 sticky top-24">
                 <div className="relative group">
                   <div className={`rounded-[2.5rem] border border-border/40 p-6 bg-card/40 backdrop-blur-md transition-all duration-700 ${
@@ -153,7 +155,8 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
                     </div>
                   </div>
                   
-                  {(!isLoggedIn && !initialProfile) && (
+                  {/* Тизер для неавторизованных */}
+                  {(!isLoggedIn && !initialProfile && !authLoading) && (
                     <div className="absolute inset-0 z-10 flex items-center justify-center p-6">
                       <BlogTeaser onSignIn={() => setCurrentSection('signin')} />
                     </div>
@@ -166,18 +169,19 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
           <About language={language} />
           
           <section id="blog" className="py-2">
-            <BlogSection language={language} />
+            {/* Самая важная часть для Google: статьи рендерятся сразу */}
+            <BlogSection language={language} initialPosts={initialPosts} />
           </section>
 
           <MiddleAdBanner />
           <Gallery language={language} />
           <Subscribe language={language} />
           <FootAdBanner />
-          {/* ✅ Передаём обработчик клика в Footer */}
           <Footer language={language} onSupportClick={handleSupportClick} />
         </div>
       )}
 
+      {/* Другие разделы */}
       <div className="relative z-50">
         {currentSection === 'support' && <SupportPage />}
         {currentSection === 'signin' && (
