@@ -1,46 +1,61 @@
 'use client'
-import { useState } from 'react'
 
-const parseImageProps = (alt: string) => {
-  const propsMatch = alt.match(/\{([^}]+)\}/)
-  const caption = alt.replace(/\{[^}]+\}/, '').trim()
-  let scale = 100
-  let blur = false
-  if (propsMatch) {
-    const props = propsMatch[1]
-    const scaleMatch = props.match(/scale[:=](\d+)/i)
-    const blurMatch = props.match(/blur[:=](true|false)/i)
-    const simpleBlur = props.toLowerCase().includes('blur') && !props.toLowerCase().includes('blur=false')
-    if (scaleMatch) scale = parseInt(scaleMatch[1], 10)
-    if (blurMatch) blur = blurMatch[1] === 'true'
-    else if (simpleBlur) blur = true
-  }
-  return { caption, scale, blur }
-}
+import { useState, useMemo } from 'react'
 
 export default function BlurImage({ src, alt, ...rest }: any) {
-  const { caption, scale, blur } = parseImageProps(alt)
-  const [isBlurred, setIsBlurred] = useState(blur)
+  const propsMatch = alt?.match(/\{([^}]+)\}/)
+  const caption = alt?.replace(/\{[^}]+\}/, '').trim() || ''
+  
+  const hasBlur = propsMatch ? propsMatch[1].toLowerCase().includes('blur') : false
+  const scaleMatch = propsMatch?.[1]?.match(/scale[:=](\d+)/i)
+  const scale = scaleMatch ? parseInt(scaleMatch[1], 10) : 100
+  
+  const [revealed, setRevealed] = useState(false)
+  const showBlur = hasBlur && !revealed
+  
+  const uniqueId = useMemo(() => {
+    const srcKey = src?.split('/').pop()?.replace(/[^a-z0-9]/gi, '').slice(0, 10) || 'img'
+    return `blur-${srcKey}-${scale}`
+  }, [src, scale])
+
+  // Удаляем width/height из rest если есть
+  const { width, height, style, ...cleanRest } = rest
 
   return (
     <span className="block my-12 text-center">
-      <span
-        className="relative inline-block w-full overflow-hidden rounded-2xl shadow-2xl cursor-pointer"
-        style={{ maxWidth: `${scale}%` }}
-        onClick={() => setIsBlurred(false)}
+      {/* CSS с версией v2 для сброса кэша */}
+      <style>{`
+        #${uniqueId} {
+          width: 100% !important;
+          max-width: 100% !important;
+          min-width: 100% !important;
+          display: inline-block !important;
+        }
+        @media (min-width: 768px) {
+          #${uniqueId} { 
+            max-width: ${scale}% !important; 
+            min-width: auto !important;
+          }
+        }
+      `}</style>
+      
+      <span 
+        id={uniqueId}
+        className={`relative overflow-hidden rounded-2xl shadow-2xl inline-block ${hasBlur ? 'cursor-pointer' : ''}`}
+        onClick={() => hasBlur && setRevealed(true)}
       >
         <img
-          {...rest}
+          {...cleanRest}
           src={src}
           alt={caption}
-          loading="lazy"
-          className={`mx-auto w-full h-auto block transition-all duration-700 ${
-            isBlurred ? 'blur-2xl hover:blur-none' : 'blur-0'
-          }`}
+          className={`w-full h-auto block transition-all duration-700 ${showBlur ? 'blur-2xl' : 'blur-0'}`}
         />
       </span>
+      
       {caption && caption.toLowerCase() !== 'image' && (
-        <span className="block mt-4 text-sm text-muted-foreground italic px-4">{caption}</span>
+        <span className="block mt-4 text-sm italic text-muted-foreground px-4">
+          {caption}
+        </span>
       )}
     </span>
   )

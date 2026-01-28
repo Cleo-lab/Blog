@@ -172,10 +172,15 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
             {/* Самая важная часть для Google: статьи рендерятся сразу */}
             <BlogSection language={language} initialPosts={initialPosts} />
           </section>
+<section id="gallery">
+  <Gallery language={language} />
+</section>
 
-          <MiddleAdBanner />
-          <Gallery language={language} />
-          <Subscribe language={language} />
+<MiddleAdBanner />
+
+<section id="subscribe">
+  <Subscribe language={language} />
+</section>
           <FootAdBanner />
           <Footer language={language} onSupportClick={handleSupportClick} />
         </div>

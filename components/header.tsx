@@ -92,21 +92,46 @@ export default function Header({ currentSection, setCurrentSection, language, se
   };
 
   const handleNavClick = (sectionId: string) => {
-	  if (sectionId === 'about') {
+  // 1. Отдельная логика для страницы About (если это внешняя ссылка)
+  if (sectionId === 'about') {
     window.location.href = '/about';
     return;
   }
-    if (currentSection !== 'home' || sectionId === 'home') {
-      setCurrentSection('home');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+  
+  // 2. Если мы НЕ на главной (например, в профиле или на странице входа)
+  if (currentSection !== 'home') {
+    setCurrentSection('home');
+    
+    // Если нужно не просто вернуться в начало, а проскроллить к секции
     if (sectionId !== 'home') {
       setTimeout(() => {
         const element = document.getElementById(sectionId);
-        if (element) element.scrollIntoView({ behavior: 'smooth' });
-      }, currentSection !== 'home' ? 50 : 0);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 300); // Увеличили задержку, чтобы главная успела загрузиться
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  };
+    return;
+  }
+
+  // 3. Если мы уже на главной странице
+  if (sectionId === 'home') {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      // На случай, если элементы еще не отрендерились (из-за динамического импорта)
+      setTimeout(() => {
+        const retryElement = document.getElementById(sectionId);
+        if (retryElement) retryElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }
+};
 
   const renderNavItem = (item: { id: string; label: string }, isMobile = false) => {
     return (

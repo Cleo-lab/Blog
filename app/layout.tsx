@@ -147,9 +147,10 @@ export default function RootLayout({
       </head>
 
       <body className={poppins.className}>
-        <ProvidersWrapper>{children}</ProvidersWrapper>
-        <AnalyticsLazy />
-      </body>
+  <ProvidersWrapper>{children}</ProvidersWrapper>
+  <AnalyticsLazy />
+</body>
+
     </html>
   )
 }
