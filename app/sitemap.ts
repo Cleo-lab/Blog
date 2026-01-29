@@ -1,4 +1,3 @@
-// app/sitemap.ts
 import { MetadataRoute } from 'next'
 import { createServiceSupabase } from '@/lib/supabaseServer'
 
@@ -21,6 +20,9 @@ const baseUrl = 'https://yurieblog.vercel.app'
 
 const parseDate = (d: string | null): Date =>
   d && !isNaN(Date.parse(d)) ? new Date(d) : new Date()
+
+// Дата последних крупных правок по SEO (сегодняшняя)
+const lastSeoUpdate = new Date('2026-01-29') 
 
 /* ---------- main handler ---------- */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -65,13 +67,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/archiveblog`, 
       lastModified: latestPostDate, 
       changeFrequency: 'daily', 
-      priority: 0.95 // High priority for archive
+      priority: 0.9 
     },
     { 
       url: `${baseUrl}/about`, 
-      lastModified: new Date('2025-01-01'), 
-      changeFrequency: 'monthly', 
-      priority: 0.7 
+      lastModified: lastSeoUpdate, // Используем актуальную дату
+      changeFrequency: 'weekly',    // Заставляем робота заходить чаще
+      priority: 0.8 
     },
     { 
       url: `${baseUrl}/archivegallery`, 
@@ -81,21 +83,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     { 
       url: `${baseUrl}/contact`, 
-      lastModified: new Date('2025-01-01'), 
-      changeFrequency: 'yearly', 
-      priority: 0.5 
+      lastModified: lastSeoUpdate, 
+      changeFrequency: 'monthly', 
+      priority: 0.6 
     },
     { 
       url: `${baseUrl}/privacy`, 
-      lastModified: new Date('2025-01-01'), 
-      changeFrequency: 'yearly', 
-      priority: 0.3 
+      lastModified: lastSeoUpdate, 
+      changeFrequency: 'monthly', 
+      priority: 0.5 // Повысили для доверия (E-E-A-T)
     },
     { 
       url: `${baseUrl}/terms`, 
-      lastModified: new Date('2025-01-01'), 
-      changeFrequency: 'yearly', 
-      priority: 0.3 
+      lastModified: lastSeoUpdate, 
+      changeFrequency: 'monthly', 
+      priority: 0.5 
     },
   ]
 

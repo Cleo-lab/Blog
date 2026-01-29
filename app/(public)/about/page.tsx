@@ -6,7 +6,7 @@ import Breadcrumbs from '@/components/breadcrumbs'
 const siteUrl = 'https://yurieblog.vercel.app'
 
 export const metadata: Metadata = {
-  title: 'About Yurie — Internet Experiments, Side Hustles & Real Stories',
+  title: 'About Yurie Jiyūbō — Internet Experiments, Side Hustles & Real Stories',
   description:
     'Personal blog about online experiments, NSFW side hustles, creator economy, AI tools, and web development. Real data, real mistakes, no gurus.',
   keywords: [
@@ -21,9 +21,9 @@ export const metadata: Metadata = {
     'online experiments',
     'content creation',
   ],
-  authors: [{ name: 'Yurie', url: siteUrl }],
-  creator: 'Yurie',
-  publisher: "Yurie's Blog",
+  authors: [{ name: 'Yurie Jiyūbō', url: siteUrl }],
+  creator: 'Yurie Jiyūbō',
+  publisher: 'Yurie Jiyūbō',
   robots: {
     index: true,
     follow: true,
@@ -65,13 +65,12 @@ export const metadata: Metadata = {
 }
 
 export default function AboutPage() {
-  // Enhanced Person Schema
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Person',
     '@id': `${siteUrl}/#author`,
-    name: 'Yurie',
-    alternateName: 'Yurie Jiyūbō',
+    name: 'Yurie Jiyūbō',
+    alternateName: 'Yurie',
     url: siteUrl,
     image: {
       '@type': 'ImageObject',
@@ -79,9 +78,10 @@ export default function AboutPage() {
       width: 512,
       height: 512,
     },
-    description: 'Digital creator and blogger sharing real stories about online experiments, NSFW side hustles, creator economy, AI tools, and web development',
+    description: 'Digital creator and blogger sharing real stories about online experiments, creator economy, and digital marketing.',
     sameAs: [
       'https://bsky.app/profile/yurieblog.bsky.social',
+      'https://github.com/Cleo-lab',
     ],
     knowsAbout: [
       'Web Development',
@@ -166,7 +166,7 @@ export default function AboutPage() {
           {/* текст слева */}
           <div className="flex-1 order-2 md:order-1 text-center md:text-left">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">
-              About Yurie — Personal Blog & Internet Experiments
+              About Yurie Jiyūbō — Personal Blog & Internet Experiments
             </h1>
             <div className="text-foreground/90 space-y-4 text-lg text-justify text-wrap balance">
               <p>
@@ -184,7 +184,6 @@ export default function AboutPage() {
             </div>
           </div>
 
-          {/* картинка + Bluesky + Support блок для десктопа */}
           <div className="flex-1 order-1 md:order-2 flex flex-col gap-6">
             <Image
               src="/images/About.webp"
@@ -214,7 +213,7 @@ export default function AboutPage() {
               </a>
             </section>
 
-            {/* Support-Block для десктопа */}
+          
             <aside className="hidden md:block p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-indigo-500/20 border-l-4 border-pink-500 shadow-lg">
               <p className="text-lg md:text-xl text-foreground mb-4 text-justify">
                 Unfortunately, <strong>Elon Musk</strong> still hasn't heard about my blog, and I blocked <strong>Bill Gates</strong> in advance, just to make sure he never finds out 😄
@@ -227,7 +226,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Support-Block для мобильных */}
+      
         <aside className="block md:hidden p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-indigo-500/20 border-l-4 border-pink-500 shadow-lg mb-10">
           <p className="text-lg md:text-xl text-foreground mb-4 text-justify">
             Unfortunately, <strong>Elon Musk</strong> still hasn't heard about my blog, and I blocked <strong>Bill Gates</strong> in advance, just to make sure he never finds out 😄
@@ -238,7 +237,7 @@ export default function AboutPage() {
           <SupportButton />
         </aside>
 
-        {/* Contact footer */}
+      
         <footer className="mt-8 text-sm text-foreground/60 border-t border-border/50 pt-6">
           <p>
             Contact for collaborations or questions:{' '}

@@ -1,4 +1,3 @@
-// app/page.tsx
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import HomeWrapper from '@/components/home-wrapper'
@@ -8,12 +7,18 @@ import { fetchProfileServer } from '@/lib/profile-server'
 
 const siteUrl = 'https://yurieblog.vercel.app'
 
-// Metadata — остается как была
 export const metadata: Metadata = {
-  title: 'Yurie Blog: Digital Business Experiments & Creator Economy Data',
-  description: 'Digital business experiments, creator economy analytics & monetization strategies.',
+  // Добавили имя в заголовок для SEO-релевантности
+  title: 'Yurie Blog | Digital Experiments by Yurie Jiyūbō',
+  description: 'Digital business experiments, creator economy analytics and monetization strategies by Yurie Jiyūbō.',
   alternates: { canonical: siteUrl },
-  // ... остальные поля метаданных
+  openGraph: {
+    title: 'Yurie Blog: Digital Business & Creator Economy',
+    description: 'Data-driven insights into the creator economy by Yurie Jiyūbō.',
+    url: siteUrl,
+    siteName: 'Yurie Blog',
+    type: 'website',
+  }
 }
 
 export default async function Page() {
@@ -37,24 +42,37 @@ export default async function Page() {
     console.error('Error fetching data:', error)
   }
 
-  // СХЕМА WEBSITE (Sitelinks) — ТЕПЕРЬ ТУТ
+  // УСИЛЕННАЯ СХЕМА WEBSITE + PERSON
   const websiteSchema = {
     '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    '@id': `${siteUrl}/#website`,
-    url: siteUrl,
-    name: "Yurie's Blog",
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${siteUrl}/archiveblog?search={search_term_string}`
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        '@id': `${siteUrl}/#website`,
+        url: siteUrl,
+        name: "Yurie Blog", // Без апострофа
+        publisher: { '@id': `${siteUrl}/#person` },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${siteUrl}/archiveblog?search={search_term_string}`
+          },
+          'query-input': 'required name=search_term_string'
+        }
       },
-      'query-input': 'required name=search_term_string'
-    },
-    mainEntity: [
-      { '@type': 'SiteNavigationElement', name: 'Blog Archive', url: `${siteUrl}/archiveblog` },
-      { '@type': 'SiteNavigationElement', name: 'Gallery', url: `${siteUrl}/archivegallery` }
+      {
+        '@type': 'Person',
+        '@id': `${siteUrl}/#person`,
+        name: 'Yurie Jiyūbō',
+        url: `${siteUrl}/about`,
+        image: `${siteUrl}/images/Yurie_main.jpg`,
+        sameAs: [
+          'https://bsky.app/profile/yurieblog.bsky.social',
+          'https://github.com/Cleo-lab'
+        ],
+        jobTitle: 'Digital Creator & Analyst'
+      }
     ]
   }
 
@@ -62,18 +80,19 @@ export default async function Page() {
     '@context': 'https://schema.org',
     '@type': 'Blog',
     '@id': `${siteUrl}/#blog`,
-    name: "Yurie's Blog",
+    name: "Yurie Blog",
+    author: { '@id': `${siteUrl}/#person` },
     blogPost: posts.map(post => ({
       '@type': 'BlogPosting',
       headline: post.title,
       url: `${siteUrl}/blog/${post.slug}`,
-      datePublished: post.created_at
+      datePublished: post.created_at,
+      author: { '@id': `${siteUrl}/#person` }
     }))
   }
 
   return (
     <>
-      {/* Эти скрипты Google увидит ПЕРВЫМИ, они не зависят от Bailout */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
@@ -83,9 +102,6 @@ export default async function Page() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
       />
 
-      {/* Обертка Suspense ГАРАНТИРУЕТ, что остальная часть страницы (Layout) 
-          отрендерится на сервере, а "проблемный" клиентский код 
-          с useSearchParams не сломает SEO всей страницы */}
       <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
         <HomeWrapper
           initialPosts={posts}
