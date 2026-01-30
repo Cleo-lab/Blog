@@ -1,6 +1,8 @@
 import Image from 'next/image'
 import HeroButtons from './hero-buttons'
 
+const siteUrl = 'https://yurieblog.vercel.app'
+
 export default function HeroServer() {
   return (
     <section className="relative min-h-[60vh] sm:min-h-[calc(100svh-4rem)] pt-12 pb-8 flex flex-col items-center justify-center overflow-hidden">
@@ -12,7 +14,7 @@ export default function HeroServer() {
         <div className="hero-avatar-gradient w-60 h-60 rounded-full bg-gradient-to-br from-primary via-accent to-secondary p-1 mb-6 mx-auto">
           <Image
             src="/images/Yurie_main.jpg"
-            alt="Yurie - Digital Business Experiments & Creator Economy" 
+            alt="Yurie Jiyūbō - Digital Business Experiments & Creator Economy" 
             width={240}
             height={240}
             priority
@@ -23,11 +25,10 @@ export default function HeroServer() {
           />
         </div>
 
-<h1 className="text-4xl sm:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-  Yurie Blog - Digital Business Experiments & Creator Economy Insights
-</h1>
+        <h1 className="text-4xl sm:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+          Yurie Blog - Digital Business Experiments & Creator Economy Insights
+        </h1>
 
-        
         <div className="text-xl sm:text-2xl text-muted-foreground mb-4 max-w-2xl mx-auto">
           <p>Creator Economy Insights, Data & Digital Reality.</p>
           <span className="block mt-2 text-lg sm:text-xl font-medium">
@@ -35,13 +36,29 @@ export default function HeroServer() {
           </span>
         </div>
 
-        
         <p className="text-base sm:text-lg text-muted-foreground/80 mb-8 max-w-xl mx-auto italic">
           Honest insights about digital entrepreneurship, monetization strategies, and creator economy analytics. Data-driven storytelling.
         </p>
 
         <HeroButtons />
       </div>
+
+      {/* SEO Schema для Hero секции */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ImageObject",
+            "contentUrl": `${siteUrl}/images/Yurie_main.jpg`,
+            "description": "Yurie Jiyūbō - Digital Business Experiments & Creator Economy",
+            "name": "Yurie Blog Hero Image",
+            "author": {
+              "@id": `${siteUrl}/#author`
+            }
+          })
+        }}
+      />
     </section>
   )
 }

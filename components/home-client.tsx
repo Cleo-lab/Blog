@@ -18,7 +18,7 @@ import AnalyticsTracker from '@/components/analytics-tracker'
 import type { Profile } from '@/lib/profile'
 import { useToast } from '@/hooks/use-toast'
 
-// Динамические импорты остаются без изменений
+// Динамические импорты - НЕ критичны для SEO
 const DonorList = dynamic(() => import('@/components/donor-list'), { ssr: false })
 const BlueskyFeed = dynamic(() => import('@/components/bluesky-feed'), { ssr: false })
 const SignIn = dynamic(() => import('@/components/auth/sign-in'))
@@ -96,10 +96,6 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
     }
   }, [isLoggedIn, isAdmin, currentSection, authLoading, initialProfile])
 
-  /** * КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: 
-   * Мы удалили блок if (authLoading), чтобы страница рендерилась сразу.
-   */
-
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-pink-500/30">
       <Header
@@ -108,7 +104,6 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
         setCurrentSection={setCurrentSection}
         language={language}
         setLanguage={lang => setLanguage(lang as 'en' | 'es')}
-        // Показываем состояние "авторизован" только если загрузка прошла ИЛИ если есть данные с сервера
         isLoggedIn={(isLoggedIn || !!initialProfile)}
         isAdmin={isAdmin}
         onSignOut={handleSignOut}
@@ -172,15 +167,17 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
             {/* Самая важная часть для Google: статьи рендерятся сразу */}
             <BlogSection language={language} initialPosts={initialPosts} />
           </section>
-<section id="gallery">
-  <Gallery language={language} />
-</section>
 
-<MiddleAdBanner />
+          <section id="gallery">
+            <Gallery language={language} />
+          </section>
 
-<section id="subscribe">
-  <Subscribe language={language} />
-</section>
+          <MiddleAdBanner />
+
+          <section id="subscribe">
+            <Subscribe language={language} />
+          </section>
+          
           <FootAdBanner />
           <Footer language={language} onSupportClick={handleSupportClick} />
         </div>

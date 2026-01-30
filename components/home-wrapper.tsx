@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react' // 1. Импортируем Suspense
 import HomeClient from './home-client'
 import type { Profile } from '@/lib/profile'
 
@@ -15,12 +16,13 @@ export default function HomeWrapper({
   initialProfile,
 }: HomeWrapperProps) {
   return (
-    <div suppressHydrationWarning>
+    // 2. Оборачиваем компонент, использующий searchParams, в Suspense
+    <Suspense fallback={<div className="min-h-screen" />}> 
       <HomeClient
         initialPosts={initialPosts}
         hero={hero}
         initialProfile={initialProfile}
       />
-    </div>
+    </Suspense>
   )
 }
