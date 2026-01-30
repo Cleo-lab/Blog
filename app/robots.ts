@@ -1,82 +1,92 @@
 import { MetadataRoute } from 'next'
 
+const baseUrl = 'https://yurieblog.vercel.app'
+
+// 🔒 Приватные и служебные зоны
+const PRIVATE_PATHS = [
+  '/api/',
+  '/admin/',
+  '/auth/',
+  '/drafts/',
+  '/preview/',
+  '/checkout/',
+  '/search',
+] as const
+
+// 🤖 AI-боты (НЕ блокируем полностью)
+const AI_SCRAPERS = [
+  'GPTBot',
+  'ChatGPT-User',
+  'OAI-SearchBot',
+  'PerplexityBot',
+  'Claude-Web',
+  'anthropic-ai',
+  'Google-Extended',
+  'Applebot-Extended',
+] as const
+
+// 🚫 Агрессивные SEO-скраперы
+const AGGRESSIVE_BOTS = [
+  'AhrefsBot',
+  'SemrushBot',
+  'MJ12bot',
+  'BLEXBot',
+  'DotBot',
+  'Exabot',
+] as const
 
 export default function robots(): MetadataRoute.Robots {
-  const privatePaths = [
-    '/api/',
-    '/admin/',
-    '/auth/',
-    '/drafts/',
-    '/preview/',
-    '/checkout/',
-  ]
-
   return {
     rules: [
-      // Block AI scrapers
+      // 🔴 Жёстко блокируем агрессивных скраперов
       {
-        userAgent: [
-          'GPTBot',
-          'ChatGPT-User',
-          'CCBot',
-          'anthropic-ai',
-          'Claude-Web',
-          'Google-Extended',
-          'Applebot-Extended',
-          'OAI-SearchBot',
-          'PerplexityBot',
-          'Bytespider',
-          'AhrefsBot',
-          'SemrushBot',
-          'MJ12bot',
-          'BLEXBot',
-          'DotBot',
-          'Exabot',
-        ],
+        userAgent: [...AGGRESSIVE_BOTS],
         disallow: '/',
       },
-      
-      // Allow Googlebot
+
+      // 🟡 AI-ботам разрешаем ТОЛЬКО публичный контент
       {
-        userAgent: 'Googlebot',
+        userAgent: [...AI_SCRAPERS],
         allow: [
           '/',
-          '/archiveblog',
           '/blog/',
-          '/_next/static/',
-          '/_next/image',
-          '/videos/',
-          '/storage/v1/object/public/',
+          '/archiveblog',
         ],
-        disallow: privatePaths,
+        disallow: [
+          ...PRIVATE_PATHS,
+          '/_next/',
+        ],
       },
-      
-      // Allow Bingbot
+
+      // 🟢 Основные поисковики
       {
-        userAgent: 'Bingbot',
+        userAgent: ['Googlebot', 'Bingbot', 'YandexBot', 'DuckDuckBot'],
         allow: [
           '/',
-          '/archiveblog',
           '/blog/',
+          '/archiveblog',
           '/_next/static/',
           '/_next/image',
+          '/images/',
           '/videos/',
-          '/storage/v1/object/public/',
+          '/favicon.ico',
         ],
-        disallow: privatePaths,
+        disallow: [...PRIVATE_PATHS],
       },
-      
-      // Default rule for other bots
+
+      // ⚪ Все остальные
       {
         userAgent: '*',
         allow: [
           '/',
-          '/archiveblog',
           '/blog/',
+          '/archiveblog',
         ],
-        disallow: privatePaths,
+        disallow: [...PRIVATE_PATHS],
+        crawlDelay: 5, // мягкий hint
       },
     ],
-    sitemap: 'https://yurieblog.vercel.app/sitemap.xml'
+
+    sitemap: `${baseUrl}/sitemap.xml`,
   }
 }

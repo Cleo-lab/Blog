@@ -44,21 +44,33 @@ export default function HeroServer() {
       </div>
 
       {/* SEO Schema для Hero секции */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "ImageObject",
-            "contentUrl": `${siteUrl}/images/Yurie_main.jpg`,
-            "description": "Yurie Jiyūbō - Digital Business Experiments & Creator Economy",
-            "name": "Yurie Blog Hero Image",
-            "author": {
-              "@id": `${siteUrl}/#author`
-            }
-          })
-        }}
-      />
+<script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify([
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "url": siteUrl,
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": `${siteUrl}/search?q={search_term_string}`,
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "ImageObject",
+        "contentUrl": `${siteUrl}/images/Yurie_main.jpg`,
+        "description": "Yurie Jiyūbō - Digital Business Experiments & Creator Economy",
+        "name": "Yurie Blog Hero Image",
+        "author": {
+          "@id": `${siteUrl}/#author`
+        }
+      }
+    ])
+  }}
+/>
     </section>
   )
 }
