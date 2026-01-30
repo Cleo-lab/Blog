@@ -3,8 +3,8 @@ import { createServiceSupabase } from '@/lib/supabaseServer'
 
 export const revalidate = 86400
 
-const MAX_BLOG_POSTS = 100
-const MAX_GALLERY_ITEMS = 50
+const MAX_BLOG_POSTS = 500 // Увеличили лимит
+const MAX_GALLERY_ITEMS = 100
 
 type BlogRow = {
   slug: string
@@ -17,22 +17,19 @@ type GalleryRow = {
   created_at: string
 }
 
-const baseUrl = 'https://yurieblog.vercel.app' as const
+const baseUrl = 'https://yurieblog.vercel.app'
 const now = new Date()
 
+// Мягкая проверка даты
 const safeDate = (value?: string | null): Date => {
   if (!value) return now
   const d = new Date(value)
   return isNaN(d.getTime()) ? now : d
 }
 
-const isValidSlug = (slug: unknown): slug is string =>
-  typeof slug === 'string' &&
-  /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
-
-const isValidGalleryId = (id: unknown): id is string =>
-  typeof id === 'string' &&
-  /^[a-z0-9-]+$/.test(id)
+// Мягкая валидация: главное, чтобы это была строка
+const isValid = (val: unknown): val is string => 
+  typeof val === 'string' && val.trim().length > 0
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createServiceSupabase()
@@ -43,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .from('blog_posts')
         .select('slug, created_at, updated_at')
         .eq('published', true)
-        .order('updated_at', { ascending: false })
+        .order('created_at', { ascending: false }) // Сортировка по созданию надежнее
         .limit(MAX_BLOG_POSTS),
 
       supabase
@@ -56,13 +53,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const posts = (postsRes.data ?? []) as BlogRow[]
     const galleries = (galleriesRes.data ?? []) as GalleryRow[]
 
-    const latestPostDate =
-      posts.length > 0
+    // Определяем дату последнего обновления сайта
+    const latestPostDate = posts.length > 0
         ? safeDate(posts[0].updated_at || posts[0].created_at)
         : now
 
     const postUrls: MetadataRoute.Sitemap = posts
-      .filter(p => isValidSlug(p.slug))
+      .filter(p => isValid(p.slug))
       .map(p => ({
         url: `${baseUrl}/blog/${p.slug}`,
         lastModified: safeDate(p.updated_at || p.created_at),
@@ -71,7 +68,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }))
 
     const galleryUrls: MetadataRoute.Sitemap = galleries
-      .filter(g => isValidGalleryId(g.id))
+      .filter(g => isValid(g.id))
       .map(g => ({
         url: `${baseUrl}/gallery/${g.id}`,
         lastModified: safeDate(g.created_at),
@@ -80,44 +77,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }))
 
     const staticPages: MetadataRoute.Sitemap = [
-      {
-        url: baseUrl,
-        lastModified: latestPostDate,
-        changeFrequency: 'daily',
-        priority: 1.0,
-      },
-      {
-        url: `${baseUrl}/archiveblog`,
-        lastModified: latestPostDate,
-        changeFrequency: 'daily',
-        priority: 0.9,
-      },
-      {
-        url: `${baseUrl}/about`,
-        lastModified: latestPostDate,
-        changeFrequency: 'weekly',
-        priority: 0.8,
-      },
-      {
-        url: `${baseUrl}/archivegallery`,
-        lastModified: latestPostDate,
-        changeFrequency: 'weekly',
-        priority: 0.7,
-      },
+      { url: baseUrl, lastModified: latestPostDate, changeFrequency: 'daily', priority: 1.0 },
+      { url: `${baseUrl}/archiveblog`, lastModified: latestPostDate, changeFrequency: 'daily', priority: 0.9 },
+      { url: `${baseUrl}/about`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+      { url: `${baseUrl}/archivegallery`, lastModified: latestPostDate, changeFrequency: 'weekly', priority: 0.7 },
+      { url: `${baseUrl}/contact`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+      { url: `${baseUrl}/privacy`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     ]
 
     return [...staticPages, ...postUrls, ...galleryUrls]
 
   } catch (error) {
     console.error('Sitemap generation failed:', error)
-
-    return [
-      {
-        url: baseUrl,
-        lastModified: now,
-        changeFrequency: 'daily',
-        priority: 1.0,
-      },
-    ]
+    return [{ url: baseUrl, lastModified: now, changeFrequency: 'daily', priority: 1.0 }]
   }
 }
