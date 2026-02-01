@@ -2,6 +2,8 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -67,18 +69,55 @@ const translations = {
   },
 };
 
-export default function Header({ currentSection, setCurrentSection, language, setLanguage, isLoggedIn, isAdmin, onSignOut }: HeaderProps) {
+export default function Header({ 
+  currentSection, 
+  setCurrentSection, 
+  language, 
+  setLanguage, 
+  isLoggedIn, 
+  isAdmin, 
+  onSignOut 
+}: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
   const { avatarUrl } = useAuth();
   const t = translations[language as keyof typeof translations] || translations.en;
 
-  // ✅ Убрали Support из навигации
+  // ✅ Проверка: находимся ли на главной странице
+  const isHomePage = pathname === '/';
+
+  // ✅ Навигация с SEO-ссылками
   const navItems = [
-    { id: 'home', label: t.home },
-    { id: 'about', label: t.about },
-    { id: 'blog', label: t.blog },
-    { id: 'gallery', label: t.gallery },
-    { id: 'subscribe', label: t.subscribe },
+    { 
+      id: 'home', 
+      label: t.home, 
+      href: '/',
+      scrollTo: null // всегда переход на главную
+    },
+    { 
+      id: 'about', 
+      label: t.about, 
+      href: '/about',
+      scrollTo: null 
+    },
+    { 
+      id: 'blog', 
+      label: t.blog, 
+      href: '/archiveblog',
+      scrollTo: 'blog' // scroll только на главной
+    },
+    { 
+      id: 'gallery', 
+      label: t.gallery, 
+      href: '/archivegallery',
+      scrollTo: 'gallery' // scroll только на главной
+    },
+    { 
+      id: 'subscribe', 
+      label: t.subscribe, 
+      href: null, // только scroll, нет страницы
+      scrollTo: 'subscribe'
+    },
   ];
 
   const navigateToProfileSection = (sectionId: string) => {
@@ -91,56 +130,77 @@ export default function Header({ currentSection, setCurrentSection, language, se
     }, 100);
   };
 
-  const handleNavClick = (sectionId: string) => {
-  // 1. Отдельная логика для страницы About (если это внешняя ссылка)
-  if (sectionId === 'about') {
-    window.location.href = '/about';
-    return;
-  }
-  
-  // 2. Если мы НЕ на главной (например, в профиле или на странице входа)
-  if (currentSection !== 'home') {
-    setCurrentSection('home');
-    
-    // Если нужно не просто вернуться в начало, а проскроллить к секции
-    if (sectionId !== 'home') {
-      setTimeout(() => {
-        const element = document.getElementById(sectionId);
+  // ✅ Умная навигация: scroll на главной, переходы на других
+  const handleNavClick = (
+    e: React.MouseEvent, 
+    item: { id: string; href: string | null; scrollTo: string | null }
+  ) => {
+    // Если Subscribe (только scroll на главной)
+    if (!item.href && item.scrollTo) {
+      e.preventDefault();
+      if (isHomePage) {
+        const element = document.getElementById(item.scrollTo);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-      }, 300); // Увеличили задержку, чтобы главная успела загрузиться
-    } else {
+      }
+      return;
+    }
+
+    // Если на главной И есть scrollTo - делаем scroll
+    if (isHomePage && item.scrollTo) {
+      e.preventDefault();
+      const element = document.getElementById(item.scrollTo);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      return;
+    }
+
+    // Если Home - всегда scroll вверх на главной
+    if (item.id === 'home' && isHomePage) {
+      e.preventDefault();
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
-    return;
-  }
 
-  // 3. Если мы уже на главной странице
-  if (sectionId === 'home') {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  } else {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      // На случай, если элементы еще не отрендерились (из-за динамического импорта)
-      setTimeout(() => {
-        const retryElement = document.getElementById(sectionId);
-        if (retryElement) retryElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+    // Иначе - переход по ссылке (Link сделает это сам)
+  };
+
+  const renderNavItem = (
+    item: { id: string; label: string; href: string | null; scrollTo: string | null }, 
+    isMobile = false
+  ) => {
+    const isActive = pathname === item.href;
+    
+    const className = `${
+      isMobile ? 'block w-full text-left px-4 py-2' : 'px-3 py-2'
+    } rounded-lg text-sm font-medium transition-colors ${
+      isActive 
+        ? 'text-primary bg-muted' 
+        : 'text-foreground/70 hover:bg-muted hover:text-foreground'
+    }`;
+
+    // Если есть href - используем Link для SEO
+    if (item.href) {
+      return (
+        <Link
+          key={item.id}
+          href={item.href}
+          className={className}
+          onClick={(e) => handleNavClick(e, item)}
+        >
+          {item.label}
+        </Link>
+      );
     }
-  }
-};
 
-  const renderNavItem = (item: { id: string; label: string }, isMobile = false) => {
+    // Если только scroll (Subscribe)
     return (
       <button
         key={item.id}
-        onClick={() => handleNavClick(item.id)}
-        className={`${isMobile ? 'block w-full text-left px-4 py-2' : 'px-3 py-2'} rounded-lg text-sm font-medium transition-colors ${
-          currentSection === 'home' && currentSection === item.id ? 'text-primary bg-muted' : 'text-foreground/70 hover:bg-muted hover:text-foreground'
-        }`}
+        onClick={(e) => handleNavClick(e, item)}
+        className={className}
       >
         {item.label}
       </button>
@@ -152,12 +212,12 @@ export default function Header({ currentSection, setCurrentSection, language, se
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavClick('home')}>
+          <Link href="/" className="flex items-center gap-2 cursor-pointer">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary" />
             <span className="hidden sm:inline font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Yurie
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
