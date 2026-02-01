@@ -1,6 +1,7 @@
 // app/gallery/[id]/page.tsx
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import Link from 'next/link' // Добавь импорт Link
 import { createServiceSupabase } from '@/lib/supabaseServer'
 import GalleryImageClient from './gallery-image-client'
 
@@ -8,10 +9,8 @@ const siteUrl = 'https://yurieblog.vercel.app'
 const siteName = 'Yurie Blog'
 const authorName = 'Yurie Jiyūbō'
 
-// Revalidate каждые 24 часа
 export const revalidate = 86400
 
-/* ---------- DYNAMIC METADATA ---------- */
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Metadata> {
@@ -34,6 +33,7 @@ export async function generateMetadata(
 
   const imageUrl = image.image || `${siteUrl}/images/Yurie_main.jpg`
 
+  // ✅ ВОТ ЭТО ВОЗВРАТ (return) обязателен:
   return {
     title: `${image.title} | Gallery | ${siteName}`,
     description,
@@ -60,7 +60,6 @@ export async function generateMetadata(
   }
 }
 
-/* ---------- SERVER COMPONENT ---------- */
 export default async function GalleryImagePage({ 
   params 
 }: { 
@@ -69,7 +68,7 @@ export default async function GalleryImagePage({
   const { id } = await params
   const supabase = createServiceSupabase()
 
-  // Fetch image on server
+  // Fetch текущую картинку
   const { data: image, error } = await supabase
     .from('gallery')
     .select('id, title, description, image, created_at')
@@ -80,7 +79,27 @@ export default async function GalleryImagePage({
     notFound()
   }
 
-  // ✅ Schema.org для галереи
+  // ✅ ПОЛУЧАЕМ ПРЕДЫДУЩУЮ И СЛЕДУЮЩУЮ КАРТИНКИ
+  const { data: prevImage } = await supabase
+    .from('gallery')
+    .select('id')
+    .lt('created_at', image.created_at) // created_at меньше текущей
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  const { data: nextImage } = await supabase
+    .from('gallery')
+    .select('id')
+    .gt('created_at', image.created_at) // created_at больше текущей
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .single()
+
+  const prevId = prevImage?.id
+  const nextId = nextImage?.id
+
+  // Schema.org (оставь как есть)
   const imageObjectSchema = {
     '@context': 'https://schema.org',
     '@type': 'ImageObject',
@@ -89,139 +108,99 @@ export default async function GalleryImagePage({
     name: image.title,
     description: image.description || image.title,
     datePublished: image.created_at,
-    author: {
-      '@id': `${siteUrl}/#author`
-    },
-    publisher: {
-      '@id': `${siteUrl}/#organization`
-    },
+    author: { '@id': `${siteUrl}/#author` },
+    publisher: { '@id': `${siteUrl}/#organization` },
     mainEntityOfPage: {
       '@type': 'WebPage',
       '@id': `${siteUrl}/gallery/${image.id}`
     }
   }
 
-  // ✅ Breadcrumbs
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { 
-        '@type': 'ListItem', 
-        position: 1, 
-        name: 'Home', 
-        item: siteUrl 
-      },
-      { 
-        '@type': 'ListItem', 
-        position: 2, 
-        name: 'Gallery', 
-        item: `${siteUrl}/archivegallery` 
-      },
-      { 
-        '@type': 'ListItem', 
-        position: 3, 
-        name: image.title, 
-        item: `${siteUrl}/gallery/${image.id}` 
-      },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: siteUrl },
+      { '@type': 'ListItem', position: 2, name: 'Gallery', item: `${siteUrl}/archivegallery` },
+      { '@type': 'ListItem', position: 3, name: image.title, item: `${siteUrl}/gallery/${image.id}` },
     ],
   }
 
   return (
     <>
-      <script 
-        type="application/ld+json" 
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(imageObjectSchema) }} 
-      />
-      <script 
-        type="application/ld+json" 
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} 
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(imageObjectSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
-      {/* ✅ Уникальный контент на сервере для SEO */}
       <div className="min-h-screen bg-background">
         <div className="max-w-4xl mx-auto px-4 py-12">
           
-          {/* ✅ Breadcrumbs с microdata */}
-          <nav 
-            className="text-sm text-muted-foreground mb-6" 
-            aria-label="Breadcrumb"
-            itemScope 
-            itemType="https://schema.org/BreadcrumbList"
-          >
+          {/* Breadcrumbs (оставь как есть) */}
+          <nav className="text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
             <ol className="flex items-center space-x-2">
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/" itemProp="item" className="hover:text-pink-500 transition-colors">
-                  <span itemProp="name">Home</span>
-                </a>
-                <meta itemProp="position" content="1" />
-              </li>
+              <li><Link href="/" className="hover:text-pink-500">Home</Link></li>
               <li>/</li>
-              <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <a href="/archivegallery" itemProp="item" className="hover:text-pink-500 transition-colors">
-                  <span itemProp="name">Gallery</span>
-                </a>
-                <meta itemProp="position" content="2" />
-              </li>
+              <li><Link href="/archivegallery" className="hover:text-pink-500">Gallery</Link></li>
               <li>/</li>
-              <li className="text-foreground truncate max-w-[200px] font-medium" itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                <span itemProp="name">{image.title}</span>
-                <meta itemProp="position" content="3" />
-              </li>
+              <li className="text-foreground truncate max-w-[200px] font-medium">{image.title}</li>
             </ol>
           </nav>
 
-          {/* ✅ Уникальный заголовок для каждой страницы */}
-          <article itemScope itemType="https://schema.org/ImageObject">
-            <meta itemProp="contentUrl" content={image.image} />
-            <meta itemProp="datePublished" content={image.created_at || ''} />
+          <article>
+            <h1 className="text-4xl font-bold mb-4 text-foreground">{image.title}</h1>
             
-            <h1 
-              className="text-4xl font-bold mb-4 text-foreground" 
-              itemProp="name"
-            >
-              {image.title}
-            </h1>
-
             <div className="flex items-center gap-4 mb-8 pb-8 border-b border-border/50">
-              <div itemProp="author" itemScope itemType="https://schema.org/Person">
-                <link itemProp="url" href={`${siteUrl}/#author`} />
-                <meta itemProp="name" content={authorName} />
-                <p className="text-sm text-muted-foreground">
-                  By <span className="font-medium">{authorName}</span>
-                </p>
-              </div>
+              <p className="text-sm text-muted-foreground">By <span className="font-medium">{authorName}</span></p>
               <span className="text-muted-foreground">•</span>
-              <time 
-                className="text-sm text-muted-foreground" 
-                dateTime={image.created_at || undefined}
-                itemProp="datePublished"
-              >
-                {image.created_at 
-                  ? new Date(image.created_at).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })
-                  : 'Unknown date'
-                }
+              <time className="text-sm text-muted-foreground">
+                {image.created_at ? new Date(image.created_at).toLocaleDateString('en-US', {
+                  year: 'numeric', month: 'long', day: 'numeric'
+                }) : 'Unknown date'}
               </time>
             </div>
 
-            {/* ✅ Уникальное описание */}
             {image.description && (
-              <div 
-                className="prose prose-invert max-w-none mb-8 text-foreground/90"
-                itemProp="description"
-              >
-                <p className="leading-relaxed whitespace-pre-wrap">
-                  {image.description}
-                </p>
+              <div className="prose prose-invert max-w-none mb-8 text-foreground/90">
+                <p className="leading-relaxed whitespace-pre-wrap">{image.description}</p>
               </div>
             )}
+
+            {/* ✅ НАВИГАЦИЯ Next/Prev - ДОБАВЬ СЮДА */}
+            <div className="flex justify-between items-center mt-8 mb-8 py-4 border-t border-b border-border/30">
+              <div>
+                {prevId ? (
+                  <Link 
+                    href={`/gallery/${prevId}`} 
+                    className="flex items-center gap-2 text-pink-500 hover:text-pink-600 transition-colors"
+                  >
+                    <span>←</span> Previous
+                  </Link>
+                ) : (
+                  <span className="text-muted-foreground cursor-not-allowed">← Previous</span>
+                )}
+              </div>
+              
+              <Link 
+                href="/archivegallery" 
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Back to Gallery
+              </Link>
+
+              <div>
+                {nextId ? (
+                  <Link 
+                    href={`/gallery/${nextId}`} 
+                    className="flex items-center gap-2 text-pink-500 hover:text-pink-600 transition-colors"
+                  >
+                    Next <span>→</span>
+                  </Link>
+                ) : (
+                  <span className="text-muted-foreground cursor-not-allowed">Next →</span>
+                )}
+              </div>
+            </div>
           </article>
 
-          {/* Client component для интерактивности */}
           <GalleryImageClient imageId={id} initialImage={image} />
         </div>
       </div>

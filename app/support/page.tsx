@@ -1,14 +1,14 @@
-// @/components/support-page.tsx
+// app/support/page.tsx
 'use client'
 
 import Link from 'next/link'
-import { X, ArrowLeft } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import CryptoDonationBox from '@/components/crypto-donation-box'
 
 export default function SupportPage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Header с кнопкой закрыть */}
+      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border px-4 py-4">
         <div className="max-w-xl mx-auto flex justify-between items-center">
           <Link 
@@ -26,8 +26,10 @@ export default function SupportPage() {
             Yurie
           </Link>
         </div>
-      </header>      {/* Контент */}
-      <main className="flex-grow pt-12 pb-16">
+      </header>
+
+      {/* Main content */}
+      <main className="flex-1 pt-12 pb-16">
         <div className="max-w-xl mx-auto px-4">
           <h1 className="text-4xl font-extrabold text-center mb-8 text-foreground">
             Support the Project
@@ -37,8 +39,10 @@ export default function SupportPage() {
           </p>
           <CryptoDonationBox />
         </div>
-      </main>      {/* Footer теперь внизу благодаря flex-grow */}
-      <footer className="bg-card border-t border-border/50 py-6 px-4">
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-card border-t border-border/50 py-6 px-4 mt-auto">
         <div className="max-w-xl mx-auto text-center">
           <p className="text-sm text-foreground/60">© 2025, Character Blog. Made with love 💖</p>
         </div>
