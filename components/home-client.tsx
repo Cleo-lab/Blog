@@ -14,11 +14,9 @@ import { useAuth } from '@/hooks/use-auth'
 import { useSupabase } from '@/hooks/use-supabase'
 import MiddleAdBanner from '@/components/MiddleAdBanner'
 import { useSearchParams, useRouter } from 'next/navigation'
-import AnalyticsTracker from '@/components/analytics-tracker'
 import type { Profile } from '@/lib/profile'
 import { useToast } from '@/hooks/use-toast'
 
-// Динамические импорты - НЕ критичны для SEO
 const DonorList = dynamic(() => import('@/components/donor-list'), { ssr: false })
 const BlueskyFeed = dynamic(() => import('@/components/bluesky-feed'), { ssr: false })
 const SignIn = dynamic(() => import('@/components/auth/sign-in'))
@@ -31,7 +29,7 @@ const BlogTeaser = dynamic(() => import('@/components/blog/blog-teaser'))
 
 interface HomeClientProps {
   initialPosts: any[]
-  hero: React.ReactNode 
+  hero: React.ReactNode  // Hero передается сюда
   initialProfile?: Profile | null
 }
 
@@ -47,7 +45,6 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
   const router = useRouter()
   const supabase = useSupabase()
 
-  // Логика параметров URL
   useEffect(() => {
     const section = searchParams.get('section')
     const tab = searchParams.get('tab')
@@ -85,7 +82,6 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 
-  // Защита приватных разделов
   useEffect(() => {
     if (!authLoading) {
       const isPrivate = ['profile', 'mycomments'].includes(currentSection)
@@ -109,11 +105,10 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
         onSignOut={handleSignOut}
       />
       
-      <AnalyticsTracker isAdmin={isAdmin} />
-
       {currentSection === 'home' && (
         <div className="animate-in fade-in zoom-in-95 duration-1000">
           <section id="home" className="pt-4 sm:pt-10 pb-4 px-2">
+            {/* ⬇️ ВОТ ЭТОТ GRID ДОЛЖЕН БЫТЬ СОХРАНЁН ⬇️ */}
             <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               
               {/* Левая колонка - Hall of Fame */}
@@ -130,9 +125,9 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
                 </div>
               </div>
 
-              {/* Центр - Hero контент */}
+              {/* Центр - Hero (СЮДА ПРИХОДИТ hero ИЗ page.tsx) */}
               <div className="lg:col-span-6 order-1 lg:order-2">
-                {hero}
+                {hero} {/* ⬅️ ЭТО HeroServer С H1 */}
               </div>
 
               {/* Правая колонка - Bluesky Feed */}
@@ -150,7 +145,6 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
                     </div>
                   </div>
                   
-                  {/* Тизер для неавторизованных */}
                   {(!isLoggedIn && !initialProfile && !authLoading) && (
                     <div className="absolute inset-0 z-10 flex items-center justify-center p-6">
                       <BlogTeaser onSignIn={() => setCurrentSection('signin')} />
@@ -159,12 +153,15 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
                 </div>
               </div>
             </div>
-          </section>
+            {/* ⬆️ ЗДЕСЬ GRID ЗАКАНЧИВАЕТСЯ ⬆️ */}
 
-          <About language={language} />
+            {/* ⬇️ А ЗДЕСЬ НАЧИНАЕТСЯ КОНТЕНТ ПОД GRID ⬇️ */}
+            <div className="max-w-[1440px] mx-auto px-2 sm:px-4">
+              <About language={language} />
+            </div>
+          </section>
           
           <section id="blog" className="py-2">
-            {/* Самая важная часть для Google: статьи рендерятся сразу */}
             <BlogSection language={language} initialPosts={initialPosts} />
           </section>
 

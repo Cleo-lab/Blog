@@ -25,17 +25,23 @@ interface GalleryData {
 
 interface GalleryProps {
   language: 'en' | 'es'
+  initialImages?: GalleryImage[] // Данные с сервера
 }
 
-export default function Gallery({ language }: GalleryProps) {
-  const [images, setImages] = useState<GalleryImage[]>([])
-  const [totalCount, setTotalCount] = useState(0)
-  const [loading, setLoading] = useState(true)
+export default function Gallery({ language, initialImages = [] }: GalleryProps) {
+  // 1. Инициализируем стейт данными с сервера
+  const [images, setImages] = useState<GalleryImage[]>(initialImages)
+  // 2. Если есть начальные изображения, выключаем загрузку сразу, чтобы сервер отрендерил список
+  const [loading, setLoading] = useState(initialImages.length === 0)
+  // 3. Предварительно ставим количество, равное количеству начальных данных
+  const [totalCount, setTotalCount] = useState(initialImages.length)
 
   const lang: 'en' | 'es' = (language === 'es' ? 'es' : 'en')
   const supabase = useSupabase()
 
   useEffect(() => {
+    // Если данные уже есть (пришли с сервера), мы все равно можем 
+    // обновить их в фоне, чтобы получить актуальный totalCount
     fetchGalleryImages()
   }, [])
 
@@ -49,7 +55,7 @@ export default function Gallery({ language }: GalleryProps) {
 
       if (error) throw error
 
-      setTotalCount(count ?? 0)
+      if (count !== null) setTotalCount(count)
 
       const mappedImages = (data || []).map((item: GalleryData) => ({
         id: item.id,
@@ -57,6 +63,7 @@ export default function Gallery({ language }: GalleryProps) {
         description: item.description || '',
         image: item.image,
       }))
+      
       setImages(mappedImages)
     } catch (error) {
       console.error('Error fetching gallery images:', error)
@@ -65,16 +72,16 @@ export default function Gallery({ language }: GalleryProps) {
     }
   }
 
-  if (loading)
+  // Если данных нет и идет загрузка — показываем скелетон
+  if (loading && images.length === 0) {
     return (
-      <section className="py-16 sm:py-24 px-4 bg-gradient-to-b from-background via-muted/5 to-background">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center py-12">
-            <p className="text-foreground/60">Loading gallery...</p>
-          </div>
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto text-center py-12">
+          <p className="text-foreground/60 italic">Loading magic...</p>
         </div>
       </section>
     )
+  }
 
   return (
     <section className="py-1 sm:py-4 px-4 bg-gradient-to-b from-background via-muted/5 to-background">
@@ -95,31 +102,33 @@ export default function Gallery({ language }: GalleryProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {images.map((item, idx) => (
                 <Link key={item.id} href={`/gallery/${item.id}`}>
-                  <div className="group relative h-64 rounded-xl overflow-hidden cursor-pointer bg-card border border-border/50 transition-transform hover:scale-105">
+                  {/* Мы используем статью (article) для лучшего SEO внутри галереи */}
+                  <article className="group relative h-64 rounded-xl overflow-hidden cursor-pointer bg-card border border-border/50 transition-transform hover:scale-105">
                     <Image
                       src={item.image}
                       alt={item.title}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover group-hover:scale-110 transition-transform duration-300"
-                      priority={idx < 3}
+                      priority={idx < 3} // Приоритет загрузки для первых 3 фото
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                       <div className="w-full">
-                        <p className="text-white font-semibold">{item.title}</p>
+                        <h3 className="text-white font-semibold">{item.title}</h3>
                         {item.description && (
                           <p className="text-white/80 text-sm mt-1 line-clamp-2">{item.description}</p>
                         )}
                       </div>
                     </div>
-                  </div>
+                  </article>
                 </Link>
               ))}
             </div>
 
+            {/* Кнопка "Load More" появится, как только totalCount обновится с клиента */}
             {totalCount > 6 && (
-              <div className="w-full flex justify-center mt-1">
-                <LoadMoreBtn href="/archivegallery" lang={lang || 'en'} color="purple" />
+              <div className="w-full flex justify-center mt-10">
+                <LoadMoreBtn href="/archivegallery" lang={lang} color="purple" />
               </div>
             )}
           </>
