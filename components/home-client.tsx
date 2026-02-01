@@ -179,9 +179,9 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
           </section>
           
           <FootAdBanner />
-          <Footer language={language} onSupportClick={handleSupportClick} />
         </div>
       )}
+      <Footer language={language} onSupportClick={handleSupportClick} />
 
       {/* Другие разделы */}
       <div className="relative z-50">
