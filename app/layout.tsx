@@ -7,6 +7,7 @@ import AnalyticsLazy from '@/components/analytics-lazy'
 import CookieBannerClient from '@/components/cookie-banner-client'
 import Footer from '@/components/footer'
 import HeaderWrapper from '@/components/header-wrapper' // Импортируем обертку
+import { Suspense } from 'react'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -94,9 +95,9 @@ export default function RootLayout({
       <body className={poppins.className}>
         <ProvidersWrapper>
           <div className="flex flex-col min-h-screen">
-            {/* 🟢 Хедер теперь здесь, он будет на всех страницах */}
-            <HeaderWrapper />
-
+            <Suspense fallback={<div className="h-[72px] w-full bg-background" />}>
+              <HeaderWrapper />
+            </Suspense>
             <main className="flex-grow">
               {children}
             </main>
