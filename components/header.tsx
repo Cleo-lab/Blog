@@ -130,41 +130,39 @@ export default function Header({
     }, 100);
   };
 
-  // ✅ Умная навигация: scroll на главной, переходы на других
+  // ✅ Умная навигация: переход для Blog/Gallery, скролл для Subscribe/Home
   const handleNavClick = (
     e: React.MouseEvent, 
     item: { id: string; href: string | null; scrollTo: string | null }
   ) => {
-    // Если Subscribe (только scroll на главной)
-    if (!item.href && item.scrollTo) {
+    // 1. Если это Subscribe — только скроллим на главной
+    if (item.id === 'subscribe') {
       e.preventDefault();
       if (isHomePage) {
-        const element = document.getElementById(item.scrollTo);
+        const element = document.getElementById(item.scrollTo!);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+      } else {
+        // Если мы не на главной, кнопка Subscribe может либо вести на главную к секции, 
+        // либо ничего не делать. Обычно лучше отправить на главную:
+        window.location.href = '/#subscribe';
       }
       return;
     }
 
-    // Если на главной И есть scrollTo - делаем scroll
-    if (isHomePage && item.scrollTo) {
-      e.preventDefault();
-      const element = document.getElementById(item.scrollTo);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // 2. Если это Home — всегда скроллим вверх на главной
+    if (item.id === 'home') {
+      if (isHomePage) {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
       return;
     }
 
-    // Если Home - всегда scroll вверх на главной
-    if (item.id === 'home' && isHomePage) {
-      e.preventDefault();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
-    // Иначе - переход по ссылке (Link сделает это сам)
+    // 3. Для Blog и Gallery — НЕ вызываем e.preventDefault().
+    // Это позволит компоненту <Link> выполнить обычный переход на /archiveblog или /archivegallery,
+    // даже если мы находимся на главной странице.
   };
 
   const renderNavItem = (

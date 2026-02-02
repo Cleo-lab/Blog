@@ -3,12 +3,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Heart } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import Header from '@/components/header'
 import About from '@/components/about'
 import BlogSection from '@/components/blog-section'
 import Gallery from '@/components/gallery'
 import Subscribe from '@/components/subscribe'
-import Footer from '@/components/footer'
 import FootAdBanner from '@/components/FootAdBanner'
 import { useAuth } from '@/hooks/use-auth'
 import { useSupabase } from '@/hooks/use-supabase'
@@ -94,16 +92,7 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-pink-500/30">
-      <Header
-        key={refreshKey}
-        currentSection={currentSection}
-        setCurrentSection={setCurrentSection}
-        language={language}
-        setLanguage={lang => setLanguage(lang as 'en' | 'es')}
-        isLoggedIn={(isLoggedIn || !!initialProfile)}
-        isAdmin={isAdmin}
-        onSignOut={handleSignOut}
-      />
+      
       
       {currentSection === 'home' && (
         <div className="animate-in fade-in zoom-in-95 duration-1000">
@@ -178,7 +167,6 @@ export default function HomeClient({ initialPosts, hero, initialProfile }: HomeC
           <FootAdBanner />
         </div>
       )}
-      <Footer language={language} />
 
       {/* Другие разделы */}
       <div className="relative z-50">

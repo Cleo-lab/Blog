@@ -82,8 +82,10 @@ export default function Footer({ language }: FooterProps) {
             <ul className="space-y-2">
               <li><Link href="/privacy" className="text-sm text-foreground/70 hover:text-primary transition-colors block">{t.privacy}</Link></li>
               <li><Link href="/terms" className="text-sm text-foreground/70 hover:text-primary transition-colors block">{t.terms}</Link></li>
-              <li><Link href="/sitemap.html" className="text-sm text-foreground/70 hover:text-primary transition-colors block">{t.sitemap}</Link></li>
-            </ul>
+              <li><Link href="/pages-list" className="text-sm text-foreground/70 hover:text-primary transition-colors block">
+    {t.sitemap}
+  </Link>
+</li></ul>
           </nav>
 
           {/* Topics - убраны <li> без ссылок, заменены на span */}

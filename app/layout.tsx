@@ -5,6 +5,9 @@ import './globals.css'
 import { ProvidersWrapper } from '@/components/providers-wrapper'
 import AnalyticsLazy from '@/components/analytics-lazy'
 import CookieBannerClient from '@/components/cookie-banner-client'
+import Footer from '@/components/footer'
+import HeaderWrapper from '@/components/header-wrapper' // Импортируем обертку
+
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
@@ -20,7 +23,7 @@ export const metadata: Metadata = {
     default: 'Yurie Blog — Digital Business Experiments by Yurie Jiyūbō',
     template: '%s | Yurie Jiyūbō',
   },
-  description: 'Digital business experiments, creator economy analytics & monetization strategies. Data-driven insights from online entrepreneurship trenches.',
+  description: 'Digital business experiments, creator economy analytics & monetization strategies.',
   authors: [{ name: 'Yurie Jiyūbō', url: siteUrl }],
   creator: 'Yurie Jiyūbō',
   publisher: 'Yurie Jiyūbō', 
@@ -28,18 +31,10 @@ export const metadata: Metadata = {
     google: 'WXnuGqV3agaGqnSqBJBEuym8I5KkJuvH4AMNKWXodYM',
   },
   metadataBase: new URL(siteUrl),
-  
   openGraph: {
-    title: 'Yurie Blog — Digital Entrepreneurship & Creator Economy Data',
-    description: 'Personal blog about digital business experiments, content monetization strategies, and data-driven entrepreneurial insights.',
-    images: [
-      {
-        url: '/images/Yurie_main.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Yurie Blog by Yurie Jiyūbō',
-      },
-    ],
+    title: 'Yurie Blog — Digital Entrepreneurship',
+    description: 'Personal blog about digital business experiments.',
+    images: [{ url: '/images/Yurie_main.jpg', width: 1200, height: 630, alt: 'Yurie Blog' }],
     type: 'website',
     url: siteUrl,
     siteName: 'Yurie Jiyūbō Blog',
@@ -47,23 +42,16 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Yurie Blog — Digital Entrepreneurship & Data Insights',
-    description: 'Personal blog about creator economy experiments and monetization strategies.',
+    title: 'Yurie Blog',
+    description: 'Personal blog about creator economy.',
     images: ['/images/Yurie_main.jpg'],
     creator: '@yurieblog.bsky.social',
   },
   robots: {
     index: true,
     follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
+    googleBot: { index: true, follow: true },
   },
-  category: 'Business & Entrepreneurship',
 }
 
 export default function RootLayout({
@@ -76,56 +64,23 @@ export default function RootLayout({
     '@type': 'Organization',
     '@id': `${siteUrl}/#organization`,
     name: "Yurie's Blog",
-    alternateName: 'Yurie Blog',
     url: siteUrl,
-    logo: {
-      '@type': 'ImageObject',
-      url: `${siteUrl}/images/Yurie_main.jpg`,
-      width: 512,
-      height: 512,
-    },
-    sameAs: [
-      'https://bsky.app/profile/yurieblog.bsky.social',
-    ],
-    contactPoint: {
-      '@type': 'ContactPoint',
-      contactType: 'Business Inquiries',
-      url: `${siteUrl}/contact`,
-    },
+    contactPoint: { '@type': 'ContactPoint', contactType: 'Business Inquiries', url: `${siteUrl}/contact` },
   }
 
   const personSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Person',
-  '@id': `${siteUrl}/#author`,
-  name: 'Yurie Jiyūbō',
-  alternateName: 'Yurie',
-  url: siteUrl,
-  image: {
-    '@type': 'ImageObject',
-    url: `${siteUrl}/images/Yurie_main.jpg`,
-  },
-  sameAs: [
-    'https://bsky.app/profile/yurieblog.bsky.social',
-    'https://github.com/Cleo-lab',
-  ],
-  jobTitle: 'Digital Entrepreneur & Content Creator',
-  description: 'Personal blog about creator economy experiments and monetization strategies.',
-  knowsAbout: [
-    'Digital Business Experiments', 
-    'Creator Economy Analytics',
-    'Content Monetization Strategy',
-    'Digital Marketing',
-    'Entrepreneurship',
-  ],
-}
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    '@id': `${siteUrl}/#author`,
+    name: 'Yurie Jiyūbō',
+    url: siteUrl,
+  }
 
   return (
     <html lang="en">
       <head>
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
@@ -137,11 +92,22 @@ export default function RootLayout({
       </head>
 
       <body className={poppins.className}>
-  <ProvidersWrapper>{children}</ProvidersWrapper>
-  <AnalyticsLazy />
-  <CookieBannerClient />
-</body>
+        <ProvidersWrapper>
+          <div className="flex flex-col min-h-screen">
+            {/* 🟢 Хедер теперь здесь, он будет на всех страницах */}
+            <HeaderWrapper />
 
+            <main className="flex-grow">
+              {children}
+            </main>
+            
+            {/* Футер здесь */}
+            <Footer language="en" />
+          </div>
+        </ProvidersWrapper>
+        <AnalyticsLazy />
+        <CookieBannerClient />
+      </body>
     </html>
   )
 }

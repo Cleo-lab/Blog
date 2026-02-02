@@ -1,7 +1,7 @@
-// app/gallery/[id]/page.tsx
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import Link from 'next/link' // Добавь импорт Link
+import Link from 'next/link'
+import Image from 'next/image'
 import { createServiceSupabase } from '@/lib/supabaseServer'
 import GalleryImageClient from './gallery-image-client'
 
@@ -11,6 +11,7 @@ const authorName = 'Yurie Jiyūbō'
 
 export const revalidate = 86400
 
+/* ---------- ДИНАМИЧЕСКИЕ МЕТАДАННЫЕ ---------- */
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Metadata> {
@@ -23,9 +24,7 @@ export async function generateMetadata(
     .eq('id', id)
     .single()
 
-  if (!image) {
-    return { title: 'Image Not Found' }
-  }
+  if (!image) return { title: 'Image Not Found' }
 
   const description = image.description 
     ? image.description.slice(0, 160).trim() 
@@ -33,33 +32,28 @@ export async function generateMetadata(
 
   const imageUrl = image.image || `${siteUrl}/images/Yurie_main.jpg`
 
-  // ✅ ВОТ ЭТО ВОЗВРАТ (return) обязателен:
   return {
     title: `${image.title} | Gallery | ${siteName}`,
     description,
-    alternates: {
-      canonical: `${siteUrl}/gallery/${image.id}`,
-    },
+    alternates: { canonical: `${siteUrl}/gallery/${image.id}` },
     openGraph: {
       type: 'article',
       title: image.title,
       description,
       url: `${siteUrl}/gallery/${image.id}`,
       siteName: siteName,
-      locale: 'en_US',
       images: [{ url: imageUrl, width: 1200, height: 630, alt: image.title }],
-      publishedTime: image.created_at ?? undefined,
     },
     twitter: {
       card: 'summary_large_image',
       title: image.title,
       description,
       images: [imageUrl],
-      creator: '@yurieblog.bsky.social',
     },
   }
 }
 
+/* ---------- ОСНОВНАЯ СТРАНИЦА ---------- */
 export default async function GalleryImagePage({ 
   params 
 }: { 
@@ -68,22 +62,31 @@ export default async function GalleryImagePage({
   const { id } = await params
   const supabase = createServiceSupabase()
 
-  // Fetch текущую картинку
-  const { data: image, error } = await supabase
-    .from('gallery')
-    .select('id, title, description, image, created_at')
-    .eq('id', id)
-    .single()
+  // 1. Загружаем данные (текущая картинка + список для блока "Related")
+  const [currentRes, relatedRes] = await Promise.all([
+    supabase
+      .from('gallery')
+      .select('id, title, description, image, created_at')
+      .eq('id', id)
+      .single(),
+    supabase
+      .from('gallery')
+      .select('id, title, image')
+      .neq('id', id) // Не показывать текущую в блоке "Related"
+      .order('created_at', { ascending: false })
+      .limit(4)
+  ])
 
-  if (error || !image) {
-    notFound()
-  }
+  const { data: image, error } = currentRes
+  const { data: relatedImages } = relatedRes
 
-  // ✅ ПОЛУЧАЕМ ПРЕДЫДУЩУЮ И СЛЕДУЮЩУЮ КАРТИНКИ
+  if (error || !image) notFound()
+
+  // 2. Навигация (Prev/Next) по дате создания
   const { data: prevImage } = await supabase
     .from('gallery')
     .select('id')
-    .lt('created_at', image.created_at) // created_at меньше текущей
+    .lt('created_at', image.created_at)
     .order('created_at', { ascending: false })
     .limit(1)
     .single()
@@ -91,57 +94,37 @@ export default async function GalleryImagePage({
   const { data: nextImage } = await supabase
     .from('gallery')
     .select('id')
-    .gt('created_at', image.created_at) // created_at больше текущей
+    .gt('created_at', image.created_at)
     .order('created_at', { ascending: true })
     .limit(1)
     .single()
 
-  const prevId = prevImage?.id
-  const nextId = nextImage?.id
-
-  // Schema.org (оставь как есть)
+  // JSON-LD для Google
   const imageObjectSchema = {
     '@context': 'https://schema.org',
     '@type': 'ImageObject',
-    '@id': `${siteUrl}/gallery/${image.id}#image`,
     contentUrl: image.image,
     name: image.title,
     description: image.description || image.title,
     datePublished: image.created_at,
-    author: { '@id': `${siteUrl}/#author` },
-    publisher: { '@id': `${siteUrl}/#organization` },
-    mainEntityOfPage: {
-      '@type': 'WebPage',
-      '@id': `${siteUrl}/gallery/${image.id}`
-    }
-  }
-
-  const breadcrumbJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: siteUrl },
-      { '@type': 'ListItem', position: 2, name: 'Gallery', item: `${siteUrl}/archivegallery` },
-      { '@type': 'ListItem', position: 3, name: image.title, item: `${siteUrl}/gallery/${image.id}` },
-    ],
+    author: { '@type': 'Person', name: authorName }
   }
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(imageObjectSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       <div className="min-h-screen bg-background">
         <div className="max-w-4xl mx-auto px-4 py-12">
           
-          {/* Breadcrumbs (оставь как есть) */}
-          <nav className="text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
+          {/* Breadcrumbs */}
+          <nav className="text-sm text-muted-foreground mb-8" aria-label="Breadcrumb">
             <ol className="flex items-center space-x-2">
-              <li><Link href="/" className="hover:text-pink-500">Home</Link></li>
+              <li><Link href="/" className="hover:text-pink-500 transition-colors">Home</Link></li>
               <li>/</li>
-              <li><Link href="/archivegallery" className="hover:text-pink-500">Gallery</Link></li>
+              <li><Link href="/archivegallery" className="hover:text-pink-500 transition-colors">Gallery</Link></li>
               <li>/</li>
-              <li className="text-foreground truncate max-w-[200px] font-medium">{image.title}</li>
+              <li className="text-foreground truncate font-medium">{image.title}</li>
             </ol>
           </nav>
 
@@ -149,7 +132,7 @@ export default async function GalleryImagePage({
             <h1 className="text-4xl font-bold mb-4 text-foreground">{image.title}</h1>
             
             <div className="flex items-center gap-4 mb-8 pb-8 border-b border-border/50">
-              <p className="text-sm text-muted-foreground">By <span className="font-medium">{authorName}</span></p>
+              <p className="text-sm text-muted-foreground">By <span className="font-medium text-foreground">{authorName}</span></p>
               <span className="text-muted-foreground">•</span>
               <time className="text-sm text-muted-foreground">
                 {image.created_at ? new Date(image.created_at).toLocaleDateString('en-US', {
@@ -159,49 +142,58 @@ export default async function GalleryImagePage({
             </div>
 
             {image.description && (
-              <div className="prose prose-invert max-w-none mb-8 text-foreground/90">
+              <div className="prose prose-invert max-w-none mb-12 text-foreground/90">
                 <p className="leading-relaxed whitespace-pre-wrap">{image.description}</p>
               </div>
             )}
 
-            {/* ✅ НАВИГАЦИЯ Next/Prev - ДОБАВЬ СЮДА */}
-            <div className="flex justify-between items-center mt-8 mb-8 py-4 border-t border-b border-border/30">
-              <div>
-                {prevId ? (
-                  <Link 
-                    href={`/gallery/${prevId}`} 
-                    className="flex items-center gap-2 text-pink-500 hover:text-pink-600 transition-colors"
-                  >
-                    <span>←</span> Previous
-                  </Link>
-                ) : (
-                  <span className="text-muted-foreground cursor-not-allowed">← Previous</span>
-                )}
-              </div>
+            {/* Навигация Prev/Next */}
+            <div className="flex justify-between items-center py-6 border-t border-b border-border/30 mb-12">
+              {prevImage ? (
+                <Link href={`/gallery/${prevImage.id}`} className="flex items-center gap-2 text-pink-500 hover:text-pink-400 font-medium">
+                  ← Previous
+                </Link>
+              ) : <div className="text-muted-foreground/30 text-sm">First image</div>}
               
-              <Link 
-                href="/archivegallery" 
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Back to Gallery
+              <Link href="/archivegallery" className="text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground">
+                All Gallery
               </Link>
 
-              <div>
-                {nextId ? (
-                  <Link 
-                    href={`/gallery/${nextId}`} 
-                    className="flex items-center gap-2 text-pink-500 hover:text-pink-600 transition-colors"
-                  >
-                    Next <span>→</span>
-                  </Link>
-                ) : (
-                  <span className="text-muted-foreground cursor-not-allowed">Next →</span>
-                )}
-              </div>
+              {nextImage ? (
+                <Link href={`/gallery/${nextImage.id}`} className="flex items-center gap-2 text-pink-500 hover:text-pink-400 font-medium">
+                  Next →
+                </Link>
+              ) : <div className="text-muted-foreground/30 text-sm">Latest image</div>}
             </div>
           </article>
 
+          {/* Лайки и комментарии */}
           <GalleryImageClient imageId={id} initialImage={image} />
+
+          {/* ✅ Блок Related Images (Лечит "сиротство") */}
+          {relatedImages && relatedImages.length > 0 && (
+            <section className="mt-24 pt-12 border-t border-border/30">
+              <h2 className="text-2xl font-bold mb-8 text-foreground">More from Gallery</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {relatedImages.map((rel) => (
+                  <Link key={rel.id} href={`/gallery/${rel.id}`} className="group block">
+                    <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted border border-border/50 group-hover:border-pink-500/50 transition-colors">
+                      <Image
+                        src={rel.image}
+                        alt={rel.title}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                      />
+                    </div>
+                    <p className="mt-3 text-sm font-medium text-muted-foreground group-hover:text-pink-500 transition-colors truncate">
+                      {rel.title}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </>
