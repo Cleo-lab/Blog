@@ -83,6 +83,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       { url: `${baseUrl}/archivegallery`, lastModified: latestPostDate, changeFrequency: 'weekly', priority: 0.7 },
       { url: `${baseUrl}/contact`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
       { url: `${baseUrl}/privacy`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
+      { url: `${baseUrl}/terms`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
+      { url: `${baseUrl}/pages-list`, lastModified: now, changeFrequency: 'weekly', priority: 0.5 },
     ]
 
     return [...staticPages, ...postUrls, ...galleryUrls]
