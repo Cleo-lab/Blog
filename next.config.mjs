@@ -10,13 +10,11 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   
-  // ✅ Turbopack пустой конфиг (убирает ошибку)
   turbopack: {},
   
   experimental: {
     optimizeCss: false,
     optimizePackageImports: ['lucide-react', 'react-markdown'],
-    // Увеличиваем таймаут для медленных изображений
     proxyTimeout: 180000,
   },
   
@@ -32,12 +30,8 @@ const nextConfig = {
         hostname: '**.supabase.co',
       },
     ],
-    // Отключаем оптимизацию для dev режима (помогает с таймаутами)
     unoptimized: process.env.NODE_ENV === 'development',
   },
-  
-  // ✅ Заголовки для кеширования
- // ✅ Добавляем robots + оставляем старые заголовки
 async headers() {
     return [
       {
@@ -48,14 +42,8 @@ async headers() {
         source: '/_next/static/:path*',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
-      {
-        source: '/:path*',
-        headers: [{ key: 'X-Robots-Tag', value: 'index, follow, max-image-preview:large' }],
-      },
     ]
-  }, // ← запятая!
-
-  // ---------- дальше экспорт ----------
+  },
 }
 
 export default bundleAnalyzer(nextConfig);
