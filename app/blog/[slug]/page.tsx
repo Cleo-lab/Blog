@@ -41,7 +41,7 @@ export async function generateMetadata(
   const imageAlt = `Featured image for: ${post.title} - Yurie Blog`
 
   return {
-    title: `${post.title} | Yurie Blog`,
+    title: `${post.title}`,
     description,
     alternates: {
       canonical: `https://yurieblog.vercel.app/blog/${post.slug}`,

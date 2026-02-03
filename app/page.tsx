@@ -8,7 +8,7 @@ import { fetchProfileServer } from '@/lib/profile-server'
 const siteUrl = 'https://yurieblog.vercel.app'
 
 export const metadata: Metadata = {
-  title: 'Yurie Blog | Digital Experiments by Yurie Jiyūbō',
+  title: 'Digital Experiments',
   description: 'Digital business experiments, creator economy analytics and monetization strategies by Yurie Jiyūbō.',
   alternates: { canonical: siteUrl },
 }

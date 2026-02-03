@@ -22,7 +22,7 @@ const siteUrl = 'https://yurieblog.vercel.app'
 export const metadata: Metadata = {
   title: {
     default: 'Yurie Blog — Digital Business Experiments by Yurie Jiyūbō',
-    template: '%s | Yurie Jiyūbō',
+    template: '%s | Yurie Blog',
   },
   description: 'Digital business experiments, creator economy analytics & monetization strategies.',
   authors: [{ name: 'Yurie Jiyūbō', url: siteUrl }],
@@ -101,8 +101,6 @@ export default function RootLayout({
             <main className="flex-grow">
               {children}
             </main>
-            
-            {/* Футер здесь */}
             <Footer language="en" />
           </div>
         </ProvidersWrapper>
