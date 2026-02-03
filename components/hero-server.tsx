@@ -1,7 +1,6 @@
 import Image from 'next/image'
 import HeroButtons from './hero-buttons'
-
-const siteUrl = 'https://yurieblog.vercel.app'
+import { BRAND } from '@/lib/brand-voice' // ✅ Импортируем наш бренд-бук
 
 export default function HeroServer() {
   return (
@@ -14,7 +13,7 @@ export default function HeroServer() {
         <div className="hero-avatar-gradient w-60 h-60 rounded-full bg-gradient-to-br from-primary via-accent to-secondary p-1 mb-6 mx-auto">
           <Image
             src="/images/Yurie_main.jpg"
-            alt="Yurie Jiyūbō - Digital Business Experiments & Creator Economy" 
+            alt={`${BRAND.authorName} - ${BRAND.siteName}`} 
             width={240}
             height={240}
             priority
@@ -25,52 +24,59 @@ export default function HeroServer() {
           />
         </div>
 
-        <h1 className="text-4xl sm:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-          Yurie Blog - Digital Business Experiments & Creator Economy Insights
-        </h1>
+        <p className="text-sm sm:text-base font-medium tracking-[0.2em] uppercase text-muted-foreground/80 mb-3 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+          {BRAND.authorName}
+        </p>
+        <p className="text-4xl sm:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+          {BRAND.siteName}
+        </p>
 
         <div className="text-xl sm:text-2xl text-muted-foreground mb-4 max-w-2xl mx-auto">
-          <p>Creator Economy Insights, Data & Digital Reality.</p>
-          <span className="block mt-2 text-lg sm:text-xl font-medium">
-            Real entrepreneurial stories from the trenches. 💸
+          {/* ✅ Используем короткий слоган */}
+          <p>{BRAND.taglines.medium}</p>
+          <span className="block mt-2 text-lg sm:text-xl font-medium text-foreground/80">
+            {/* ✅ Показываем индивидуальность */}
+            Real stories from the trenches. 💸
           </span>
         </div>
 
-        <p className="text-base sm:text-lg text-muted-foreground/80 mb-8 max-w-xl mx-auto italic">
-          Honest insights about digital entrepreneurship, monetization strategies, and creator economy analytics. Data-driven storytelling.
+        {/* ✅ Главный интро-текст из конфига */}
+        <p className="text-base sm:text-lg text-muted-foreground/80 mb-8 max-w-xl mx-auto italic leading-relaxed">
+          {BRAND.intros.homepage}
         </p>
 
         <HeroButtons />
       </div>
 
-      {/* SEO Schema для Hero секции */}
-<script
-  type="application/ld+json"
-  dangerouslySetInnerHTML={{
-    __html: JSON.stringify([
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "url": siteUrl,
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": `${siteUrl}/search?q={search_term_string}`,
-          "query-input": "required name=search_term_string"
-        }
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "ImageObject",
-        "contentUrl": `${siteUrl}/images/Yurie_main.jpg`,
-        "description": "Yurie Jiyūbō - Digital Business Experiments & Creator Economy",
-        "name": "Yurie Blog Hero Image",
-        "author": {
-          "@id": `${siteUrl}/#author`
-        }
-      }
-    ])
-  }}
-/>
+      {/* SEO Schema — теперь данные тянутся из BRAND */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "url": BRAND.siteUrl,
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": `${BRAND.siteUrl}/archiveblog?search={search_term_string}`,
+                "query-input": "required name=search_term_string"
+              }
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "ImageObject",
+              "contentUrl": `${BRAND.siteUrl}/images/Yurie_main.jpg`,
+              "description": BRAND.headings.homepage,
+              "name": `${BRAND.siteName} Hero Image`,
+              "author": {
+                "@type": "Person",
+                "name": BRAND.authorName
+              }
+            }
+          ])
+        }}
+      />
     </section>
   )
 }

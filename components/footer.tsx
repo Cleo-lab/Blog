@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import SupportButtonClient from '@/components/support-button-client'
+import { BRAND } from '@/lib/brand-voice'
 
 interface FooterProps {
   readonly language: string
@@ -101,7 +102,15 @@ export default function Footer({ language }: FooterProps) {
         </div>
 
         <div className="pt-8 border-t border-border/30 text-center">
-          <p className="text-sm text-foreground/60">{t.copyright} Made with love 💖</p>
+          {/* Сюда подставится: "Digital experiments documented. Failures included. Gurus excluded." */}
+          <p className="text-sm text-foreground/80 mb-2 italic">
+            {BRAND.footer.tagline}
+          </p>
+
+          {/* Сюда подставится: "© 2025 Yurie Blog. Made with caffeine, curiosity & questionable decisions 💖" */}
+          <p className="text-sm text-foreground/60">
+            {BRAND.footer.copyright}
+          </p>
         </div>
       </div>
     </footer>

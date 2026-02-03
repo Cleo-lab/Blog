@@ -6,8 +6,9 @@ import { ProvidersWrapper } from '@/components/providers-wrapper'
 import AnalyticsLazy from '@/components/analytics-lazy'
 import CookieBannerClient from '@/components/cookie-banner-client'
 import Footer from '@/components/footer'
-import HeaderWrapper from '@/components/header-wrapper' // Импортируем обертку
+import HeaderWrapper from '@/components/header-wrapper'
 import { Suspense } from 'react'
+import { BRAND } from '@/lib/brand-voice' // ✅ Импортируем наш пульт управления
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -17,34 +18,33 @@ const poppins = Poppins({
   fallback: ['system-ui', 'arial'],
 })
 
-const siteUrl = 'https://yurieblog.vercel.app'
-
 export const metadata: Metadata = {
+  // ✅ Используем BRAND для главных мета-тегов
   title: {
-    default: 'Yurie Blog — Digital Business Experiments by Yurie Jiyūbō',
-    template: '%s | Yurie Blog',
+    default: BRAND.titles.homepage,
+    template: `%s | ${BRAND.siteName}`,
   },
-  description: 'Digital business experiments, creator economy analytics & monetization strategies.',
-  authors: [{ name: 'Yurie Jiyūbō', url: siteUrl }],
-  creator: 'Yurie Jiyūbō',
-  publisher: 'Yurie Jiyūbō', 
+  description: BRAND.descriptions.homepage,
+  authors: [{ name: BRAND.authorName, url: BRAND.siteUrl }],
+  creator: BRAND.authorName,
+  publisher: BRAND.authorName, 
   verification: {
     google: 'WXnuGqV3agaGqnSqBJBEuym8I5KkJuvH4AMNKWXodYM',
   },
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(BRAND.siteUrl),
   openGraph: {
-    title: 'Yurie Blog — Digital Entrepreneurship',
-    description: 'Personal blog about digital business experiments.',
-    images: [{ url: '/images/Yurie_main.jpg', width: 1200, height: 630, alt: 'Yurie Blog' }],
+    title: `${BRAND.siteName} — ${BRAND.taglines.short}`,
+    description: BRAND.descriptions.homepage,
+    images: [{ url: '/images/Yurie_main.jpg', width: 1200, height: 630, alt: BRAND.siteName }],
     type: 'website',
-    url: siteUrl,
-    siteName: 'Yurie Jiyūbō Blog',
+    url: BRAND.siteUrl,
+    siteName: BRAND.siteName,
     locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Yurie Blog',
-    description: 'Personal blog about creator economy.',
+    title: BRAND.siteName,
+    description: BRAND.taglines.medium,
     images: ['/images/Yurie_main.jpg'],
     creator: '@yurieblog.bsky.social',
   },
@@ -60,21 +60,26 @@ export default function RootLayout({
 }: {
   readonly children: React.ReactNode
 }) {
+  // ✅ Обновляем схемы, чтобы они брали данные из BRAND
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    '@id': `${siteUrl}/#organization`,
-    name: "Yurie's Blog",
-    url: siteUrl,
-    contactPoint: { '@type': 'ContactPoint', contactType: 'Business Inquiries', url: `${siteUrl}/contact` },
+    '@id': `${BRAND.siteUrl}/#organization`,
+    name: BRAND.siteName,
+    url: BRAND.siteUrl,
+    contactPoint: { 
+      '@type': 'ContactPoint', 
+      'contactType': 'Business Inquiries', 
+      'url': `${BRAND.siteUrl}/contact` 
+    },
   }
 
   const personSchema = {
     '@context': 'https://schema.org',
     '@type': 'Person',
-    '@id': `${siteUrl}/#author`,
-    name: 'Yurie Jiyūbō',
-    url: siteUrl,
+    '@id': `${BRAND.siteUrl}/#author`,
+    name: BRAND.authorName,
+    url: BRAND.siteUrl,
   }
 
   return (
@@ -101,6 +106,9 @@ export default function RootLayout({
             <main className="flex-grow">
               {children}
             </main>
+            {/* ✅ Если в будущем захочешь поменять язык, 
+              BRAND тоже можно будет расширить под это. 
+            */}
             <Footer language="en" />
           </div>
         </ProvidersWrapper>

@@ -2,28 +2,27 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import SupportButton from '@/components/support-button'
 import Breadcrumbs from '@/components/breadcrumbs'
-
-const siteUrl = 'https://yurieblog.vercel.app'
+import { BRAND, getSchemaDescription } from '@/lib/brand-voice'
 
 export const metadata: Metadata = {
-  title: 'About Yurie Jiyūbō',
-  description:
-    'Personal blog about online experiments, NSFW side hustles, creator economy, AI tools, and web development. Real data, real mistakes, no gurus.',
+  title: BRAND.titles.about,
+  description: BRAND.descriptions.about,
+  
   keywords: [
-    'personal blog',
-    'creator economy',
-    'web development',
-    'AI experiments',
-    'side hustles',
-    'NSFW platforms',
+    'digital experiment blog',
+    'creator economy stories',
+    'honest online business',
+    'side hustle documentation',
+    'web development experiments',
+    'AI tools testing',
     'digital creator',
-    'honest blogging',
-    'online experiments',
-    'content creation',
+    'real entrepreneurship stories',
   ],
-  authors: [{ name: 'Yurie Jiyūbō', url: siteUrl }],
-  creator: 'Yurie Jiyūbō',
-  publisher: 'Yurie Jiyūbō',
+  
+  authors: [{ name: BRAND.authorName, url: BRAND.siteUrl }],
+  creator: BRAND.authorName,
+  publisher: BRAND.authorName,
+  
   robots: {
     index: true,
     follow: true,
@@ -35,79 +34,84 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  
   alternates: {
-    canonical: `${siteUrl}/about`,
+    canonical: `${BRAND.siteUrl}/about`,
   },
+  
   openGraph: {
-    title: 'About Yurie — Internet Experiments & Side Hustles',
-    description: 'Real stories about online experiments, creator economy, and digital platforms. No BS, just honest experiences.',
-    url: `${siteUrl}/about`,
-    siteName: "Yurie's Blog",
+    title: 'About Yurie — The Person Behind Digital Experiments',
+    description: 'Real stories about online experiments that actually happened. From successful projects to spectacular failures. No BS, just honest documentation.',
+    url: `${BRAND.siteUrl}/about`,
+    siteName: BRAND.siteName,
     locale: 'en_US',
     type: 'profile',
     images: [
       {
-        url: `${siteUrl}/images/About.webp`,
+        url: `${BRAND.siteUrl}/images/About.webp`,
         width: 1200,
         height: 630,
-        alt: 'About Yurie - Personal blog author and digital creator',
+        alt: 'About Yurie — Digital experimenter, side hustle enthusiast, chaos documenter',
       },
     ],
   },
+  
   twitter: {
     card: 'summary_large_image',
-    title: 'About Yurie — Internet Experiments & Side Hustles',
-    description: 'Real data, real mistakes, no gurus.',
-    images: [`${siteUrl}/images/About.webp`],
+    title: 'About Yurie — Digital Experiments & Side Hustle Stories',
+    description: 'Real data, real failures, real wins. Zero motivational BS.',
+    images: [`${BRAND.siteUrl}/images/About.webp`],
     creator: '@yurieblog.bsky.social',
   },
+  
   category: 'Personal Blog',
 }
 
 export default function AboutPage() {
-  const jsonLd = {
+  const personSchema = {
     '@context': 'https://schema.org',
     '@type': 'Person',
-    '@id': `${siteUrl}/#author`,
-    name: 'Yurie Jiyūbō',
+    '@id': `${BRAND.siteUrl}/#author`,
+    name: BRAND.authorName,
     alternateName: 'Yurie',
-    url: siteUrl,
+    givenName: 'Yurie',
+    familyName: 'Jiyūbō',
+    url: BRAND.siteUrl,
     image: {
       '@type': 'ImageObject',
-      url: `${siteUrl}/images/Yurie_main.jpg`,
+      url: `${BRAND.siteUrl}/images/Yurie_main.jpg`,
       width: 512,
       height: 512,
     },
-    description: 'Digital creator and blogger sharing real stories about online experiments, creator economy, and digital marketing.',
+    description: getSchemaDescription('about'),
     sameAs: [
       'https://bsky.app/profile/yurieblog.bsky.social',
       'https://github.com/Cleo-lab',
     ],
     knowsAbout: [
+      'Digital Business Experiments',
+      'Creator Economy',
+      'Online Monetization',
+      'Content Strategy',
       'Web Development',
       'AI Tools',
-      'Creator Economy',
-      'Content Creation',
-      'Digital Experiments',
-      'NSFW Platforms',
-      'Online Business',
-      'Personal Blogging',
+      'Side Hustles',
+      'Digital Marketing',
     ],
     email: 'cleopatrathequeenofcats@gmail.com',
-    jobTitle: 'Digital Creator & Blogger',
+    jobTitle: 'Digital Experimenter & Chaos Documenter',
     worksFor: {
       '@type': 'Organization',
-      '@id': `${siteUrl}/#organization`,
-      name: "Yurie's Blog",
-      url: siteUrl,
+      '@id': `${BRAND.siteUrl}/#organization`,
+      name: BRAND.siteName,
+      url: BRAND.siteUrl,
     },
     mainEntityOfPage: {
       '@type': 'ProfilePage',
-      '@id': `${siteUrl}/about`,
+      '@id': `${BRAND.siteUrl}/about`,
     },
   }
 
-  // Breadcrumbs Schema
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -116,37 +120,35 @@ export default function AboutPage() {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: siteUrl,
+        item: BRAND.siteUrl,
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'About',
-        item: `${siteUrl}/about`,
+        item: `${BRAND.siteUrl}/about`,
       },
     ],
   }
 
-  // AboutPage Schema
   const aboutPageJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
-    '@id': `${siteUrl}/about`,
+    '@id': `${BRAND.siteUrl}/about`,
     name: 'About Yurie',
-    description: 'Learn about Yurie and the blog focused on internet experiments, side hustles, and creator economy',
-    url: `${siteUrl}/about`,
+    description: getSchemaDescription('about'),
+    url: `${BRAND.siteUrl}/about`,
     mainEntity: {
-      '@id': `${siteUrl}/#author`,
+      '@id': `${BRAND.siteUrl}/#author`,
     },
     inLanguage: 'en-US',
   }
 
   return (
     <>
-      {/* Schema.org structured data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
       />
       <script
         type="application/ld+json"
@@ -158,28 +160,43 @@ export default function AboutPage() {
       />
 
       <main className="max-w-6xl mx-auto px-4 py-10">
-        {/* Breadcrumbs Component */}
         <Breadcrumbs />
 
-        {/* Hero + Support блок */}
         <div className="flex flex-col md:flex-row md:items-start gap-10 mb-12">
-          {/* текст слева */}
           <div className="flex-1 order-2 md:order-1 text-center md:text-left">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">
-              About Yurie Jiyūbō — Personal Blog & Internet Experiments
+              About Yurie — The Person Behind These Digital Experiments
             </h1>
-            <div className="text-foreground/90 space-y-4 text-lg text-justify text-wrap balance">
+            
+            <div className="text-foreground/90 space-y-4 text-lg text-justify">
               <p>
-                Hi! I'm Yurie! This is my personal blog about online experiments, side hustles, and learning how the internet actually works — not how influencers pretend it does.
+                Hi! I'm <strong>Yurie</strong>, and this is my digital experiment log disguised as a blog.
               </p>
+              
               <p>
-                Here I write about building projects from scratch, the <strong>creator economy</strong>, adult platforms, <strong>AI tools</strong>, <strong>web development</strong>, and what happens when curiosity meets algorithms. Some stories are funny, some are uncomfortable, and some accidentally turn into technical deep dives.
+                I document <strong>real attempts</strong> at building online projects, navigating the <strong>creator economy</strong>, 
+                and figuring out how digital monetization actually works — not through guru courses, 
+                but through trial, error, and occasional accidental success.
               </p>
+              
               <p>
-                This blog is not about overnight success, passive income, or motivational quotes. It's about <strong>real experiences</strong>: failed ideas, unexpected growth, account bans, analytics spikes, bad UX decisions, and figuring things out by trial and error.
+                Here you'll find stories about <strong>AI tools</strong> I've tested, <strong>web projects</strong> I've built, 
+                <strong>side hustles</strong> I've attempted, and platforms I've experimented with 
+                (some brilliant, some questionable, all documented).
               </p>
+              
               <p>
-                If you're interested in personal blogging, digital platforms, content creation, AI experiments, web development, and honest storytelling about the modern internet — you're in the right place.
+                This isn't about overnight success or passive income promises. 
+                It's about <strong>honest documentation</strong> of what happens when you actually try things: 
+                failed launches that taught valuable lessons, unexpected growth that made no sense, 
+                account bans that were probably deserved, analytics spikes that came from nowhere, 
+                and UX decisions that seemed smart at 2 AM.
+              </p>
+              
+              <p>
+                If you're into <strong>real experiments</strong>, <strong>honest storytelling</strong>, 
+                and learning from both wins and failures — you're in the right place. 
+                No motivational quotes, no guru BS, just documented chaos with data.
               </p>
             </div>
           </div>
@@ -187,60 +204,59 @@ export default function AboutPage() {
           <div className="flex-1 order-1 md:order-2 flex flex-col gap-6">
             <Image
               src="/images/About.webp"
-              alt="Yurie — personal blog author sharing stories about internet experiments and side hustles"
+              alt="Yurie — documenting digital experiments, one failure at a time"
               width={500}
               height={350}
               priority
               className="rounded-2xl shadow-2xl object-cover hover:scale-105 transition-transform duration-500 h-auto"
-              style={{ height: 'auto' }}
             />
 
             <section className="p-6 rounded-2xl bg-[#0085ff]/10 border border-[#0085ff]/30 shadow-sm">
               <h2 className="text-xl font-bold mb-3 flex items-center gap-2 text-foreground">
-                Let's connect! <span className="text-2xl" role="img" aria-label="butterfly">🦋</span>
+                Daily experiment updates 🦋
               </h2>
               <p className="text-lg text-foreground/80 mb-6">
-                I share real-time updates on my experiments and deep dives into the creator economy on Bluesky.
+                Real-time updates on digital chaos, creator economy insights, and whatever I'm currently breaking.
               </p>
               <a
                 href="https://bsky.app/profile/yurieblog.bsky.social"
                 target="_blank"
                 rel="noopener noreferrer me"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-[#0085ff] text-white rounded-xl hover:bg-[#0070d6] transition-all font-bold shadow-lg shadow-blue-500/25 active:scale-95"
-                style={{ backgroundColor: '#0085ff', color: 'white' }}
               >
-                Follow @yurieblog on Bluesky
+                {BRAND.ctas.followBluesky}
               </a>
             </section>
 
-          
             <aside className="hidden md:block p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-indigo-500/20 border-l-4 border-pink-500 shadow-lg">
               <p className="text-lg md:text-xl text-foreground mb-4 text-justify">
-                Unfortunately, <strong>Elon Musk</strong> still hasn't heard about my blog, and I blocked <strong>Bill Gates</strong> in advance, just to make sure he never finds out 😄
+                Unfortunately, <strong>Elon Musk</strong> still hasn't discovered this blog, 
+                and I blocked <strong>Bill Gates</strong> preemptively (just in case). 
+                So venture capital isn't happening anytime soon. 😄
               </p>
               <p className="text-lg text-foreground/70 mb-4">
-                So, if you wanna support my project, hit it up right here:
+                But if you want to support these experiments:
               </p>
               <SupportButton />
             </aside>
           </div>
         </div>
 
-      
         <aside className="block md:hidden p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-indigo-500/20 border-l-4 border-pink-500 shadow-lg mb-10">
-          <p className="text-lg md:text-xl text-foreground mb-4 text-justify">
-            Unfortunately, <strong>Elon Musk</strong> still hasn't heard about my blog, and I blocked <strong>Bill Gates</strong> in advance, just to make sure he never finds out 😄
+          <p className="text-lg text-foreground mb-4 text-justify">
+            Unfortunately, <strong>Elon Musk</strong> still hasn't discovered this blog, 
+            and I blocked <strong>Bill Gates</strong> preemptively. 
+            So venture capital isn't happening anytime soon. 😄
           </p>
           <p className="text-lg text-foreground/70 mb-4">
-            So, if you wanna support my project, hit it up right here:
+            But if you want to support these experiments:
           </p>
           <SupportButton />
         </aside>
 
-      
         <footer className="mt-8 text-sm text-foreground/60 border-t border-border/50 pt-6">
           <p>
-            Contact for collaborations or questions:{' '}
+            For collaboration inquiries, experiment discussions, or just to say hi:{' '}
             <a
               href="mailto:cleopatrathequeenofcats@gmail.com"
               className="underline hover:text-primary transition-colors"
