@@ -10,7 +10,7 @@ import { createServiceSupabase } from '@/lib/supabaseServer'
 const siteUrl = 'https://yurieblog.vercel.app'
 
 export const metadata: Metadata = {
-  title: 'Blog Archive – Internet Experiments & Side Hustle Stories',
+  title: 'Blog Archive – Internet Experiments',
   description: 'Digital business experiments, creator economy analytics & monetization strategies. Data-driven insights from online entrepreneurship trenches.',
   keywords: [
     'digital entrepreneurship',

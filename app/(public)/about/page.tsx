@@ -6,7 +6,7 @@ import Breadcrumbs from '@/components/breadcrumbs'
 const siteUrl = 'https://yurieblog.vercel.app'
 
 export const metadata: Metadata = {
-  title: 'About Yurie Jiyūbō — Internet Experiments, Side Hustles & Real Stories',
+  title: 'About Yurie Jiyūbō',
   description:
     'Personal blog about online experiments, NSFW side hustles, creator economy, AI tools, and web development. Real data, real mistakes, no gurus.',
   keywords: [
