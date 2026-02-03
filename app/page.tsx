@@ -38,13 +38,27 @@ export default async function Page() {
   }
 
   return (
-    <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
-      {/* Передаем Hero как проп в клиентский компонент */}
-      <HomeClient 
-        hero={<HeroServer />}
-        initialPosts={posts}
-        initialProfile={profile}
-      />
-    </Suspense>
+    <>
+      <h1 style={{ 
+        position: 'absolute', 
+        width: '1px', 
+        height: '1px', 
+        padding: '0', 
+        margin: '-1px', 
+        overflow: 'hidden', 
+        clip: 'rect(0, 0, 0, 0)', 
+        whiteSpace: 'nowrap', 
+        border: '0' 
+      }}>
+        Yurie Blog - Digital Business Experiments & Creator Economy Insights
+      </h1>
+      <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
+        <HomeClient 
+          hero={<HeroServer />}
+          initialPosts={posts}
+          initialProfile={profile}
+        />
+      </Suspense>
+    </>
   )
 }

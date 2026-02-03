@@ -99,9 +99,6 @@ export default function RootLayout({
               <HeaderWrapper />
             </Suspense>
             <main className="flex-grow">
-              <h1 style={{ position: 'absolute', left: '-9999px', top: 0 }}>
-    Yurie Blog - Digital Business Experiments & Creator Economy Insights
-  </h1>
               {children}
             </main>
             
