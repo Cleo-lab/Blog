@@ -1,14 +1,12 @@
 // components/blog/blog-teaser.tsx
 'use client';
 
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Lock, Sparkles, UserPlus } from 'lucide-react';
 
-interface BlogTeaserProps {
-  onSignIn: () => void;
-}
-
-export default function BlogTeaser({ onSignIn }: BlogTeaserProps) {
+// УБРАНЫ ПРОПСЫ — больше не нужны!
+export default function BlogTeaser() {
   return (
     <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-card/50 p-8 text-center shadow-lg">
       {/* Декоративный размытый фон для эффекта "скрытого контента" */}
@@ -36,13 +34,12 @@ export default function BlogTeaser({ onSignIn }: BlogTeaserProps) {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-          <Button 
-            onClick={onSignIn} 
-            size="lg" 
-            className="w-full sm:w-auto font-bold shadow-md hover:shadow-primary/20 transition-all"
-          >
-            <UserPlus className="w-4 h-4 mr-2" />
-            Sign Up Now
+          {/* ЗАМЕНЕНО: вместо onClick — Link с asChild */}
+          <Button asChild size="lg" className="w-full sm:w-auto font-bold shadow-md hover:shadow-primary/20 transition-all">
+            <Link href="/signup">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Sign Up Now
+            </Link>
           </Button>
           
           <div className="flex items-center gap-1 text-xs text-muted-foreground uppercase tracking-widest font-semibold">

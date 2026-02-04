@@ -12,36 +12,52 @@ export default function HeaderWrapper() {
   const pathname = usePathname()
   const supabase = useSupabase()
   
-  // Получаем данные об авторизации из вашего хука
   const { isLoggedIn, isAdmin } = useAuth()
-  
-  // Состояние языка (по умолчанию en)
   const [language, setLanguage] = useState('en')
 
-  // Определяем текущую секцию на основе URL
   const sectionFromUrl = searchParams.get('section') || 'home'
 
-  // Функция переключения секций через URL
   const handleSetSection = useCallback((section: string) => {
-    // Если мы не на главной, сначала переходим на главную с нужным параметром
-    if (pathname !== '/') {
-      router.push(`/?section=${section}`)
+    // 1. Если кликнули "Админка"
+    if (section === 'admin') {
+      router.push('/admin')
       return
     }
 
-    // Если мы на главной
-    if (section === 'home') {
-      router.push('/')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    } else {
-      router.push(`/?section=${section}`)
+    // 2. Если кликнули "Профиль"
+    if (section === 'profile') {
+      router.push('/dashboard')
+      return
     }
+
+    // 3. Если кликнули "Вход" или "Регистрация" (открываем модалку на главной)
+    if (section === 'signin') {
+  router.push('/signin')  // ← На отдельную страницу
+  return
+}
+if (section === 'signup') {
+  router.push('/signup')  // ← На отдельную страницу
+  return
+}
+
+    // 4. Если кликнули "Home" (Домой)
+    if (section === 'home') {
+      if (pathname === '/') {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else {
+        router.push('/')
+      }
+      return
+    }
+
+    // Для остальных случаев (например, поддержка)
+    router.push(`/?section=${section}`)
   }, [pathname, router])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.refresh()
-    router.push('/')
+    // После выхода жестко обновляем страницу, чтобы сбросить все стейты
+    window.location.href = '/'
   }
 
   return (

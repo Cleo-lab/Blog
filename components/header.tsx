@@ -1,8 +1,7 @@
-// components/header.tsx
 'use client';
 
 import { useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation'; // Добавили useRouter
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,6 +20,7 @@ import {
   Award,
   Bell,
   Heart,
+  LayoutDashboard, // Добавили иконку для админки
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import SearchBar from '@/components/search-bar';
@@ -47,26 +47,12 @@ const translations = {
     profile: 'Profile',
     comments: 'Comments',
     signOut: 'Sign Out',
-    blogManagement: 'Blog Management',
+    blogManagement: 'Admin Panel', // Сделали понятнее
     achievements: 'Achievements',
     favourites: 'Favourites',
     notifications: 'Notifications',
   },
-  es: {
-    home: 'Inicio',
-    about: 'Sobre mí',
-    blog: 'Blog',
-    gallery: 'Galería',
-    subscribe: 'Suscribirse',
-    signIn: 'Entrar',
-    profile: 'Perfil',
-    comments: 'Comentarios',
-    signOut: 'Cerrar sesión',
-    blogManagement: 'Blog Management',
-    achievements: 'Logros',
-    favourites: 'Favoritos',
-    notifications: 'Notificaciones',
-  },
+  // ... es translations ...
 };
 
 export default function Header({ 
@@ -80,254 +66,136 @@ export default function Header({
 }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter(); // Используем роутер для навигации
   const { avatarUrl } = useAuth();
   const t = translations[language as keyof typeof translations] || translations.en;
 
-  // ✅ Проверка: находимся ли на главной странице
   const isHomePage = pathname === '/';
 
-  // ✅ Навигация с SEO-ссылками
+  // Функция для перехода в профиль на конкретный якорь
+  const navigateToProfileSection = (anchor: string) => {
+    // 🔄 ПЕРЕХОДИМ на страницу дашборда с якорем
+    router.push(`/dashboard#${anchor}`);
+    setIsMenuOpen(false);
+  };
+
   const navItems = [
-    { 
-      id: 'home', 
-      label: t.home, 
-      href: '/',
-      scrollTo: null // всегда переход на главную
-    },
-    { 
-      id: 'about', 
-      label: t.about, 
-      href: '/about',
-      scrollTo: null 
-    },
-    { 
-      id: 'blog', 
-      label: t.blog, 
-      href: '/archiveblog',
-      scrollTo: 'blog' // scroll только на главной
-    },
-    { 
-      id: 'gallery', 
-      label: t.gallery, 
-      href: '/archivegallery',
-      scrollTo: 'gallery' // scroll только на главной
-    },
-    { 
-      id: 'subscribe', 
-      label: t.subscribe, 
-      href: null, // только scroll, нет страницы
-      scrollTo: 'subscribe'
-    },
+    { id: 'home', label: t.home, href: '/' },
+    { id: 'about', label: t.about, href: '/about' },
+    { id: 'blog', label: t.blog, href: '/archiveblog' },
+    { id: 'gallery', label: t.gallery, href: '/archivegallery' },
+    { id: 'subscribe', label: t.subscribe, href: '/#subscribe' },
   ];
-
-  const navigateToProfileSection = (sectionId: string) => {
-    setCurrentSection('profile');
-    setTimeout(() => {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
-  };
-
-  // ✅ Умная навигация: переход для Blog/Gallery, скролл для Subscribe/Home
-  const handleNavClick = (
-    e: React.MouseEvent, 
-    item: { id: string; href: string | null; scrollTo: string | null }
-  ) => {
-    // 1. Если это Subscribe — только скроллим на главной
-    if (item.id === 'subscribe') {
-      e.preventDefault();
-      if (isHomePage) {
-        const element = document.getElementById(item.scrollTo!);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      } else {
-        // Если мы не на главной, кнопка Subscribe может либо вести на главную к секции, 
-        // либо ничего не делать. Обычно лучше отправить на главную:
-        window.location.href = '/#subscribe';
-      }
-      return;
-    }
-
-    // 2. Если это Home — всегда скроллим вверх на главной
-    if (item.id === 'home') {
-      if (isHomePage) {
-        e.preventDefault();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-      return;
-    }
-
-    // 3. Для Blog и Gallery — НЕ вызываем e.preventDefault().
-    // Это позволит компоненту <Link> выполнить обычный переход на /archiveblog или /archivegallery,
-    // даже если мы находимся на главной странице.
-  };
-
-  const renderNavItem = (
-    item: { id: string; label: string; href: string | null; scrollTo: string | null }, 
-    isMobile = false
-  ) => {
-    const isActive = pathname === item.href;
-    
-    const className = `${
-      isMobile ? 'block w-full text-left px-4 py-2' : 'px-3 py-2'
-    } rounded-lg text-sm font-medium transition-colors ${
-      isActive 
-        ? 'text-primary bg-muted' 
-        : 'text-foreground/70 hover:bg-muted hover:text-foreground'
-    }`;
-
-    // Если есть href - используем Link для SEO
-    if (item.href) {
-      return (
-        <Link
-          key={item.id}
-          href={item.href}
-          className={className}
-          onClick={(e) => handleNavClick(e, item)}
-        >
-          {item.label}
-        </Link>
-      );
-    }
-
-    // Если только scroll (Subscribe)
-    return (
-      <button
-        key={item.id}
-        onClick={(e) => handleNavClick(e, item)}
-        className={className}
-      >
-        {item.label}
-      </button>
-    );
-  };
 
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 cursor-pointer">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary" />
-            <span className="hidden sm:inline font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-violet-600" />
+            <span className="font-bold text-lg bg-gradient-to-r from-pink-500 to-violet-600 bg-clip-text text-transparent">
               Yurie
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => renderNavItem(item))}
+            {navItems.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  pathname === item.href ? 'text-primary bg-muted' : 'text-foreground/70 hover:bg-muted'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Change language" className="w-9 h-9 rounded-full hover:bg-muted">
-                  <Globe className="w-5 h-5 text-foreground/70" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setLanguage('en')} className={language === 'en' ? 'bg-muted font-bold' : ''}>
-                  🇺🇸 English {language === 'en' && '✓'}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('es')} className={language === 'es' ? 'bg-muted font-bold' : ''}>
-                  🇪🇸 Español {language === 'es' && '✓'}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
+          <div className="flex items-center gap-3">
             <div className="hidden md:block">
               <SearchBar />
             </div>
             
             {!isLoggedIn ? (
-              <Button onClick={() => setCurrentSection('signin')} className="bg-primary hover:bg-primary/90 hidden sm:flex">
-                {t.signIn}
-              </Button>
-            ) : (
+  <Button asChild className="bg-primary hover:bg-primary/90">
+    <Link href="/login">
+      {t.signIn}
+    </Link>
+  </Button>
+) : (
               <>
+                {/* 🔄 Кнопка Админки теперь ведет на СТРАНИЦУ */}
                 {isAdmin && (
-                  <Button variant="outline" size="sm" onClick={() => setCurrentSection('admin')} className="hidden sm:inline-flex">
-                    {t.blogManagement}
-                  </Button>
+                  <Link href="/admin">
+                    <Button variant="outline" size="sm" className="hidden sm:inline-flex gap-2">
+                      <LayoutDashboard className="w-4 h-4" />
+                      {t.blogManagement}
+                    </Button>
+                  </Link>
                 )}
+                
                 {!isAdmin && <NotificationsBell />}
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary hover:shadow-lg transition-shadow overflow-hidden border border-border/50">
+                    <button className="w-9 h-9 rounded-full border-2 border-primary/20 overflow-hidden hover:border-primary/50 transition-all">
                       {avatarUrl ? (
                         <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-sm font-bold text-primary-foreground">👤</div>
+                        <div className="w-full h-full bg-muted flex items-center justify-center text-xs">👤</div>
                       )}
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem onClick={() => navigateToProfileSection('profile-info')}>
-                      <User className="w-4 h-4 mr-2" />
-                      {t.profile}
+                  <DropdownMenuContent align="end" className="w-56 rounded-xl">
+                    {/* 🔄 Все пункты теперь ведут на /dashboard */}
+                    <DropdownMenuItem onClick={() => router.push('/dashboard')}>
+                      <User className="w-4 h-4 mr-2" /> {t.profile}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigateToProfileSection('profile-comments')}>
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      {t.comments}
+                      <MessageSquare className="w-4 h-4 mr-2" /> {t.comments}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigateToProfileSection('profile-achievements')}>
-                      <Award className="w-4 h-4 mr-2" />
-                      {t.achievements}
+                      <Award className="w-4 h-4 mr-2" /> {t.achievements}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigateToProfileSection('profile-favourites')}>
-                      <Heart className="w-4 h-4 mr-2" />
-                      {t.favourites}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigateToProfileSection('profile-notifications')}>
-                      <Bell className="w-4 h-4 mr-2" />
-                      {t.notifications}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-500 focus:text-red-500" onClick={() => onSignOut?.()}>
-                      <LogOut className="w-4 h-4 mr-2" />
-                      {t.signOut}
+                    <DropdownMenuItem className="text-red-500" onClick={onSignOut}>
+                      <LogOut className="w-4 h-4 mr-2" /> {t.signOut}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
             )}
 
-            <button 
-              className="md:hidden p-2 rounded-lg text-foreground/70 hover:bg-muted"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-            >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {/* Mobile Menu Button */}
+            <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              {isMenuOpen ? <X /> : <Menu />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Мобильное меню */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-background border-b border-border animate-in slide-in-from-top duration-300 overflow-hidden">
-          <div className="px-4 pt-2 pb-6 space-y-2">
-            <div className="pt-2 pb-2">
-              <SearchBar />
-            </div>
-            {navItems.map((item) => (
-              <div key={item.id} onClick={() => setIsMenuOpen(false)}>
-                {renderNavItem(item, true)}
-              </div>
-            ))}
-            {!isLoggedIn && (
-              <Button 
-                onClick={() => { setCurrentSection('signin'); setIsMenuOpen(false); }} 
-                className="w-full bg-primary mt-4"
-              >
-                {t.signIn}
-              </Button>
-            )}
-          </div>
+        <div className="md:hidden p-4 bg-background border-b space-y-2">
+          {navItems.map((item) => (
+            <Link 
+              key={item.id} 
+              href={item.href} 
+              className="block p-2 hover:bg-muted rounded-lg"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              {item.label}
+            </Link>
+          ))}
+          {!isLoggedIn && (
+  <Button asChild className="w-full">
+    <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+      {t.signIn}
+    </Link>
+  </Button>
+)}
         </div>
       )}
     </header>

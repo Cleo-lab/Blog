@@ -27,9 +27,9 @@ export default function HeroServer() {
         <p className="text-sm sm:text-base font-medium tracking-[0.2em] uppercase text-muted-foreground/80 mb-3 animate-in fade-in slide-in-from-bottom-4 duration-1000">
           {BRAND.authorName}
         </p>
-        <p className="text-4xl sm:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+        <h1 className="text-4xl sm:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
           {BRAND.siteName}
-        </p>
+        </h1>
 
         <div className="text-xl sm:text-2xl text-muted-foreground mb-4 max-w-2xl mx-auto">
           {/* ✅ Используем короткий слоган */}
