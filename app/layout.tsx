@@ -6,9 +6,13 @@ import { ProvidersWrapper } from '@/components/providers-wrapper'
 import AnalyticsLazy from '@/components/analytics-lazy'
 import CookieBannerClient from '@/components/cookie-banner-client'
 import Footer from '@/components/footer'
-import HeaderWrapper from '@/components/header-wrapper'
-import { Suspense } from 'react'
-import { BRAND } from '@/lib/brand-voice' // ✅ Импортируем наш пульт управления
+// ❌ Удаляем статический импорт, чтобы не было конфликта
+// import HeaderWrapper from '@/components/header-wrapper' 
+import { BRAND } from '@/lib/brand-voice'
+import dynamic from 'next/dynamic'
+import SiteHeader from '@/components/site-header'
+
+
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -19,7 +23,6 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  // ✅ Используем BRAND для главных мета-тегов
   title: {
     default: BRAND.titles.homepage,
     template: `%s | ${BRAND.siteName}`,
@@ -60,7 +63,7 @@ export default function RootLayout({
 }: {
   readonly children: React.ReactNode
 }) {
-  // ✅ Обновляем схемы, чтобы они брали данные из BRAND
+  // Я также убрал лишние пробелы в url 'https://schema.org ' -> 'https://schema.org'
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -100,15 +103,10 @@ export default function RootLayout({
       <body className={poppins.className}>
         <ProvidersWrapper>
           <div className="flex flex-col min-h-screen">
-            <Suspense fallback={<div className="h-[72px] w-full bg-background" />}>
-              <HeaderWrapper />
-            </Suspense>
+            <SiteHeader />
             <main className="flex-grow">
               {children}
             </main>
-            {/* ✅ Если в будущем захочешь поменять язык, 
-              BRAND тоже можно будет расширить под это. 
-            */}
             <Footer language="en" />
           </div>
         </ProvidersWrapper>
