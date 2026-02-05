@@ -1,3 +1,4 @@
+// app/blog/[slug]/page.tsx
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
@@ -6,10 +7,27 @@ import React from 'react'
 import { ChevronRight, X } from 'lucide-react'
 import { createServiceSupabase } from '@/lib/supabaseServer'
 import BlurImage from './blur-image'
-import CommentsSection from './comments-section'
+import CommentsSectionWrapper from '@/components/comments-section-wrapper'
 
-// Revalidate каждые 24 часа для стабильного кэша
+// ✅ Статическая генерация!
 export const revalidate = 86400
+export const dynamic = 'force-static'
+
+// ✅ Генерируем статические страницы для всех постов
+export async function generateStaticParams() {
+  const supabase = createServiceSupabase()
+  const { data: posts } = await supabase
+    .from('blog_posts')
+    .select('slug')
+    .eq('published', true)
+  
+  return posts?.map((post) => ({
+    slug: post.slug,
+  })) || []
+}
+
+// ✅ БЕЗ ПРОБЕЛОВ!
+const baseUrl = 'https://yurieblog.vercel.app'
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
@@ -25,7 +43,7 @@ export async function generateMetadata(
     .single()
 
   if (!post) {
-    return { title: 'Post Not Found' }
+    return { title: 'Post Not Found', robots: { index: false } }
   }
 
   const rawText = post.excerpt ?? post.content ?? ''
@@ -36,27 +54,35 @@ export async function generateMetadata(
     .slice(0, 160)
     .trim()
 
-  const imageUrl = post.featured_image ?? 'https://yurieblog.vercel.app/images/Yurie_main.jpg'
-  // Оптимизировали Alt и Title под бренд Yurie Blog
+  const imageUrl = post.featured_image ?? `${baseUrl}/images/Yurie_main.jpg`
   const imageAlt = `Featured image for: ${post.title} - Yurie Blog`
 
   return {
-    title: `${post.title}`,
+    title: post.title,
     description,
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
     alternates: {
-      canonical: `https://yurieblog.vercel.app/blog/${post.slug}`,
+      canonical: `${baseUrl}/blog/${post.slug}`,
     },
     openGraph: {
       type: 'article',
       title: post.title,
       description,
-      url: `https://yurieblog.vercel.app/blog/${post.slug}`,
+      url: `${baseUrl}/blog/${post.slug}`,
       siteName: "Yurie Blog",
       locale: 'en_US',
       images: [{ url: imageUrl, width: 1200, height: 630, alt: imageAlt }],
       publishedTime: post.created_at ?? undefined,
       modifiedTime: post.updated_at ?? undefined,
-      // Имя автора в метаданных для разделения сущностей в Google
       authors: ['Yurie Jiyūbō'], 
     },
     twitter: {
@@ -117,29 +143,28 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       : Promise.resolve({ data: [] }),
   ])
 
-  // Усиленная JSON-LD Schema для E-E-A-T
   const articleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
-    '@id': `https://yurieblog.vercel.app/blog/${post.slug}#article`,
+    '@id': `${baseUrl}/blog/${post.slug}#article`,
     headline: post.title,
     description: (post.excerpt || post.content).slice(0, 200),
-    image: post.featured_image || 'https://yurieblog.vercel.app/images/Yurie_main.jpg',
+    image: post.featured_image || `${baseUrl}/images/Yurie_main.jpg`,
     datePublished: post.created_at,
     dateModified: post.updated_at || post.created_at,
     author: { 
       '@type': 'Person', 
       name: 'Yurie Jiyūbō',
-      url: 'https://yurieblog.vercel.app/about' // Ссылка на About обязательна
+      url: `${baseUrl}/about`
     },
     publisher: {
       '@type': 'Organization',
       name: "Yurie Blog",
-      logo: { '@type': 'ImageObject', url: 'https://yurieblog.vercel.app/images/Yurie_main.jpg' }
+      logo: { '@type': 'ImageObject', url: `${baseUrl}/images/Yurie_main.jpg` }
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://yurieblog.vercel.app/blog/${post.slug}`
+      '@id': `${baseUrl}/blog/${post.slug}`
     }
   }
 
@@ -147,9 +172,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://yurieblog.vercel.app' },
-      { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://yurieblog.vercel.app/archiveblog' },
-      { '@type': 'ListItem', position: 3, name: post.title, item: `https://yurieblog.vercel.app/blog/${post.slug}` },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: baseUrl },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${baseUrl}/archiveblog` },
+      { '@type': 'ListItem', position: 3, name: post.title, item: `${baseUrl}/blog/${post.slug}` },
     ],
   }
 
@@ -194,7 +219,6 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
             
             <h1 className="text-4xl font-bold mb-6 leading-tight" itemProp="headline">{post.title}</h1>
             
-            {/* Author Block - Теперь с полным именем */}
             <div className="flex items-center gap-4 mb-8 pb-8 border-b border-border/50">
               <div itemProp="author" itemScope itemType="https://schema.org/Person" className="flex items-center gap-4">
                 {author?.avatar_url && (
@@ -240,7 +264,6 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                   ),
                   a: ({ href, children }) => {
                     const isExternal = href?.startsWith('http') && !href.includes('yurieblog.vercel.app')
-                    // Разрешаем DoFollow для твоих соцсетей, чтобы поднять их авторитет
                     const isMySocial = href?.includes('bsky.app') || href?.includes('github.com')
                     
                     return (
@@ -279,7 +302,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
             )}
           </article>
 
-          <CommentsSection postSlug={post.slug} />
+          <CommentsSectionWrapper postSlug={post.slug} />
           
         </div>
       </div>
