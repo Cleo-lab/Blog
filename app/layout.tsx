@@ -8,7 +8,7 @@ import CookieBannerClient from '@/components/cookie-banner-client'
 import Footer from '@/components/footer'
 import { BRAND } from '@/lib/brand-voice'
 import SiteHeader from '@/components/site-header'
-
+import Script from 'next/script'
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
@@ -115,6 +115,15 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
         />
+        <Script id="clarity-script" strategy="afterInteractive">
+  {`
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "vcpdwg4ap5");
+  `}
+</Script>
       </head>
 
       <body className={poppins.className}>
@@ -129,6 +138,7 @@ export default function RootLayout({
         </ProvidersWrapper>
         <AnalyticsLazy />
         <CookieBannerClient />
+        
       </body>
     </html>
   )
