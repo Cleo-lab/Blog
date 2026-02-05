@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next'
 
-const baseUrl = 'https://yurieblog.vercel.app'
+const baseUrl = 'https://yurieblog.vercel.app'  // ← без пробела!
 
 // 🔒 Приватные зоны
 const PRIVATE_PATHS = [
@@ -10,6 +10,9 @@ const PRIVATE_PATHS = [
   '/drafts/',
   '/preview/',
   '/checkout/',
+  '/dashboard/',     // ← добавь если есть личный кабинет
+  '/login/',
+  '/signup/',
 ] as const
 
 // 🤖 AI-боты (training / scraping)
@@ -22,6 +25,8 @@ const AI_SCRAPERS = [
   'anthropic-ai',
   'Google-Extended',
   'Applebot-Extended',
+  'CCBot',           // ← Common Crawl
+  'FacebookBot',     // ← Meta AI
 ] as const
 
 // 🚫 Агрессивные SEO-сканеры
@@ -32,26 +37,30 @@ const AGGRESSIVE_BOTS = [
   'BLEXBot',
   'DotBot',
   'Exabot',
+  'Screaming Frog',  // ← часто агрессивный
+  'Sitebulb',        // ← SEO crawler
 ] as const
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      // 1️⃣ Агрессивные скраперы — полный запрет
+      // 1️⃣ Агрессивные скраперы — полный запрет (САМОЕ СТРОГОЕ — первым!)
       {
         userAgent: [...AGGRESSIVE_BOTS],
         disallow: '/',
       },
 
-      // 2️⃣ AI-боты — запрещаем сбор контента
+      // 2️⃣ AI-боты — запрещаем сбор контента для обучения
       {
         userAgent: [...AI_SCRAPERS],
         disallow: '/',
       },
 
-      // 3️⃣ Поисковики (Google, Bing, Yandex и др.)
+      // 3️⃣ ВСЕ остальные боты (Google, Bing, Yandex, DuckDuckGo, etc.)
+      // ✅ Явно разрешаем индексацию всего, кроме приватных путей
       {
         userAgent: '*',
+        allow: '/',           // ← ЯВНО разрешаем корень и всё остальное!
         disallow: [...PRIVATE_PATHS],
       },
     ],
