@@ -1,4 +1,3 @@
-import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
@@ -6,15 +5,33 @@ import { Button } from '@/components/ui/button'
 import BackToSite from '@/components/back-to-site'
 import Breadcrumbs from '@/components/breadcrumbs'
 import { createServiceSupabase } from '@/lib/supabaseServer'
-import { BRAND } from '@/lib/brand-voice' // ✅ Твой пульт управления
+import { BRAND } from '@/lib/brand-voice'
 
-export const metadata: Metadata = {
-  // ✅ Метаданные теперь управляются из одного файла
+export const revalidate = 86400 // пересборка каждые 24 часа
+
+interface BlogPost {
+  id: string
+  title: string
+  slug: string
+  excerpt: string | null
+  content: string
+  featured_image: string | null
+  created_at: string
+}
+
+const cleanText = (text: string) => {
+  if (!text) return ''
+  return text
+    .replace(/\[(yellow|blue|purple|pink)\]/g, '')
+    .replace(/^[> \t]+/gm, '')
+    .replace(/[#*`]/g, '')
+    .trim()
+}
+
+export const metadata = {
   title: BRAND.titles.blog,
   description: BRAND.descriptions.blog,
-  alternates: { 
-    canonical: `${BRAND.siteUrl}/archiveblog` 
-  },
+  alternates: { canonical: `${BRAND.siteUrl}/archiveblog` },
   openGraph: {
     title: BRAND.titles.blog,
     description: BRAND.taglines.medium,
@@ -40,43 +57,18 @@ export const metadata: Metadata = {
   },
 }
 
-export const revalidate = 86400
-
-interface BlogPost {
-  id: string
-  title: string
-  slug: string
-  excerpt: string | null
-  content: string
-  featured_image: string | null
-  created_at: string
-}
-
-const cleanText = (text: string) => {
-  if (!text) return ''
-  return text
-    .replace(/\[(yellow|blue|purple|pink)\]/g, '')
-    .replace(/^[> \t]+/gm, '')
-    .replace(/[#*`]/g, '')
-    .trim()
-}
-
 export default async function ArchiveBlogPage() {
   const supabase = createServiceSupabase()
-  
   const { data: posts, error } = await supabase
     .from('blog_posts')
     .select('id, title, slug, excerpt, content, featured_image, created_at')
     .eq('published', true)
     .order('created_at', { ascending: false })
 
-  if (error) {
-    console.error('Error fetching posts:', error)
-  }
-
+  if (error) console.error('Error fetching posts:', error)
   const blogPosts = (posts || []) as BlogPost[]
 
-  // ✅ Schema.org теперь использует данные из BRAND
+  // JSON-LD для CollectionPage
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -85,10 +77,7 @@ export default async function ArchiveBlogPage() {
     description: BRAND.descriptions.blog,
     url: `${BRAND.siteUrl}/archiveblog`,
     inLanguage: 'en-US',
-    isPartOf: {
-      '@type': 'Blog',
-      '@id': `${BRAND.siteUrl}/#blog`,
-    },
+    isPartOf: { '@type': 'Blog', '@id': `${BRAND.siteUrl}/#blog` },
     mainEntity: {
       '@type': 'ItemList',
       itemListElement: blogPosts.slice(0, 50).map((post, index) => ({
@@ -106,35 +95,20 @@ export default async function ArchiveBlogPage() {
     },
   }
 
+  // JSON-LD для Breadcrumb
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Home',
-        item: BRAND.siteUrl,
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: 'Blog Archive',
-        item: `${BRAND.siteUrl}/archiveblog`,
-      },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: BRAND.siteUrl },
+      { '@type': 'ListItem', position: 2, name: 'Blog Archive', item: `${BRAND.siteUrl}/archiveblog` },
     ],
   }
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       <main className="max-w-6xl mx-auto px-4 py-10">
         <Breadcrumbs />
@@ -142,12 +116,10 @@ export default async function ArchiveBlogPage() {
         {/* Hero Section */}
         <div className="flex flex-col md:flex-row items-center gap-10 mb-12">
           <div className="flex-1 order-2 md:order-1 text-center md:text-left">
-            {/* ✅ Динамический H1 из конфига */}
             <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">
               {BRAND.headings.blog}
             </h1>
             <div className="text-foreground/90 space-y-4 text-lg">
-              {/* ✅ Текст из BRAND */}
               <p>{BRAND.intros.blog}</p>
             </div>
           </div>
@@ -167,7 +139,7 @@ export default async function ArchiveBlogPage() {
         {/* Blog Posts Grid */}
         <section aria-label="Blog posts archive">
           <h2 className="sr-only">All Blog Posts</h2>
-          
+
           {blogPosts.length === 0 ? (
             <p className="text-center text-foreground/60">No posts available yet.</p>
           ) : (
@@ -194,24 +166,15 @@ export default async function ArchiveBlogPage() {
                         })}
                       </time>
                       <h3 className="text-lg font-semibold mb-2 line-clamp-2">
-                        <Link 
-                          href={`/blog/${post.slug}`} 
-                          className="hover:text-primary transition-colors"
-                        >
+                        <Link href={`/blog/${post.slug}`} className="hover:text-primary transition-colors">
                           {post.title}
                         </Link>
                       </h3>
-                      
                       <p className="text-foreground/70 text-sm mb-4 line-clamp-3 flex-grow">
                         {cleanText(post.excerpt || post.content.substring(0, 150))}...
                       </p>
-
                       <Link href={`/blog/${post.slug}`}>
-                        <Button 
-                          size="sm" 
-                          className="w-full bg-primary/10 hover:bg-primary/20 text-primary border-none"
-                        >
-                          {/* ✅ Авторский CTA из конфига */}
+                        <Button size="sm" className="w-full bg-primary/10 hover:bg-primary/20 text-primary border-none">
                           {BRAND.ctas.readMore}
                         </Button>
                       </Link>
@@ -229,7 +192,6 @@ export default async function ArchiveBlogPage() {
             Stay updated! 🦋
           </h2>
           <p className="text-lg text-foreground/80 mb-6">
-            {/* ✅ Призыв из BRAND */}
             {BRAND.ctas.followBluesky}
           </p>
           <a
