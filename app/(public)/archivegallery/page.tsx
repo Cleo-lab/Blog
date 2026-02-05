@@ -1,17 +1,48 @@
-// app/archivegallery/page.tsx — НОВЫЙ ФАЙЛ (заменяет клиентский)
+// app/archivegallery/page.tsx
 import { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
+import Breadcrumbs from '@/components/breadcrumbs'
+import BackToSite from '@/components/back-to-site'
 import { createServiceSupabase } from '@/lib/supabaseServer'
-import { BRAND } from '@/lib/brand-voice'
+import { BRAND, getSchemaDescription } from '@/lib/brand-voice'
 
 export const metadata: Metadata = {
-  title: `Gallery Archive | ${BRAND.siteName}`,
-  description: 'Browse all gallery images and visual experiments',
-  alternates: { canonical: `${BRAND.siteUrl}/archivegallery` },
+  // ✅ Используем BRAND для единообразия
+  title: BRAND.titles.gallery,
+  description: BRAND.descriptions.gallery,
+  
+  alternates: { 
+    canonical: `${BRAND.siteUrl}/archivegallery` 
+  },
+  
+  openGraph: {
+    title: BRAND.titles.gallery,
+    description: BRAND.taglines.medium,
+    url: `${BRAND.siteUrl}/archivegallery`,
+    siteName: BRAND.siteName,
+    locale: 'en_US',
+    type: 'website',
+    images: [
+      {
+        url: `${BRAND.siteUrl}/images/Yurie_main.jpg`,
+        width: 1200,
+        height: 630,
+        alt: BRAND.headings.gallery,
+      },
+    ],
+  },
+  
+  twitter: {
+    card: 'summary_large_image',
+    title: BRAND.titles.gallery,
+    description: BRAND.taglines.short,
+    images: [`${BRAND.siteUrl}/images/Yurie_main.jpg`],
+    creator: '@yurieblog.bsky.social',
+  },
 }
 
-export const revalidate = 86400 // ISR — обновление раз в сутки
+export const revalidate = 86400
 
 export default async function ArchiveGalleryPage() {
   const supabase = createServiceSupabase()
@@ -21,21 +52,78 @@ export default async function ArchiveGalleryPage() {
     .select('id, title, description, image, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
 
+  // ✅ Schema.org с данными из BRAND
+  const gallerySchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    '@id': `${BRAND.siteUrl}/archivegallery`,
+    name: BRAND.titles.gallery,
+    description: getSchemaDescription('gallery'),
+    url: `${BRAND.siteUrl}/archivegallery`,
+    inLanguage: 'en-US',
+    author: {
+      '@type': 'Person',
+      '@id': `${BRAND.siteUrl}/#author`,
+      name: BRAND.authorName,
+      url: BRAND.siteUrl,
+    },
+  }
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: BRAND.siteUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Gallery Archive',
+        item: `${BRAND.siteUrl}/archivegallery`,
+      },
+    ],
+  }
+
   return (
-    <main className="min-h-screen bg-background py-12 px-4">
-      <div className="max-w-6xl mx-auto">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(gallerySchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
+      <main className="max-w-6xl mx-auto px-4 py-10">
+        <Breadcrumbs />
+
+        {/* Hero Section */}
         <div className="mb-12">
+          {/* ✅ H1 из BRAND */}
           <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Gallery Archive
+            {BRAND.headings.gallery}
           </h1>
-          <p className="text-foreground/60 text-lg">
+          
+          {/* ✅ Intro из BRAND */}
+          <p className="text-foreground/80 text-lg mb-2">
+            {BRAND.intros.gallery}
+          </p>
+          
+          <p className="text-foreground/60">
             {count || 0} images in collection
           </p>
+          
           <div className="w-20 h-1 bg-gradient-to-r from-primary to-secondary rounded-full mt-4" />
         </div>
 
+        {/* Gallery Grid */}
         {images && images.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
             {images.map((item) => (
               <Link key={item.id} href={`/gallery/${item.id}`}>
                 <article className="group relative h-64 rounded-xl overflow-hidden cursor-pointer bg-card border border-border/50 transition-transform hover:scale-105">
@@ -63,7 +151,29 @@ export default async function ArchiveGalleryPage() {
             <p className="text-foreground/60 text-lg">No images yet. Check back soon!</p>
           </div>
         )}
-      </div>
-    </main>
+
+        {/* Bluesky CTA */}
+        <aside className="mt-16 p-6 rounded-2xl bg-[#0085ff]/10 border border-[#0085ff]/30 shadow-sm max-w-3xl">
+          <h2 className="text-xl font-bold mb-3 flex items-center gap-2 text-foreground">
+            Visual updates! 🦋
+          </h2>
+          <p className="text-lg text-foreground/80 mb-6">
+            {BRAND.ctas.followBluesky}
+          </p>
+          <a
+            href="https://bsky.app/profile/yurieblog.bsky.social"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-[#0085ff] text-white rounded-xl font-bold shadow-lg shadow-blue-500/25 active:scale-95"
+          >
+            Follow @yurieblog
+          </a>
+        </aside>
+
+        <div className="mt-12">
+          <BackToSite />
+        </div>
+      </main>
+    </>
   )
 }

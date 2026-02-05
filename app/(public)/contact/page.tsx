@@ -1,31 +1,68 @@
+// app/contact/page.tsx
 import type { Metadata } from 'next'
-import { Mail, Github, MessageSquare, Clock } from 'lucide-react'
-import { BRAND, getSchemaDescription } from '@/lib/brand-voice' // ✅ Импорт
+import Breadcrumbs from '@/components/breadcrumbs'
+import { BRAND } from '@/lib/brand-voice'
 
 export const metadata: Metadata = {
-  // ✅ Убираем ручной ввод, используем BRAND
+  // ✅ Используем BRAND
   title: BRAND.titles.contact,
   description: BRAND.descriptions.contact,
-  alternates: { canonical: `${BRAND.siteUrl}/contact` }
+  
+  alternates: { 
+    canonical: `${BRAND.siteUrl}/contact` 
+  },
+  
+  openGraph: {
+    title: BRAND.titles.contact,
+    description: 'Get in touch for collaboration, questions, or just to chat about digital experiments.',
+    url: `${BRAND.siteUrl}/contact`,
+    siteName: BRAND.siteName,
+    locale: 'en_US',
+    type: 'website',
+  },
+  
+  twitter: {
+    card: 'summary',
+    title: BRAND.titles.contact,
+    description: BRAND.descriptions.contact,
+    creator: '@yurieblog.bsky.social',
+  },
 }
 
 export default function ContactPage() {
-  // ✅ Используем BRAND для Schema.org
   const contactSchema = {
     '@context': 'https://schema.org',
     '@type': 'ContactPage',
-    'description': getSchemaDescription('contact'),
-    'mainEntity': {
+    '@id': `${BRAND.siteUrl}/contact`,
+    name: 'Contact Yurie',
+    description: BRAND.descriptions.contact,
+    url: `${BRAND.siteUrl}/contact`,
+    mainEntity: {
       '@type': 'Person',
-      'name': BRAND.authorName,
-      'url': BRAND.siteUrl,
-      'jobTitle': 'Digital Entrepreneur',
-      'contactPoint': {
-        '@type': 'ContactPoint',
-        'email': 'cleopatrathequeenofcats@gmail.com',
-        'contactType': 'customer support'
-      }
-    }
+      '@id': `${BRAND.siteUrl}/#author`,
+      name: BRAND.authorName,
+      email: 'cleopatrathequeenofcats@gmail.com',
+    },
+    inLanguage: 'en-US',
+  }
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: BRAND.siteUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Contact',
+        item: `${BRAND.siteUrl}/contact`,
+      },
+    ],
   }
 
   return (
@@ -34,63 +71,76 @@ export default function ContactPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(contactSchema) }}
       />
-      
-      <main className="max-w-4xl mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          {/* ✅ H1 из BRAND (Let's Talk Digital Experiments...) */}
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent">
-            {BRAND.titles.contact.split(' — ')[0]} 
-          </h1>
-          {/* ✅ Ироничное описание из BRAND */}
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            {BRAND.descriptions.contact}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
+      <main className="max-w-3xl mx-auto px-4 py-10">
+        <Breadcrumbs />
+
+        <h1 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">
+          Contact Me
+        </h1>
+        
+        <div className="prose prose-lg dark:prose-invert max-w-none">
+          <p className="text-lg text-foreground/80 leading-relaxed">
+            Have a question about my <strong>digital experiments</strong>, want to discuss the <strong>creator economy</strong>, 
+            or collaborate on something interesting? I'm always open to conversations with fellow experimenters.
           </p>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {/* Email Card */}
-          <div className="p-8 rounded-3xl bg-card border border-border/50 hover:border-pink-500/50 transition-colors shadow-sm">
-            <div className="w-12 h-12 rounded-2xl bg-pink-500/10 flex items-center justify-center mb-6">
-              <Mail className="w-6 h-6 text-pink-500" />
-            </div>
-            <h2 className="text-xl font-bold mb-2">Email Me</h2>
-            <p className="text-muted-foreground mb-4 text-sm">Best for business inquiries and collab ideas.</p>
-            <a 
-              href="mailto:cleopatrathequeenofcats@gmail.com" 
-              className="text-lg font-medium text-foreground hover:text-pink-500 transition-colors break-all underline decoration-pink-500/30"
-            >
-              cleopatrathequeenofcats@gmail.com
-            </a>
-          </div>
-
-          {/* Social Card */}
-          <div className="p-8 rounded-3xl bg-card border border-border/50 hover:border-blue-500/50 transition-colors shadow-sm">
-            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6">
-              <MessageSquare className="w-6 h-6 text-blue-500" />
-            </div>
-            <h2 className="text-xl font-bold mb-2">Social Media</h2>
-            <p className="text-muted-foreground mb-4 text-sm">Live updates from the digital trenches.</p>
-            <div className="space-y-3">
-              <a href="https://bsky.app/profile/yurieblog.bsky.social" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-foreground hover:text-blue-500 transition-colors">
-                <span className="text-lg">🦋 Bluesky</span>
-              </a>
-              <a href="https://github.com/Cleo-lab" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-foreground hover:text-blue-500 transition-colors">
-                <Github className="w-5 h-5" /> <span>GitHub</span>
+          <div className="mt-8 space-y-6">
+            <div className="p-6 rounded-2xl bg-card border border-border/50">
+              <h2 className="text-xl font-semibold mb-2 text-foreground">Email</h2>
+              <p className="text-foreground/80">
+                For collaboration inquiries, questions, or just to say hi:
+              </p>
+              <a 
+                href="mailto:cleopatrathequeenofcats@gmail.com" 
+                className="inline-flex items-center gap-2 mt-3 text-primary hover:underline font-medium text-lg"
+              >
+                cleopatrathequeenofcats@gmail.com
               </a>
             </div>
-          </div>
-        </div>
 
-        {/* Инфо-блок */}
-        <div className="flex flex-col md:flex-row items-center justify-center gap-8 p-8 rounded-3xl bg-muted/30 border border-border/20">
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Clock className="w-4 h-4 text-pink-500" />
-            <span>Response time: 24-48 hours</span>
+            <div className="p-6 rounded-2xl bg-[#0085ff]/10 border border-[#0085ff]/30">
+              <h2 className="text-xl font-semibold mb-2 text-foreground">Social Media</h2>
+              <p className="text-foreground/80 mb-4">
+                Latest updates, experiments, and behind-the-scenes chaos:
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <strong className="text-foreground">Bluesky:</strong>{' '}
+                  <a
+                    href="https://bsky.app/profile/yurieblog.bsky.social"
+                    target="_blank"
+                    rel="noopener noreferrer me"
+                    className="text-[#0085ff] hover:underline"
+                  >
+                    @yurieblog.bsky.social
+                  </a>
+                </div>
+                <div>
+                  <strong className="text-foreground">GitHub:</strong>{' '}
+                  <a
+                    href="https://github.com/Cleo-lab"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    Cleo-lab
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="hidden md:block w-px h-4 bg-border" />
-          <div className="text-sm text-muted-foreground italic">
-            {/* ✅ Тэглайн из BRAND в футере для единообразия */}
-            {BRAND.footer.tagline}
+
+          <div className="mt-10 p-6 rounded-2xl bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-indigo-500/10 border-l-4 border-pink-500">
+            <p className="text-base text-foreground/70 italic">
+              <strong>Response time:</strong> Usually within 24-48 hours. <br />
+              <strong>What I'm open to:</strong> Collaborations, questions about experiments, feedback, ideas. <br />
+              <strong>What to skip:</strong> Guru courses, get-rich-quick schemes, NFT projects. 😄
+            </p>
           </div>
         </div>
       </main>

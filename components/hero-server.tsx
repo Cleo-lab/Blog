@@ -1,11 +1,12 @@
+// components/hero-server.tsx — CRITICAL FIX
 import Image from 'next/image'
 import HeroButtons from './hero-buttons'
-import { BRAND } from '@/lib/brand-voice' // ✅ Импортируем наш бренд-бук
+import { BRAND } from '@/lib/brand-voice'
 
 export default function HeroServer() {
   return (
     <section className="relative min-h-[60vh] sm:min-h-[calc(100svh-4rem)] pt-12 pb-8 flex flex-col items-center justify-center overflow-hidden">
-      {/* Декоративные круги */}
+      {/* Decorative elements — pure CSS, no hydration issues */}
       <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-float" />
       <div className="absolute bottom-20 right-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
 
@@ -24,23 +25,23 @@ export default function HeroServer() {
           />
         </div>
 
-        <p className="text-sm sm:text-base font-medium tracking-[0.2em] uppercase text-muted-foreground/80 mb-3 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-          {BRAND.authorName}
-        </p>
+        {/* ✅ CRITICAL: H1 must be REAL text, not image, not delayed */}
         <h1 className="text-4xl sm:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
           {BRAND.siteName}
         </h1>
 
+        {/* ✅ Subtitle as p, not competing H1 */}
+        <p className="text-sm sm:text-base font-medium tracking-[0.2em] uppercase text-muted-foreground/80 mb-3">
+          {BRAND.authorName}
+        </p>
+
         <div className="text-xl sm:text-2xl text-muted-foreground mb-4 max-w-2xl mx-auto">
-          {/* ✅ Используем короткий слоган */}
           <p>{BRAND.taglines.medium}</p>
           <span className="block mt-2 text-lg sm:text-xl font-medium text-foreground/80">
-            {/* ✅ Показываем индивидуальность */}
             Real stories from the trenches. 💸
           </span>
         </div>
 
-        {/* ✅ Главный интро-текст из конфига */}
         <p className="text-base sm:text-lg text-muted-foreground/80 mb-8 max-w-xl mx-auto italic leading-relaxed">
           {BRAND.intros.homepage}
         </p>
@@ -48,7 +49,7 @@ export default function HeroServer() {
         <HeroButtons />
       </div>
 
-      {/* SEO Schema — теперь данные тянутся из BRAND */}
+      {/* Schema remains identical for all users/bots */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

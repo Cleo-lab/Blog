@@ -1,3 +1,4 @@
+// app/page.tsx
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import HeroServer from '@/components/hero-server'
@@ -8,12 +9,11 @@ import Subscribe from '@/components/subscribe'
 import FootAdBanner from '@/components/FootAdBanner'
 import MiddleAdBanner from '@/components/MiddleAdBanner'
 import { createServiceSupabase } from '@/lib/supabaseServer'
-import { fetchProfileServer } from '@/lib/profile-server'
 import { BRAND, getSchemaDescription } from '@/lib/brand-voice'
 
-// ✅ Импортируем интерактивные компоненты напрямую
-import DonorList from '@/components/donor-list'
-import BlueskyFeed from '@/components/bluesky-feed'
+// ✅ Обычные импорты серверных обёрток
+import DonorListWrapper from '@/components/donor-list-wrapper'
+import BlueskyFeedWrapper from '@/components/bluesky-feed-wrapper'
 
 export const metadata: Metadata = {
   title: BRAND.titles.homepage,
@@ -51,32 +51,43 @@ export const metadata: Metadata = {
     images: ['/images/Yurie_main.jpg'],
     creator: '@yurieblog.bsky.social',
   },
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+    googleBot: {
+      index: true,
+      follow: true,
+      noimageindex: false,
+    },
+  },
 }
 
+// ✅ Next.js route config
 export const revalidate = 86400
+export const dynamic = 'force-static'
+export const fetchCache = 'force-cache'
 
 export default async function Page() {
+  // Публичные данные только
   const supabase = createServiceSupabase()
+  
   let posts: any[] = []
-  let profile = null
 
   try {
-const [{ data: { user } }, { data: postsData }] = await Promise.all([
-  supabase.auth.getUser(),
-  supabase
-    .from('blog_posts')
-    .select('id, title, slug, excerpt, content, featured_image, created_at, updated_at')
-    .eq('published', true)
-    .order('created_at', { ascending: false })
-    .limit(6)
-])
+    const { data: postsData } = await supabase
+      .from('blog_posts')
+      .select('id, title, slug, excerpt, content, featured_image, created_at, updated_at')
+      .eq('published', true)
+      .order('created_at', { ascending: false })
+      .limit(6)
     
-    profile = user ? await fetchProfileServer(user.id) : null
     posts = postsData || []
   } catch (error) {
-    console.error('Error fetching data:', error)
+    console.error('Error fetching public data:', error)
   }
 
+  // JSON-LD Schema
   const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -123,8 +134,12 @@ const [{ data: { user } }, { data: postsData }] = await Promise.all([
       },
       publisher: {
         '@id': `${BRAND.siteUrl}/#organization`
-      }
-    }))
+      },
+      image: post.featured_image ? {
+        '@type': 'ImageObject',
+        url: post.featured_image
+      } : undefined
+    })).filter(Boolean)
   }
 
   return (
@@ -138,44 +153,39 @@ const [{ data: { user } }, { data: postsData }] = await Promise.all([
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogSchema) }}
       />
 
-      {/* ✅ ВСЁ КОНТЕНТ НА СЕРВЕРЕ */}
       <main className="min-h-screen bg-background text-foreground selection:bg-pink-500/30">
         
         <section id="home" className="pt-4 sm:pt-10 pb-4 px-2">
           <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            {/* Левая колонка - Hall of Fame (клиентский) */}
-            <div className="lg:col-span-3 order-2 lg:order-1 sticky top-24">
+            {/* LEFT: Hall of Fame */}
+            <aside className="lg:col-span-3 order-2 lg:order-1 sticky top-24">
               <div className="p-1 rounded-[2.6rem] bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 shadow-2xl">
                 <div className="p-5 rounded-[2.5rem] bg-zinc-950/90 backdrop-blur-xl h-fit">
                   <h3 className="text-xs font-black mb-6 text-center uppercase tracking-[0.2em] text-white/90">
                     Hall of Fame
                   </h3>
-                  {/* ✅ Клиентский компонент в своём собственном Suspense */}
-                  <Suspense fallback={<div className="text-center py-8 text-muted-foreground">Loading donors...</div>}>
-                    <DonorList />
-                  </Suspense>
+                  {/* ✅ Простой импорт, вся магия внутри wrapper */}
+                  <DonorListWrapper />
                 </div>
               </div>
-            </div>
+            </aside>
 
-            {/* Центр - Hero (серверный) */}
+            {/* CENTER: Hero */}
             <div className="lg:col-span-6 order-1 lg:order-2">
               <HeroServer />
             </div>
 
-            {/* Правая колонка - Bluesky Feed (клиентский) */}
-            <div className="lg:col-span-3 order-3 sticky top-24">
+            {/* RIGHT: Bluesky Feed */}
+            <aside className="lg:col-span-3 order-3 sticky top-24">
               <div className="rounded-[2.5rem] border border-border/40 p-6 bg-card/40 backdrop-blur-md">
                 <h3 className="text-sm font-bold mb-4">
                   Live Feed 🦋
                 </h3>
-                {/* ✅ Клиентский компонент в своём собственном Suspense */}
-                <Suspense fallback={<div className="text-center py-8 text-muted-foreground">Loading feed...</div>}>
-                  <BlueskyFeed />
-                </Suspense>
+                {/* ✅ Простой импорт */}
+                <BlueskyFeedWrapper />
               </div>
-            </div>
+            </aside>
           </div>
 
           <div className="max-w-[1440px] mx-auto px-2 sm:px-4">
@@ -191,10 +201,10 @@ const [{ data: { user } }, { data: postsData }] = await Promise.all([
         </section>
 
         <section id="gallery" className="py-8">
-  <div className="max-w-[1440px] mx-auto px-2 sm:px-4">
-    <GalleryServer language="en" />
-  </div>
-</section>
+          <div className="max-w-[1440px] mx-auto px-2 sm:px-4">
+            <GalleryServer language="en" />
+          </div>
+        </section>
 
         <MiddleAdBanner />
 

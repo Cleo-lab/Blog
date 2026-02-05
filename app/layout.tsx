@@ -1,4 +1,4 @@
-// app/layout.tsx
+// app/layout.tsx — STRIPPED OF AUTH DEPENDENCIES
 import type { Metadata } from 'next'
 import { Poppins } from 'next/font/google'
 import './globals.css'
@@ -6,13 +6,8 @@ import { ProvidersWrapper } from '@/components/providers-wrapper'
 import AnalyticsLazy from '@/components/analytics-lazy'
 import CookieBannerClient from '@/components/cookie-banner-client'
 import Footer from '@/components/footer'
-// ❌ Удаляем статический импорт, чтобы не было конфликта
-// import HeaderWrapper from '@/components/header-wrapper' 
 import { BRAND } from '@/lib/brand-voice'
-import dynamic from 'next/dynamic'
 import SiteHeader from '@/components/site-header'
-
-
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -22,6 +17,7 @@ const poppins = Poppins({
   fallback: ['system-ui', 'arial'],
 })
 
+// ✅ 100% static metadata
 export const metadata: Metadata = {
   title: {
     default: BRAND.titles.homepage,
@@ -35,10 +31,18 @@ export const metadata: Metadata = {
     google: 'WXnuGqV3agaGqnSqBJBEuym8I5KkJuvH4AMNKWXodYM',
   },
   metadataBase: new URL(BRAND.siteUrl),
+  alternates: {
+    canonical: BRAND.siteUrl,
+  },
   openGraph: {
     title: `${BRAND.siteName} — ${BRAND.taglines.short}`,
     description: BRAND.descriptions.homepage,
-    images: [{ url: '/images/Yurie_main.jpg', width: 1200, height: 630, alt: BRAND.siteName }],
+    images: [{ 
+      url: '/images/Yurie_main.jpg', 
+      width: 1200, 
+      height: 630, 
+      alt: BRAND.siteName 
+    }],
     type: 'website',
     url: BRAND.siteUrl,
     siteName: BRAND.siteName,
@@ -54,7 +58,12 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true },
+    googleBot: { 
+      index: true, 
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 }
 
@@ -63,13 +72,17 @@ export default function RootLayout({
 }: {
   readonly children: React.ReactNode
 }) {
-  // Я также убрал лишние пробелы в url 'https://schema.org ' -> 'https://schema.org'
+  // ✅ Static Schema.org markup — identical for every request
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     '@id': `${BRAND.siteUrl}/#organization`,
     name: BRAND.siteName,
     url: BRAND.siteUrl,
+    logo: `${BRAND.siteUrl}/images/Yurie_main.jpg`,
+    sameAs: [
+      'https://bsky.app/profile/yurieblog.bsky.social',
+    ],
     contactPoint: { 
       '@type': 'ContactPoint', 
       'contactType': 'Business Inquiries', 
@@ -83,6 +96,10 @@ export default function RootLayout({
     '@id': `${BRAND.siteUrl}/#author`,
     name: BRAND.authorName,
     url: BRAND.siteUrl,
+    image: `${BRAND.siteUrl}/images/Yurie_main.jpg`,
+    sameAs: [
+      'https://bsky.app/profile/yurieblog.bsky.social',
+    ],
   }
 
   return (
