@@ -7,6 +7,23 @@ const bundleAnalyzer = withBundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // ✅ Добавляем редиректы здесь
+  async redirects() {
+    return [
+      {
+        source: '/archiveblog',
+        destination: '/blog',
+        permanent: true, // 301 редирект: говорит гуглу, что страница переехала навсегда
+      },
+      {
+        source: '/archivegallery',
+        destination: '/gallery',
+        permanent: true,
+      },
+    ]
+  },
+
+  trailingSlash: false, 
   compress: true,
   poweredByHeader: false,
   
@@ -17,7 +34,6 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', 'react-markdown'],
     proxyTimeout: 180000,
   },
-  
   
   images: {
     formats: ['image/webp', 'image/avif'],
@@ -32,18 +48,19 @@ const nextConfig = {
     ],
     unoptimized: process.env.NODE_ENV === 'development',
   },
-async headers() {
+
+  async headers() {
     return [
       {
         source: '/:all*(svg|jpg|jpeg|png|webp|avif|gif|ico)',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
       {
-        source: '/_next/static/:path*',
+        source: '/fonts/:all*',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
     ]
   },
 }
 
-export default bundleAnalyzer(nextConfig);
+export default bundleAnalyzer(nextConfig)

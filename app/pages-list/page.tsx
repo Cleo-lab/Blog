@@ -23,8 +23,8 @@ export default async function SitemapHTML() {
           <h2 className="text-2xl font-bold mb-6 border-b border-border pb-2">Main Sections</h2>
           <ul className="space-y-4">
             <li><Link href="/" className="hover:text-pink-500 transition-colors">Home</Link></li>
-            <li><Link href="/archiveblog" className="hover:text-pink-500 transition-colors">Blog Archive</Link></li>
-            <li><Link href="/archivegallery" className="hover:text-pink-500 transition-colors">Gallery</Link></li>
+            <li><Link href="/blog" className="hover:text-pink-500 transition-colors">Blog</Link></li>
+            <li><Link href="/gallery" className="hover:text-pink-500 transition-colors">Gallery</Link></li>
             <li><Link href="/contact" className="hover:text-pink-500 transition-colors">Contact</Link></li>
           </ul>
 

@@ -69,7 +69,7 @@ export default async function GalleryServer({ language }: GalleryServerProps) {
 
         {hasMore && (
           <div className="w-full flex justify-center mt-10">
-            <LoadMoreBtn href="/archivegallery" lang={lang} color="purple" />
+            <LoadMoreBtn href="/gallery" lang={lang} color="purple" />
           </div>
         )}
       </div>

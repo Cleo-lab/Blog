@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next'
 
-const baseUrl = 'https://yurieblog.vercel.app'  // ← без пробела!
+const baseUrl = 'https://yurieblog.vercel.app'
 
 // 🔒 Приватные зоны
 const PRIVATE_PATHS = [

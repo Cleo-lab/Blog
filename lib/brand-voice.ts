@@ -38,7 +38,7 @@ export const BRAND = {
   titles: {
     homepage: 'Yurie Blog — Digital Experiments & Creator Economy Chaos',
     about: 'About Yurie — Digital Experiments, Honest Failures & Wins',
-    blog: 'Blog Archive — Real Digital Experiments & Side Hustle Stories',
+    blog: 'Blog — Real Digital Experiments & Side Hustle Stories',
     gallery: 'Gallery — AI Art, Digital Experiments & Creative Chaos',
     contact: 'Contact — Let\'s Talk Digital Experiments & Side Hustles',
   },
@@ -47,8 +47,8 @@ export const BRAND = {
   headings: {
     homepage: 'Digital Business Experiments — Real Stories from Creator Economy Trenches',
     about: 'About Yurie — The Person Behind These Digital Experiments',
-    blog: 'Blog Archive — Every Experiment, Failed Launch & Accidental Win',
-    gallery: 'Gallery Archive — Just Visuals, No Deep Meaning',},
+    blog: 'Blog — Every Experiment, Failed Launch & Accidental Win',
+    gallery: 'Gallery — Just Visuals, No Deep Meaning',},
   
   // Intro текста (для hero секций)
   intros: {

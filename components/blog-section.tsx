@@ -60,7 +60,7 @@ export default function BlogSection({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {initialPosts.map((post, i) => (
-            <article key={post.id}>
+            <article key={`${post.id}-${i}`}>
               <Card className="group overflow-hidden flex flex-col h-full">
                 <div className="relative h-52 bg-muted overflow-hidden">
                   <Image
@@ -104,7 +104,7 @@ export default function BlogSection({
 
         {/* Кнопка на архив */}
         <div className="flex justify-center mt-10">
-          <LoadMoreBtn href="/archiveblog" lang={lang} color="pink" />
+          <LoadMoreBtn href="/blog" lang={lang} color="pink" />
         </div>
       </div>
     </section>

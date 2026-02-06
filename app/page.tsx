@@ -103,7 +103,7 @@ export default async function Page() {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: `${BRAND.siteUrl}/archiveblog?search={search_term_string}`
+        urlTemplate: `${BRAND.siteUrl}/blog?search={search_term_string}`
       },
       'query-input': 'required name=search_term_string'
     }

@@ -16,7 +16,7 @@ const content = {
     support: 'Support',
     explore: 'Explore',
     home: 'Home',
-    blogArchive: 'Blog Archive',
+    blog: 'Blog',
     gallery: 'Gallery',
     topics: 'Topics',
     connect: 'Connect',
@@ -32,7 +32,7 @@ const content = {
     support: 'Apoyar',
     explore: 'Explorar',
     home: 'Inicio',
-    blogArchive: 'Archivo del Blog',
+    blog: 'Blog',
     gallery: 'Galería',
     topics: 'Temas',
     connect: 'Conectar',
@@ -56,8 +56,8 @@ export default function Footer({ language }: FooterProps) {
             <h3 className="font-semibold text-base mb-4 text-foreground">{t.explore}</h3>
             <ul className="space-y-2">
               <li><Link href="/" className="text-sm text-foreground/70 hover:text-primary transition-colors block">{t.home}</Link></li>
-              <li><Link href="/archiveblog" className="text-sm text-foreground/70 hover:text-primary transition-colors block">{t.blogArchive}</Link></li>
-              <li><Link href="/archivegallery" className="text-sm text-foreground/70 hover:text-primary transition-colors block">{t.gallery}</Link></li>
+              <li><Link href="/blog" className="text-sm text-foreground/70 hover:text-primary transition-colors block">{t.blog}</Link></li>
+              <li><Link href="/gallery" className="text-sm text-foreground/70 hover:text-primary transition-colors block">{t.gallery}</Link></li>
               <li><Link href="/about" className="text-sm text-foreground/70 hover:text-primary transition-colors block">{t.about}</Link></li>
             </ul>
           </nav>

@@ -102,8 +102,6 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
     
     // Special cases
     const labelMap: Record<string, string> = {
-      'archiveblog': 'Blog Archive',
-      'archivegallery': 'Gallery Archive',
       'blog': 'Blog',
       'gallery': 'Gallery',
       'about': 'About',

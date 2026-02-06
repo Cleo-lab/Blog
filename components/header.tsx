@@ -82,8 +82,8 @@ export default function Header({
   const navItems = [
     { id: 'home', label: t.home, href: '/' },
     { id: 'about', label: t.about, href: '/about' },
-    { id: 'blog', label: t.blog, href: '/archiveblog' },
-    { id: 'gallery', label: t.gallery, href: '/archivegallery' },
+    { id: 'blog', label: t.blog, href: '/blog' },
+    { id: 'gallery', label: t.gallery, href: '/gallery' },
     { id: 'subscribe', label: t.subscribe, href: '/#subscribe' },
   ];
 
