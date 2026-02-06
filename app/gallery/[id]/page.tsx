@@ -100,7 +100,7 @@ export default async function GalleryImagePage({
             <ol className="flex items-center space-x-2">
               <li><Link href="/" className="hover:text-pink-500">Home</Link></li>
               <li>/</li>
-              <li><Link href="/archivegallery" className="hover:text-pink-500">Gallery</Link></li>
+              <li><Link href="/gallery" className="hover:text-pink-500">Gallery</Link></li>
               <li>/</li>
               <li className="text-foreground truncate font-medium">{image.title}</li>
             </ol>

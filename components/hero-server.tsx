@@ -60,7 +60,7 @@ export default function HeroServer() {
               "url": BRAND.siteUrl,
               "potentialAction": {
                 "@type": "SearchAction",
-                "target": `${BRAND.siteUrl}/archiveblog?search={search_term_string}`,
+                "target": `${BRAND.siteUrl}/blog?search={search_term_string}`,
                 "query-input": "required name=search_term_string"
               }
             },

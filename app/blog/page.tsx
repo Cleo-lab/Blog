@@ -31,11 +31,11 @@ const cleanText = (text: string) => {
 export const metadata = {
   title: BRAND.titles.blog,
   description: BRAND.descriptions.blog,
-  alternates: { canonical: `${BRAND.siteUrl}/archiveblog` },
+  alternates: { canonical: `${BRAND.siteUrl}/blog` },
   openGraph: {
     title: BRAND.titles.blog,
     description: BRAND.taglines.medium,
-    url: `${BRAND.siteUrl}/archiveblog`,
+    url: `${BRAND.siteUrl}/blog`,
     siteName: BRAND.siteName,
     locale: 'en_US',
     type: 'website',
@@ -57,7 +57,7 @@ export const metadata = {
   },
 }
 
-export default async function ArchiveBlogPage() {
+export default async function BlogPage() {
   const supabase = createServiceSupabase()
   const { data: posts, error } = await supabase
     .from('blog_posts')
@@ -72,10 +72,10 @@ export default async function ArchiveBlogPage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    '@id': `${BRAND.siteUrl}/archiveblog`,
+    '@id': `${BRAND.siteUrl}/blog`,
     name: BRAND.titles.blog,
     description: BRAND.descriptions.blog,
-    url: `${BRAND.siteUrl}/archiveblog`,
+    url: `${BRAND.siteUrl}/blog`,
     inLanguage: 'en-US',
     isPartOf: { '@type': 'Blog', '@id': `${BRAND.siteUrl}/#blog` },
     mainEntity: {
@@ -101,7 +101,7 @@ export default async function ArchiveBlogPage() {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: BRAND.siteUrl },
-      { '@type': 'ListItem', position: 2, name: 'Blog Archive', item: `${BRAND.siteUrl}/archiveblog` },
+      { '@type': 'ListItem', position: 2, name: 'Blog Archive', item: `${BRAND.siteUrl}/blog` },
     ],
   }
 

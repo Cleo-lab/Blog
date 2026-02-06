@@ -1,4 +1,4 @@
-// app/archivegallery/page.tsx
+
 import { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -13,13 +13,13 @@ export const metadata: Metadata = {
   description: BRAND.descriptions.gallery,
   
   alternates: { 
-    canonical: `${BRAND.siteUrl}/archivegallery` 
+    canonical: `${BRAND.siteUrl}/gallery` 
   },
   
   openGraph: {
     title: BRAND.titles.gallery,
     description: BRAND.taglines.medium,
-    url: `${BRAND.siteUrl}/archivegallery`,
+    url: `${BRAND.siteUrl}/gallery`,
     siteName: BRAND.siteName,
     locale: 'en_US',
     type: 'website',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
 
 export const revalidate = 86400
 
-export default async function ArchiveGalleryPage() {
+export default async function GalleryPage() {
   const supabase = createServiceSupabase()
   
   const { data: images, count } = await supabase
@@ -56,10 +56,10 @@ export default async function ArchiveGalleryPage() {
   const gallerySchema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    '@id': `${BRAND.siteUrl}/archivegallery`,
+    '@id': `${BRAND.siteUrl}/gallery`,
     name: BRAND.titles.gallery,
     description: getSchemaDescription('gallery'),
-    url: `${BRAND.siteUrl}/archivegallery`,
+    url: `${BRAND.siteUrl}/gallery`,
     inLanguage: 'en-US',
     author: {
       '@type': 'Person',
@@ -82,8 +82,8 @@ export default async function ArchiveGalleryPage() {
       {
         '@type': 'ListItem',
         position: 2,
-        name: 'Gallery Archive',
-        item: `${BRAND.siteUrl}/archivegallery`,
+        name: 'Gallery',
+        item: `${BRAND.siteUrl}/gallery`,
       },
     ],
   }

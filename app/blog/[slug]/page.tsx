@@ -173,7 +173,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: baseUrl },
-      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${baseUrl}/archiveblog` },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${baseUrl}/blog` },
       { '@type': 'ListItem', position: 3, name: post.title, item: `${baseUrl}/blog/${post.slug}` },
     ],
   }
@@ -190,14 +190,14 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
             <ol className="flex items-center space-x-2">
               <li><Link href="/" className="hover:text-pink-500 transition-colors">Home</Link></li>
               <li>/</li>
-              <li><Link href="/archiveblog" className="hover:text-pink-500 transition-colors">Blog</Link></li>
+              <li><Link href="/blog" className="hover:text-pink-500 transition-colors">Blog</Link></li>
               <li>/</li>
               <li className="text-foreground truncate max-w-[200px] font-medium">{post.title}</li>
             </ol>
           </nav>
 
           <div className="flex justify-end mb-8">
-            <Link href="/archiveblog" className="inline-flex items-center px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group">
+            <Link href="/blog" className="inline-flex items-center px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group">
               <X className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
               Close
             </Link>
