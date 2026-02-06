@@ -22,12 +22,13 @@ interface BlogPost {
 const cleanText = (text: string) => {
   if (!text) return ''
   return text
-    .replace(/\[(yellow|blue|purple|pink)\]/g, '')
+    .replace(/\[(yellow|blue|purple|pink)\]/g, '') // убираем твои цветовые теги
+    .replace(/archiveblog/g, 'blog')               // ✅ МЕНЯЕМ СТАРУЮ ССЫЛКУ НА НОВУЮ
+    .replace(/archivegallery/g, 'gallery')         // ✅ МЕНЯЕМ ГАЛЕРЕЮ
     .replace(/^[> \t]+/gm, '')
     .replace(/[#*`]/g, '')
     .trim()
 }
-
 export const metadata = {
   title: BRAND.titles.blog,
   description: BRAND.descriptions.blog,
@@ -101,7 +102,7 @@ export default async function BlogPage() {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: BRAND.siteUrl },
-      { '@type': 'ListItem', position: 2, name: 'Blog Archive', item: `${BRAND.siteUrl}/blog` },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${BRAND.siteUrl}/blog` },
     ],
   }
 

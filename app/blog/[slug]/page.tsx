@@ -103,7 +103,7 @@ const collectText = (node: any): string => {
 }
 
 const stripColorTag = (node: any): any => {
-  if (typeof node === 'string') return node.replace(/\[(yellow|blue|purple|pink)\]/g, '').trimStart()
+  if (typeof node === 'string') return node.replace(/\[(yellow|blue|purple|pink)\]/g, '').trim()
   if (Array.isArray(node)) return node.map(stripColorTag)
   if (node?.props?.children) {
     return React.cloneElement(node, {
@@ -279,7 +279,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                   },
                 }}
               >
-                {post.content}
+                {post.content.replace(/\/archiveblog/g, '/blog')}
               </ReactMarkdown>
             </div>
 

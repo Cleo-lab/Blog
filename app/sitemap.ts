@@ -12,11 +12,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   
   const baseUrl = BRAND.siteUrl.replace(/\/$/, '')
 
-  // 1. Статические страницы (Теперь с правильными путями)
   const staticPaths = [
-    '',          // Главная
-    '/blog',     // ✅ Было /archiveblog
-    '/gallery',  // ✅ Было /archivegallery
+    '',          
+    '/blog',     
+    '/gallery',  
     '/about', 
     '/contact',
     '/privacy',
