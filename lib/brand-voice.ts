@@ -23,11 +23,11 @@ export const BRAND = {
   
   // Полные описания (120-160 символов для meta description)
   descriptions: {
-    homepage: 'Digital business experiments gone right (and hilariously wrong). Real data from creator economy trenches, side hustle attempts, and online monetization chaos. No gurus here.',
+    homepage: 'Digital business experiments gone right (and hilariously wrong). Real data from creator economy trenches, side hustles, and monetization chaos. No gurus here.',
     
     about: 'Personal blog about online experiments that actually happened — from successful digital projects to spectacular failures. Real stories, real data, real laughs. No motivational BS.',
     
-    blog: 'Complete collection of digital experiment stories: creator economy insights, side hustle adventures, monetization attempts, and lessons from online business chaos. Humor included.',
+    blog: 'Complete collection of digital experiment stories: creator economy insights, side hustle adventures, monetization attempts, and lessons from online business chaos.',
     
     gallery: 'Visual journey through AI experiments, digital art attempts, and creative chaos. Because every experiment deserves documentation — even the questionable ones.',
     
